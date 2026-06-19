@@ -1,0 +1,1 @@
+print("Nuova cartella, percorso pulito!")

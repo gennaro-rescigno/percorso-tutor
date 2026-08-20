@@ -1,0 +1,3 @@
+# Niente da vedere qui: gli inviti sono privati.
+User-agent: *
+Disallow: /

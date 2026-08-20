@@ -1,0 +1,7 @@
+{
+  "_come_si_usa": "Riempi questi due campi UNA VOLTA SOLA, dopo aver preparato il foglio Google e pubblicato il sito. Da lì in poi ogni invito nuovo li eredita da solo.",
+  "backend": "",
+  "sito": "",
+  "_backend": "L'indirizzo /exec dello script Google (vedi backend/Codice.gs)",
+  "_sito": "L'indirizzo del sito pubblicato, es. https://inviti-gennaro.netlify.app"
+}

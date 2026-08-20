@@ -1,0 +1,628 @@
+/* =====================================================================
+   CASINÒ — il quinto tema.
+   Si accende scrivendo  tema: "casino"  dentro config.js.
+   All'apertura la sala è al buio e una torcia ci gira sopra; poi si
+   accendono le luci e si vede la slot. Al tocco i rulli partono, si
+   fermano uno alla volta e la vincita fa scendere gettoni e carte.
+   ===================================================================== */
+
+[data-tema="casino"] {
+  /* Colori: nero col verde del tavolo dentro, oro, rosso della roulette */
+  --cipria:      #06100C;
+  --cipria-cupa: #030805;
+  --carta:       #0E1F18;
+  --carta-velo:  rgba(14, 31, 24, 0.62);
+  --oro:         #D9B45B;
+  --oro-chiaro:  #F0DCA4;
+  --inchiostro:  #F2E7CE;
+  --inchiostro-tenue: #A79B7F;
+  --diamante:    #F6EEDC;
+  --ombra:       rgba(0, 0, 0, 0.6);
+  --ombra-forte: rgba(0, 0, 0, 0.82);
+
+  --corsivo: "Bodoni Moda", "Didot", Georgia, serif;
+  --serif:   "Jost", "Helvetica Neue", Arial, sans-serif;
+  --mano:    "Caveat", "Bradley Hand", cursive;
+
+  --feltro:  #0B3B2E;
+  --rosso:   #C22A34;
+  --ottone:  #8A6B2A;
+  --vetro:   rgba(255, 255, 255, 0.05);
+  --filo-oro: rgba(217, 180, 91, 0.35);
+
+  /* i rulli girano, si fermano a uno a uno e poi paga */
+  --attesa-apertura: 3500;
+}
+
+/* --- La sala ------------------------------------------------------------ */
+[data-tema="casino"] body { background: #06100C; }
+
+[data-tema="casino"] .fondo {
+  background:
+    radial-gradient(120% 80% at 50% 12%, #123528 0%, #0A2119 38%, #061410 70%, #030805 100%);
+}
+[data-tema="casino"] .fondo::after {
+  background: radial-gradient(70% 52% at 50% 42%, transparent 30%, rgba(0, 0, 0, 0.78) 100%);
+}
+
+/* =====================================================================
+   LA TORCIA
+   Un velo nero con un buco morbido in mezzo: si sposta e scopre un pezzo
+   di sala alla volta. Dopo un paio di secondi si accendono le luci.
+   ===================================================================== */
+[data-tema="casino"] .scena-busta::before {
+  content: "";
+  position: fixed;
+  inset: -60%;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    radial-gradient(circle 30vmin at 50% 50%,
+      rgba(255, 238, 196, 0.16) 0%,
+      rgba(255, 226, 170, 0.07) 40%,
+      rgba(4, 10, 7, 0.55) 58%,
+      rgba(3, 8, 5, 0.94) 74%,
+      #020604 88%);
+  animation:
+    torcia 2.6s cubic-bezier(0.45, 0, 0.55, 1) forwards,
+    luceAccesa 1s ease 2.35s forwards;
+}
+
+/* il fascio entra da fuori, passa sull'insegna, sui rulli, sulla leva
+   e sul vassoio, e finisce fermo sulla macchina */
+@keyframes torcia {
+  0%   { transform: translate(-19%, -11%); }
+  22%  { transform: translate(2%, -6%); }
+  46%  { transform: translate(-5%, -1%); }
+  68%  { transform: translate(7%, 3%); }
+  86%  { transform: translate(-2%, 6%); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes luceAccesa {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* prima che si accenda la luce la sala è spenta: la scritta arriva dopo */
+[data-tema="casino"] .busta-istruzione {
+  color: var(--oro);
+  font-weight: 500;
+  text-shadow: 0 0 18px rgba(217, 180, 91, 0.6);
+  animation: comparsa 1.2s ease 2.6s both, respiro 3.4s ease-in-out 3.8s infinite;
+}
+@keyframes comparsa {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* =====================================================================
+   LA SLOT
+   Gli stessi pezzi della busta, con un altro mestiere:
+     .busta         → la cassa (::before e ::after sono le lampadine)
+     .busta-falda   → l'insegna in cima
+     .busta-corpo   → il mobile (::before la fascia, ::after la leva)
+     .busta-lettera → la finestra con i tre rulli
+     .busta-fronte  → il vassoio della vincita
+     .busta-sigillo → il pulsante tondo
+   ===================================================================== */
+
+[data-tema="casino"] .scena-busta { gap: 2.8rem; }
+
+[data-tema="casino"] .busta {
+  width: min(15.5rem, 64vw);
+  aspect-ratio: 1 / 1.32;
+  perspective: 900px;
+  /* al buio la macchina è spenta ma non invisibile: la torcia deve
+     poterla scoprire. Alla luce prende colore e scalda. */
+  animation: accendiCassa 1.4s ease 2.4s both;
+}
+@keyframes accendiCassa {
+  from { filter: brightness(0.82) saturate(0.7); }
+  to   { filter: none; }
+}
+[data-tema="casino"] .busta:hover { transform: translateY(-6px); }
+
+/* il mobile */
+[data-tema="casino"] .busta-corpo {
+  top: 17%;
+  bottom: 0;
+  left: 4%;
+  right: 4%;
+  border-radius: 1rem 1rem 0.7rem 0.7rem;
+  background:
+    linear-gradient(180deg, #1B120C 0%, #241811 34%, #17100B 72%, #0D0907 100%),
+    linear-gradient(90deg, #0B0706, #2A1C12 20%, #3A2717 50%, #2A1C12 80%, #0B0706);
+  box-shadow:
+    0 34px 64px -22px #000,
+    inset 0 0 0 2px var(--ottone),
+    inset 0 0 0 3px rgba(255, 220, 150, 0.22),
+    inset 0 -18px 40px rgba(0, 0, 0, 0.7);
+}
+/* la fascia dorata sotto la finestra */
+[data-tema="casino"] .busta-corpo::before {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 58%;
+  height: 7%;
+  border-radius: 0.3rem;
+  background: linear-gradient(180deg, #F3DFA8, #C9A24E 45%, #7C5F22);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+/* la leva, con la sfera rossa in cima */
+[data-tema="casino"] .busta-corpo::after {
+  content: "";
+  position: absolute;
+  right: -8%;
+  top: 10%;
+  width: 13%;
+  height: 44%;
+  transform-origin: 50% 100%;
+  background:
+    radial-gradient(circle closest-side at 38% 30%, rgba(255,255,255,0.85) 0%, rgba(255,160,150,0.35) 30%, transparent 55%) top center / 130% 27% no-repeat,
+    radial-gradient(circle closest-side at 50% 50%, #F4655B 0%, #E8493F 30%, var(--rosso) 62%, #6E1017 94%, transparent 100%) top center / 130% 27% no-repeat,
+    linear-gradient(90deg, #6E6E78, #E8E8F0 40%, #9A9AA6 70%, #55555E) center / 34% 100% no-repeat;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7));
+}
+[data-tema="casino"] .scena-busta.aperta .busta-corpo::after {
+  animation: leva 1.1s cubic-bezier(0.3, 1.5, 0.5, 1) forwards;
+}
+@keyframes leva {
+  0%   { transform: rotate(0deg); }
+  18%  { transform: rotate(58deg); }
+  70%  { transform: rotate(52deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* l'insegna in cima */
+[data-tema="casino"] .busta-falda {
+  top: 0;
+  height: 20%;
+  left: 0;
+  right: 0;
+  clip-path: none;
+  transform: none;
+  border-radius: 1.2rem 1.2rem 0.2rem 0.2rem;
+  background:
+    radial-gradient(120% 160% at 50% 120%, rgba(217, 180, 91, 0.4) 0%, transparent 60%),
+    linear-gradient(180deg, #2A1C12, #140D09);
+  box-shadow:
+    inset 0 0 0 2px var(--ottone),
+    inset 0 0 26px rgba(217, 180, 91, 0.28),
+    0 0 40px -10px rgba(217, 180, 91, 0.5);
+  filter: none;
+}
+[data-tema="casino"] .scena-busta.aperta .busta-falda { transform: none; z-index: 3; }
+/* i tre semi sull'insegna */
+[data-tema="casino"] .busta-falda::before {
+  content: "♠  ♦  ♣";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--corsivo);
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+  color: var(--oro-chiaro);
+  text-shadow: 0 0 12px rgba(217, 180, 91, 0.9), 0 0 30px rgba(217, 180, 91, 0.5);
+  animation: insegna 1.4s steps(1, end) 2.4s both;
+}
+@keyframes insegna {
+  0%, 18%, 30%, 44% { opacity: 0.15; }
+  12%, 26%, 40%, 100% { opacity: 1; }
+}
+
+/* la targhetta fra la finestra e la fascia
+   (sta sull'insegna ma si posiziona più in basso: gli altri pezzi sono
+   tutti già occupati) */
+[data-tema="casino"] .busta-falda::after {
+  content: "JACKPOT";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 255%;
+  height: 42%;
+  display: grid;
+  place-items: center;
+  border-radius: 0.25rem;
+  font-family: var(--serif);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: #3A2A08;
+  background: linear-gradient(180deg, #F6E6B6, #C9A24E 55%, #8A6B2A);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-tema="casino"] .scena-busta.aperta .busta-falda::after {
+  animation: targhetta 0.4s ease 2.4s 4;
+}
+@keyframes targhetta {
+  0%, 100% { filter: none; }
+  50%      { filter: brightness(1.5) drop-shadow(0 0 14px rgba(255, 214, 120, 0.95)); }
+}
+
+/* --- le lampadine attorno alla cassa, a due gruppi che si alternano ---- */
+[data-tema="casino"] .busta::before,
+[data-tema="casino"] .busta::after {
+  content: "";
+  position: absolute;
+  inset: -0.55rem 0.4rem -0.55rem 0.4rem;
+  border-radius: 1.4rem;
+  pointer-events: none;
+  z-index: 5;
+  background-repeat: repeat-x, repeat-x;
+  background-size: 2.2rem 0.7rem, 2.2rem 0.7rem;
+}
+[data-tema="casino"] .busta::before {
+  background-image:
+    radial-gradient(circle 0.19rem at 0.55rem 50%, #FFF0C4 0%, #E8C468 45%, rgba(217,180,91,0) 70%),
+    radial-gradient(circle 0.19rem at 0.55rem 50%, #FFF0C4 0%, #E8C468 45%, rgba(217,180,91,0) 70%);
+  background-position: left top, left bottom;
+  animation: lampadineA 0.62s steps(1, end) 2.5s infinite;
+}
+[data-tema="casino"] .busta::after {
+  background-image:
+    radial-gradient(circle 0.19rem at 1.65rem 50%, #FFF0C4 0%, #E8C468 45%, rgba(217,180,91,0) 70%),
+    radial-gradient(circle 0.19rem at 1.65rem 50%, #FFF0C4 0%, #E8C468 45%, rgba(217,180,91,0) 70%);
+  background-position: left top, left bottom;
+  animation: lampadineB 0.62s steps(1, end) 2.5s infinite;
+}
+@keyframes lampadineA {
+  0%, 49%   { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 214, 120, 0.9)); }
+  50%, 100% { opacity: 0.22; filter: none; }
+}
+@keyframes lampadineB {
+  0%, 49%   { opacity: 0.22; filter: none; }
+  50%, 100% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 214, 120, 0.9)); }
+}
+/* quando esce la vincita le luci impazziscono */
+[data-tema="casino"] .scena-busta.aperta .busta::before { animation-duration: 0.16s; animation-delay: 2.4s; }
+[data-tema="casino"] .scena-busta.aperta .busta::after  { animation-duration: 0.16s; animation-delay: 2.4s; }
+
+/* --- la finestra con i tre rulli --------------------------------------- */
+[data-tema="casino"] .busta-lettera {
+  top: 25%;
+  left: 10%;
+  right: 10%;
+  height: 22%;
+  z-index: 2;
+  border-radius: 0.4rem;
+  box-shadow:
+    inset 0 0 0 2px #6E5520,
+    inset 0 8px 18px rgba(0, 0, 0, 0.85),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.85);
+  transform: none;
+  opacity: 1;
+  transition: none;
+
+  /* tre colonne di simboli, una per rullo, più il vetro sopra */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='600'%3E%3Ctext x='50' y='72' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♦%3C/text%3E%3Ctext x='50' y='172' font-size='58' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif' font-weight='bold'%3E7%3C/text%3E%3Ctext x='50' y='272' font-size='62' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif'%3E♥%3C/text%3E%3Ctext x='50' y='372' font-size='58' text-anchor='middle' fill='%23E8C468' font-family='Georgia,serif'%3E★%3C/text%3E%3Ctext x='50' y='472' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♣%3C/text%3E%3Ctext x='50' y='572' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♠%3C/text%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='600'%3E%3Ctext x='50' y='72' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♠%3C/text%3E%3Ctext x='50' y='172' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♦%3C/text%3E%3Ctext x='50' y='272' font-size='58' text-anchor='middle' fill='%23E8C468' font-family='Georgia,serif'%3E★%3C/text%3E%3Ctext x='50' y='372' font-size='58' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif' font-weight='bold'%3E7%3C/text%3E%3Ctext x='50' y='472' font-size='62' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif'%3E♥%3C/text%3E%3Ctext x='50' y='572' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♣%3C/text%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='600'%3E%3Ctext x='50' y='72' font-size='62' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif'%3E♥%3C/text%3E%3Ctext x='50' y='172' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♣%3C/text%3E%3Ctext x='50' y='272' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♦%3C/text%3E%3Ctext x='50' y='372' font-size='62' text-anchor='middle' fill='%23E9D9AE' font-family='Georgia,serif'%3E♠%3C/text%3E%3Ctext x='50' y='472' font-size='58' text-anchor='middle' fill='%23D94A4A' font-family='Georgia,serif' font-weight='bold'%3E7%3C/text%3E%3Ctext x='50' y='572' font-size='58' text-anchor='middle' fill='%23E8C468' font-family='Georgia,serif'%3E★%3C/text%3E%3C/svg%3E"),
+    linear-gradient(180deg, #F6F1E4 0%, #E4DCC8 48%, #CFC5AC 100%);
+  background-repeat: repeat-y, repeat-y, repeat-y, no-repeat;
+  background-size: 33.34% 27rem, 33.34% 27rem, 33.34% 27rem, 100% 100%;
+  background-position: 0% 0, 50% 0, 100% 0, 0 0;
+}
+
+/* i due divisori fra un rullo e l'altro */
+[data-tema="casino"] .busta-lettera::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 33.1%, rgba(110, 85, 32, 0.5) 33.2%,
+                    rgba(110, 85, 32, 0.5) 33.5%, transparent 33.6%),
+    linear-gradient(90deg, transparent 66.4%, rgba(110, 85, 32, 0.5) 66.5%,
+                    rgba(110, 85, 32, 0.5) 66.8%, transparent 66.9%);
+}
+
+/* il vetro davanti ai rulli */
+[data-tema="casino"] .busta-lettera::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 0.3rem;
+  pointer-events: none;
+  background: linear-gradient(112deg,
+    rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.3) 46%,
+    rgba(255, 255, 255, 0.06) 52%, rgba(255, 255, 255, 0) 60%);
+  box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.45);
+}
+[data-tema="casino"] .scena-busta.aperta .busta-lettera::after {
+  animation: riflessoVetro 1.6s ease-in-out 2.4s 2;
+}
+@keyframes riflessoVetro {
+  from { transform: translateX(-40%); }
+  to   { transform: translateX(40%); }
+}
+
+/* Il giro dei rulli. Ognuno si ferma per conto suo — il primo, poi il
+   secondo, poi il terzo — con un rimbalzino, come una slot vera.
+   I tre finiscono tutti sul 7. */
+/* La regola di base fa volare via la lettera all'apertura: qui la lettera
+   è la finestra dei rulli e deve restare dov'è. */
+[data-tema="casino"] .scena-busta.aperta .busta-lettera {
+  transform: none;
+  opacity: 1;
+  animation: giroRulli 2.5s linear forwards, vincita 0.55s ease 2.4s 4;
+}
+@keyframes vincita {
+  0%, 100% { box-shadow: inset 0 0 0 2px #6E5520, inset 0 8px 18px rgba(0,0,0,0.85), inset 0 -8px 18px rgba(0,0,0,0.85); }
+  50%      { box-shadow: inset 0 0 0 2px #FFE9A8, inset 0 0 26px rgba(255, 214, 120, 0.85), 0 0 40px -4px rgba(255, 200, 90, 0.95); }
+}
+@keyframes giroRulli {
+  0%   { background-position: 0% 0,          50% 0,          100% 0,          0 0; }
+  40%  { background-position: 0% -125rem,    50% -110rem,    100% -95rem,     0 0; }
+  46%  { background-position: 0% -140.4rem,  50% -134rem,    100% -116rem,    0 0; }
+  50%  { background-position: 0% -139.5rem,  50% -145rem,    100% -128rem,    0 0; }
+  62%  { background-position: 0% -139.5rem,  50% -170rem,    100% -160rem,    0 0; }
+  68%  { background-position: 0% -139.5rem,  50% -176.4rem,  100% -176rem,    0 0; }
+  72%  { background-position: 0% -139.5rem,  50% -175.5rem,  100% -186rem,    0 0; }
+  88%  { background-position: 0% -139.5rem,  50% -175.5rem,  100% -207.9rem,  0 0; }
+  94%  { background-position: 0% -139.5rem,  50% -175.5rem,  100% -207rem,    0 0; }
+  100% { background-position: 0% -139.5rem,  50% -175.5rem,  100% -207rem,    0 0; }
+}
+
+/* il vassoio della vincita */
+[data-tema="casino"] .busta-fronte {
+  top: auto;
+  bottom: 3%;
+  left: 12%;
+  right: 12%;
+  height: 12%;
+  clip-path: none;
+  border-radius: 0.35rem;
+  background: linear-gradient(180deg, #090605 0%, #1A120C 60%, #241811 100%);
+  box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.95), inset 0 0 0 2px var(--ottone);
+  filter: none;
+}
+[data-tema="casino"] .busta-fronte::before {
+  content: "PAGA";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: rgba(217, 180, 91, 0.5);
+}
+
+/* il pulsante tondo */
+[data-tema="casino"] .busta-sigillo {
+  top: 79%;
+  width: 3.1rem;
+  height: 3.1rem;
+  font-family: var(--serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #40140F;
+  text-shadow: 0 1px 0 rgba(255, 190, 160, 0.6);
+  background: radial-gradient(circle at 38% 28%, #FF8B7E 0%, #E0453C 44%, #97161C 80%, #5C0A10 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.45),
+    inset 0 -4px 8px rgba(70, 5, 10, 0.7),
+    0 0 0 3px var(--ottone),
+    0 0 22px -4px rgba(226, 70, 60, 0.9);
+  animation: battito 2.2s ease-in-out 2.6s infinite;
+}
+[data-tema="casino"] .busta-sigillo::before { display: none; }
+[data-tema="casino"] .scena-busta.aperta .busta-sigillo {
+  transform: none;
+  opacity: 1;
+  transition: none;
+  animation: premuto 0.4s ease forwards;
+}
+@keyframes premuto {
+  0%   { box-shadow: inset 0 2px 4px rgba(255,255,255,0.45), inset 0 -4px 8px rgba(70,5,10,0.7), 0 0 0 3px var(--ottone), 0 0 22px -4px rgba(226,70,60,0.9); }
+  40%  { box-shadow: inset 0 5px 10px rgba(70,5,10,0.8), 0 0 0 3px var(--ottone), 0 0 8px -2px rgba(226,70,60,0.6); }
+  100% { box-shadow: inset 0 2px 4px rgba(255,255,255,0.45), inset 0 -4px 8px rgba(70,5,10,0.7), 0 0 0 3px var(--ottone), 0 0 30px -2px rgba(255,120,90,1); }
+}
+
+/* =====================================================================
+   IL RESTO DELL'INVITO
+   ===================================================================== */
+
+[data-tema="casino"] body { font-weight: 300; }
+
+[data-tema="casino"] .occhiello {
+  color: var(--oro);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+}
+[data-tema="casino"] .titolo-sezione {
+  font-family: var(--corsivo);
+  font-size: 2.1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--diamante);
+}
+[data-tema="casino"] .filo { color: var(--oro); }
+[data-tema="casino"] .filo::before,
+[data-tema="casino"] .filo::after {
+  background: linear-gradient(90deg, transparent, var(--filo-oro), transparent);
+}
+
+[data-tema="casino"] .numero {
+  font-family: var(--corsivo);
+  font-weight: 400;
+  background: linear-gradient(112deg,
+    #8A6B2A 0%, #FFF6DC 13%, #D9B45B 25%, #FFFBF0 37%,
+    #B8913C 50%, #FFF6DC 62%, #E4C578 74%, #FFFBF0 86%, #8A6B2A 100%);
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 2px 0 rgba(60, 40, 10, 0.7)) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.85));
+}
+
+[data-tema="casino"] .nome {
+  font-family: var(--corsivo);
+  font-size: clamp(3rem, 14vw, 4.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--diamante);
+  text-shadow: 0 0 20px rgba(217, 180, 91, 0.55), 0 4px 18px rgba(0, 0, 0, 0.9);
+}
+
+[data-tema="casino"] .quando-testo .data { color: #FFFFFF; font-weight: 500; }
+[data-tema="casino"] .ora { color: var(--inchiostro-tenue); }
+
+/* i bolli diventano fiches: il bordo a tacche è una conica ripetuta */
+[data-tema="casino"] .bollo { color: var(--oro); font-weight: 500; }
+[data-tema="casino"] .bollo .segno {
+  border: none;
+  color: var(--oro-chiaro);
+  background:
+    radial-gradient(circle, #123A2C 0%, #123A2C 62%, transparent 63%),
+    repeating-conic-gradient(from 0deg, #F0E6CE 0deg 18deg, #123A2C 18deg 36deg);
+  box-shadow: 0 6px 16px -8px #000, inset 0 0 0 1px rgba(240, 220, 164, 0.35);
+}
+[data-tema="casino"] .bollo .segno::before {
+  border-color: rgba(240, 220, 164, 0.45);
+  inset: 0.5rem;
+}
+[data-tema="casino"] .bollo:hover .segno,
+[data-tema="casino"] .bollo:focus-visible .segno {
+  box-shadow: 0 10px 22px -10px #000, 0 0 24px -6px rgba(217, 180, 91, 0.9);
+}
+
+[data-tema="casino"] .conto-voce {
+  background: linear-gradient(180deg, rgba(18, 58, 44, 0.75), rgba(9, 26, 20, 0.75));
+  border-color: var(--filo-oro);
+  box-shadow: inset 0 1px 0 rgba(240, 220, 164, 0.18);
+}
+[data-tema="casino"] .conto-numero {
+  font-family: var(--corsivo);
+  color: var(--diamante);
+  text-shadow: 0 0 14px rgba(217, 180, 91, 0.6);
+}
+[data-tema="casino"] .conto-etichetta { color: var(--oro); }
+
+[data-tema="casino"] .carta {
+  background: linear-gradient(180deg, rgba(18, 58, 44, 0.55), rgba(8, 22, 17, 0.6));
+  border-color: var(--filo-oro);
+  box-shadow: 0 24px 50px -34px #000, inset 0 1px 0 rgba(240, 220, 164, 0.14);
+}
+[data-tema="casino"] .dettaglio-riga + .dettaglio-riga { border-top-color: rgba(217, 180, 91, 0.2); }
+[data-tema="casino"] .dettaglio-valore { color: var(--diamante); font-weight: 500; }
+[data-tema="casino"] .apertura { color: #EFE3C8; font-style: normal; }
+
+[data-tema="casino"] .programma-ora { color: var(--oro); font-weight: 500; }
+[data-tema="casino"] .programma-filo { background: rgba(217, 180, 91, 0.3); }
+[data-tema="casino"] .programma-filo::before {
+  background: var(--oro);
+  box-shadow: 0 0 10px rgba(217, 180, 91, 0.9);
+}
+[data-tema="casino"] .programma-cosa { color: var(--diamante); font-weight: 500; }
+
+[data-tema="casino"] .campo textarea.foglio {
+  background-color: rgba(255, 255, 255, 0.045);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(217, 180, 91, 0.2) 2.1rem, rgba(217, 180, 91, 0.2) calc(2.1rem + 1px));
+  border-color: var(--filo-oro);
+  color: #F6EEDC;
+}
+[data-tema="casino"] .campo textarea.foglio::placeholder { color: #7A7059; }
+[data-tema="casino"] .promessa { color: var(--inchiostro-tenue); font-style: normal; }
+[data-tema="casino"] .promessa .segno { color: var(--oro); }
+
+[data-tema="casino"] .campo label,
+[data-tema="casino"] .gruppo-legenda { color: var(--oro); font-weight: 500; }
+[data-tema="casino"] .campo input[type="text"],
+[data-tema="casino"] .campo input[type="number"],
+[data-tema="casino"] .campo input[type="password"],
+[data-tema="casino"] .campo textarea,
+[data-tema="casino"] .campo select {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--filo-oro);
+  color: #F6EEDC;
+}
+[data-tema="casino"] .scelta {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--filo-oro);
+  color: #EFE3C8;
+}
+[data-tema="casino"] .scelta:has(input:checked) {
+  background: rgba(217, 180, 91, 0.16);
+  border-color: var(--oro);
+}
+
+[data-tema="casino"] .bottone {
+  background: linear-gradient(180deg, #F3DFA8, #C9A24E 45%, #8A6B2A);
+  border-color: rgba(255, 245, 215, 0.55);
+  color: #2A1D06;
+  font-weight: 600;
+  box-shadow: 0 0 26px -8px rgba(217, 180, 91, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-tema="casino"] .bottone-lieve {
+  background: transparent;
+  border-color: var(--filo-oro);
+  color: var(--oro);
+  box-shadow: none;
+}
+
+[data-tema="casino"] .avviso {
+  background: rgba(194, 42, 52, 0.14);
+  border-color: rgba(220, 110, 110, 0.5);
+  color: #FFC9C4;
+}
+
+[data-tema="casino"] .esito .segno-grande { color: var(--oro); }
+[data-tema="casino"] .esito-titolo,
+[data-tema="casino"] .conta-messaggi {
+  font-family: var(--corsivo);
+  font-weight: 400;
+  font-size: 2.1rem;
+  color: var(--diamante);
+}
+[data-tema="casino"] .firma {
+  font-family: var(--corsivo);
+  font-size: 1.5rem;
+  color: var(--oro-chiaro);
+  text-shadow: 0 0 16px rgba(217, 180, 91, 0.6);
+}
+[data-tema="casino"] .piede { color: var(--inchiostro-tenue); }
+
+[data-tema="casino"] .messaggio {
+  background-color: rgba(255, 255, 255, 0.045);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(217, 180, 91, 0.18) 2.1rem, rgba(217, 180, 91, 0.18) calc(2.1rem + 1px));
+  border-color: var(--filo-oro);
+  color: #F6EEDC;
+}
+[data-tema="casino"] .messaggio-numero {
+  background:
+    radial-gradient(circle, #123A2C 0%, #123A2C 58%, transparent 59%),
+    repeating-conic-gradient(from 0deg, #F0E6CE 0deg 22deg, #123A2C 22deg 44deg);
+  color: var(--oro-chiaro);
+}
+[data-tema="casino"] .sigillo-piccolo {
+  font-family: var(--corsivo);
+  font-size: 0.8rem;
+  background: radial-gradient(circle at 34% 30%, #F3DFA8, #8A6B2A);
+  color: #2A1D06;
+  text-shadow: none;
+}
+[data-tema="casino"] .tabella-conferme th { color: var(--oro); }
+[data-tema="casino"] .tabella-conferme th,
+[data-tema="casino"] .tabella-conferme td { border-bottom-color: rgba(217, 180, 91, 0.2); }
+[data-tema="casino"] .pastiglia.si { background: rgba(120, 200, 150, 0.16); color: #A8E6C4; }
+[data-tema="casino"] .pastiglia.no { background: rgba(194, 42, 52, 0.18); color: #F0AFAB; }
+
+[data-tema="casino"] .musica {
+  background: rgba(14, 31, 24, 0.85);
+  border-color: var(--filo-oro);
+  color: var(--oro);
+}

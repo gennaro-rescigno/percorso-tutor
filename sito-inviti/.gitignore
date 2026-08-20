@@ -1,0 +1,12 @@
+# Roba di sistema
+.DS_Store
+Thumbs.db
+
+# Le anteprime generate a mano
+anteprima*.html
+
+# IL REGISTRO NON VA MAI SU GITHUB.
+# Dentro ci sono i codici della festeggiata: la copia buona di quei codici
+# sta nel foglio Google (scheda "Registro"), quindi se perdi questo file
+# non perdi niente di irrecuperabile. Ma su GitHub non ci deve stare.
+registro.md

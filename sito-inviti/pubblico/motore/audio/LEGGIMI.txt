@@ -1,0 +1,3 @@
+Metti qui il file della musica e chiamalo musica.mp3.
+Vale per tutti gli inviti: lo carichi una volta sola.
+Se il file non c'è, il tasto della musica sparisce da solo e non si rompe niente.

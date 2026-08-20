@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invito {{ETA}}esimo {{NOME}}</title>
+<meta name="description" content="Invito per i {{ETA}} anni di {{NOME}} — {{DATA}}">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#F2D8D4">
+
+<!-- L'anteprima che si vede su WhatsApp: la riempie nuovo_invito.py -->
+<meta property="og:title" content="{{NOME}} compie {{ETA}} anni">
+<meta property="og:description" content="{{DATA}} — ore {{ORA}}. Tocca per aprire l'invito.">
+<meta property="og:type" content="website">
+
+<!-- config.js sta qui in alto perché decide il tema prima che la pagina si disegni -->
+<script src="config.js"></script>
+<script>document.documentElement.dataset.tema = (window.CONFIG && window.CONFIG.tema) || "cipria";</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Parisienne&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=Monoton&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Karla:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Sora:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&family=Jost:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700&family=Barlow:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="../../motore/css/stile.css">
+<link rel="stylesheet" href="../../motore/css/discoteca.css">
+<link rel="stylesheet" href="../../motore/css/neve.css">
+<link rel="stylesheet" href="../../motore/css/spazio.css">
+<link rel="stylesheet" href="../../motore/css/casino.css">
+<link rel="stylesheet" href="../../motore/css/calcio.css">
+</head>
+
+<body>
+<div class="fondo" aria-hidden="true"></div>
+<canvas id="glitter" aria-hidden="true"></canvas>
+<canvas id="rose" aria-hidden="true"></canvas>
+
+<noscript>
+  <p style="padding:2rem;text-align:center">Per vedere l'invito attiva JavaScript nel browser.</p>
+</noscript>
+
+<!-- ===================== LA BUSTA ===================== -->
+<div class="scena-busta" id="scenaBusta">
+  <p class="busta-istruzione" data-c="testi.istruzioneBusta"></p>
+
+  <button class="busta" id="busta" type="button" aria-label="Apri l'invito">
+    <span class="busta-corpo glitterato" aria-hidden="true"></span>
+    <span class="busta-lettera" aria-hidden="true"></span>
+    <span class="busta-fronte glitterato" aria-hidden="true"></span>
+    <span class="busta-falda glitterato" aria-hidden="true"></span>
+    <span class="busta-sigillo" data-c="festeggiata.iniziali" aria-hidden="true"></span>
+  </button>
+</div>
+
+<!-- ===================== L'INVITO ===================== -->
+<main class="invito" id="invito" aria-hidden="true">
+
+  <header class="sezione testata">
+    <h1 class="testata-titolo">
+      <span class="numero" data-c="festeggiata.eta"></span>
+      <span class="nome" data-c="festeggiata.nome"></span>
+    </h1>
+
+    <p class="quando-testo">
+      <span class="occhiello" data-c="testi.soprannome"></span>
+      <span class="data" data-c="evento.dataTesto"></span>
+      <span class="ora">alle ore <span data-c="evento.oraTesto"></span></span>
+    </p>
+
+    <nav class="bolli" aria-label="Scorciatoie">
+      <a class="bollo" href="#dove">
+        <span class="segno" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
+            <path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>
+          </svg>
+        </span>
+        Dove
+      </a>
+      <a class="bollo" href="#programma">
+        <span class="segno" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
+            <circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3.2 2"/>
+          </svg>
+        </span>
+        Serata
+      </a>
+      <a class="bollo" href="#messaggio">
+        <span class="segno" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
+            <path d="M4 19.5 5 15 16.2 3.8a2 2 0 0 1 2.8 2.8L7.8 17.8z"/><path d="M14.2 5.8 17 8.6"/>
+          </svg>
+        </span>
+        Messaggio
+      </a>
+      <a class="bollo" href="#gruppo">
+        <span class="segno" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
+            <path d="M20.5 11.6a8.5 8.5 0 1 1-3.9-7.1"/><path d="M3.6 20.4 5 16.4"/>
+            <path d="M8.6 8.4c.3 2 1.4 3.6 3 4.7 1 .7 2.2 1 3.4 1"/>
+          </svg>
+        </span>
+        Gruppo
+      </a>
+      <a class="bollo" href="#conferma">
+        <span class="segno" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1">
+            <rect x="3.5" y="6" width="17" height="13" rx="1.6"/><path d="M3.5 8.4 12 13.6l8.5-5.2"/>
+          </svg>
+        </span>
+        Conferma
+      </a>
+    </nav>
+  </header>
+
+  <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+
+  <!-- conto alla rovescia -->
+  <section class="sezione rivela" aria-label="Quanto manca">
+    <p class="occhiello">Manca ancora</p>
+    <div class="conto" id="conto">
+      <span class="conto-voce"><span class="conto-numero" id="contoGiorni">&mdash;</span><span class="conto-etichetta">giorni</span></span>
+      <span class="conto-voce"><span class="conto-numero" id="contoOre">&mdash;</span><span class="conto-etichetta">ore</span></span>
+      <span class="conto-voce"><span class="conto-numero" id="contoMinuti">&mdash;</span><span class="conto-etichetta">minuti</span></span>
+      <span class="conto-voce"><span class="conto-numero" id="contoSecondi">&mdash;</span><span class="conto-etichetta">secondi</span></span>
+    </div>
+  </section>
+
+  <!-- le due frasi dell'invito -->
+  <section class="sezione rivela">
+    <p class="apertura" data-c="testi.apertura"></p>
+    <p class="testo-tenue" data-c="testi.invitoBreve"></p>
+  </section>
+
+  <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+
+  <!-- dove e quando -->
+  <section class="sezione rivela" id="dove">
+    <p class="occhiello">Dove e quando</p>
+    <h2 class="titolo-sezione">Ti aspetto qui</h2>
+
+    <div class="carta">
+      <div class="dettaglio-riga">
+        <span class="occhiello">Il posto</span>
+        <span class="dettaglio-valore" data-c="evento.luogo"></span>
+        <span class="testo-tenue" data-c="evento.indirizzo"></span>
+      </div>
+      <div class="dettaglio-riga">
+        <span class="occhiello">Il giorno</span>
+        <span class="dettaglio-valore" data-c="evento.dataTesto"></span>
+        <span class="testo-tenue">Si comincia alle <span data-c="evento.oraTesto"></span></span>
+      </div>
+      <div class="dettaglio-riga">
+        <span class="occhiello">Come vestirsi</span>
+        <span class="dettaglio-valore" data-c="evento.dressCode"></span>
+        <span class="testo-tenue" data-c="evento.notaDressCode"></span>
+      </div>
+    </div>
+
+    <a class="bottone bottone-lieve" data-c-href="evento.mappa" target="_blank" rel="noopener">Apri la mappa</a>
+  </section>
+
+  <!-- programma -->
+  <section class="sezione rivela" id="programma">
+    <p class="occhiello">La serata</p>
+    <h2 class="titolo-sezione">Come andr&agrave;</h2>
+    <ol class="programma" id="programmaElenco"></ol>
+  </section>
+
+  <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+
+  <!-- messaggio anonimo -->
+  <section class="sezione rivela" id="messaggio">
+    <p class="occhiello">Prima dei diciotto</p>
+    <h2 class="titolo-sezione" data-c="messaggi.titolo"></h2>
+    <p class="testo-tenue" data-c="messaggi.invito"></p>
+
+    <form class="lettera" id="letteraMessaggio" novalidate>
+      <div class="campo">
+        <label for="testoMessaggio">Il tuo messaggio</label>
+        <textarea class="foglio" id="testoMessaggio" name="testo" rows="5"
+                  placeholder="Ti scrivo perch&eacute;&hellip;"></textarea>
+      </div>
+      <span class="contatore" id="contatoreMessaggio"></span>
+
+      <p class="promessa">
+        <span class="segno" aria-hidden="true">&#10023;</span>
+        <span data-c="messaggi.promessa"></span>
+      </p>
+
+      <p class="avviso" id="avvisoMessaggio" role="alert" hidden></p>
+      <button class="bottone" id="inviaMessaggio" type="submit">Invia il messaggio</button>
+      <p class="nota-prova">Modo prova: non c'&egrave; ancora il foglio Google collegato, il messaggio resta su questo telefono.</p>
+    </form>
+
+    <div class="esito" id="esitoMessaggio" role="status">
+      <span class="segno-grande" aria-hidden="true">&#10023;</span>
+      <p class="esito-titolo" data-c="messaggi.ringraziamento"></p>
+      <p class="testo-tenue" data-c="messaggi.ringraziamentoDettaglio"></p>
+    </div>
+  </section>
+
+  <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+
+  <!-- il gruppo WhatsApp -->
+  <section class="sezione rivela" id="gruppo">
+    <p class="occhiello">Prima della festa</p>
+    <h2 class="titolo-sezione" data-c="whatsapp.titolo"></h2>
+    <p class="testo-tenue" data-c="whatsapp.invito"></p>
+    <a class="bottone bottone-gruppo" id="linkGruppo" href="#" target="_blank" rel="noopener">
+      <span class="segno-gruppo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.3c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-3-.2-.3A8.3 8.3 0 1 1 12 20.3z"/>
+          <path d="M17.4 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.1l-.9 1.1c-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.6-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.8.4-.3.3-1.1 1-1.1 2.5s1.1 2.9 1.3 3.1c.1.2 2.1 3.3 5.1 4.6 1.9.8 2.7.9 3.6.8.6-.1 1.7-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/>
+        </svg>
+      </span>
+      <span data-c="whatsapp.bottone"></span>
+    </a>
+  </section>
+
+  <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+
+  <!-- conferma di presenza -->
+  <section class="sezione rivela" id="conferma">
+    <p class="occhiello">Conferma</p>
+    <h2 class="titolo-sezione">Ci sarai?</h2>
+    <p class="testo-tenue">Fammelo sapere entro il <span data-c="rsvp.scadenzaTesto"></span>.</p>
+
+    <form class="carta" id="moduloConferma" novalidate>
+      <div class="campo">
+        <label for="nomeConferma">Nome e cognome</label>
+        <input type="text" id="nomeConferma" name="nome" autocomplete="name" required>
+      </div>
+
+      <fieldset class="gruppo campo-staccato">
+        <legend class="gruppo-legenda">Sarai presente?</legend>
+        <label class="scelta"><input type="radio" name="presenza" value="si"> S&igrave;, ci sar&ograve;</label>
+        <label class="scelta"><input type="radio" name="presenza" value="no"> No, non ce la faccio</label>
+      </fieldset>
+
+      <div id="seViene" hidden>
+        <div class="campo campo-staccato" id="campoAccompagnatori">
+          <label for="accompagnatori">Quante persone porti con te</label>
+          <input type="number" id="accompagnatori" name="accompagnatori" min="0" max="10" value="0" inputmode="numeric">
+        </div>
+
+        <div class="campo campo-staccato" id="campoAllergie">
+          <label for="allergie">Allergie o intolleranze</label>
+          <input type="text" id="allergie" name="allergie" placeholder="Niente da segnalare">
+        </div>
+      </div>
+
+      <div class="campo campo-staccato">
+        <label for="noteConferma">Vuoi aggiungere qualcosa?</label>
+        <textarea id="noteConferma" name="note" rows="2"></textarea>
+      </div>
+
+      <p class="avviso campo-staccato" id="avvisoConferma" role="alert" hidden></p>
+
+      <div class="doppione" id="doppioneConferma" role="alert" hidden>
+        <p id="doppioneTesto"></p>
+        <div class="doppione-tasti">
+          <button class="bottone bottone-lieve" id="cambioNome" type="button">Cambio il nome</button>
+          <button class="bottone" id="sonoAltro" type="button">Sono un&apos;altra persona</button>
+        </div>
+      </div>
+
+      <div class="piede-modulo">
+        <button class="bottone" id="inviaConferma" type="submit">Invia la conferma</button>
+        <p class="nota-prova">Modo prova: la conferma resta su questo telefono finch&eacute; non colleghi il foglio Google.</p>
+      </div>
+    </form>
+
+    <div class="esito" id="esitoConferma" role="status">
+      <span class="segno-grande" aria-hidden="true">&#10023;</span>
+      <p class="esito-titolo">Grazie</p>
+      <p class="testo-tenue" id="esitoConfermaTesto"></p>
+    </div>
+  </section>
+
+  <footer class="piede">
+    <div class="filo" aria-hidden="true"><span>&#9670;</span></div>
+    <p class="firma" data-c="testi.firma"></p>
+  </footer>
+</main>
+
+<button class="musica" id="musica" type="button" aria-label="Musica" aria-pressed="false">
+  <span class="onda" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M9 18V6.5l9-2v11"/><circle cx="6.6" cy="18" r="2.6"/><circle cx="15.6" cy="15.5" r="2.6"/>
+    </svg>
+  </span>
+</button>
+
+<script src="../../motore/js/sfondo.js"></script>
+<script src="../../motore/js/dati.js"></script>
+<script src="../../motore/js/calcio.js"></script>
+<script src="../../motore/js/invito.js"></script>
+</body>
+</html>

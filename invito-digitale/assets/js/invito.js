@@ -6,6 +6,22 @@
 
   var C = window.CONFIG || {};
   var fermoImmagine = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var tema = C.tema || "cipria";
+
+  /* La frase sulla busta, quando in config.js è lasciata vuota */
+  var FRASI_BUSTA = {
+    cipria:    "Tocca la busta per aprire l'invito",
+    discoteca: "Tocca la busta per aprire l'invito",
+    neve:      "Tocca la busta per aprire l'invito",
+    spazio:    "Sali a bordo"
+  };
+
+  /* Quanto aspettare prima di mostrare l'invito: lo decide il tema, in CSS */
+  function attesaApertura() {
+    var v = parseFloat(getComputedStyle(document.documentElement)
+      .getPropertyValue("--attesa-apertura"));
+    return isNaN(v) ? 1500 : v;
+  }
   var $  = function (s, d) { return (d || document).querySelector(s); };
   var $$ = function (s, d) { return Array.prototype.slice.call((d || document).querySelectorAll(s)); };
 
@@ -19,6 +35,12 @@
   /* --- 1. Riempie tutti i testi segnati con data-c --------------------- */
   function applicaTesti() {
     $$("[data-c]").forEach(function (el) { el.textContent = valore(el.dataset.c); });
+
+    /* se la frase sulla busta è vuota, si usa quella che sta bene al tema */
+    var frase = $(".busta-istruzione");
+    if (frase && !String(valore("testi.istruzioneBusta")).trim()) {
+      frase.textContent = FRASI_BUSTA[tema] || FRASI_BUSTA.cipria;
+    }
     $$("[data-c-href]").forEach(function (el) { el.href = valore(el.dataset.cHref); });
     $$("[data-c-segnaposto]").forEach(function (el) { el.placeholder = valore(el.dataset.cSegnaposto); });
 
@@ -168,7 +190,7 @@
         invito.removeAttribute("aria-hidden");
         rivelaScorrendo();
         window.scrollTo(0, 0);
-      }, fermoImmagine ? 100 : 1500);
+      }, fermoImmagine ? 100 : attesaApertura());
     });
   }
 

@@ -11,7 +11,8 @@ window.CONFIG = {
   /* --- 0. IL TEMA ------------------------------------------------------
      "cipria"    = rosa, glitter e rose (elegante)
      "discoteca" = nero, neon e luci che girano (serata)
-     "neve"      = azzurro, fiocchi che scendono e neve posata sopra      */
+     "neve"      = azzurro, fiocchi che scendono e neve posata sopra
+     "spazio"    = notte, sistema solare che gira e navicella che parte   */
   tema: "cipria",
 
   /* --- 1. CHI FESTEGGIA ---------------------------------------------- */
@@ -42,7 +43,8 @@ window.CONFIG = {
 
   /* --- 3. LE FRASI DELL'INVITO ---------------------------------------- */
   testi: {
-    istruzioneBusta: "Tocca la busta per aprire l'invito",
+    // Lascia vuoto "" e ci pensa il tema (con "spazio" diventa "Sali a bordo")
+    istruzioneBusta: "",
     soprannome: "Ti aspetto il",              // frase sopra la data
     apertura: "Diciotto anni si compiono una volta sola.",
     invitoBreve: "Ho scelto le persone giuste per festeggiarli: ci sei anche tu.",

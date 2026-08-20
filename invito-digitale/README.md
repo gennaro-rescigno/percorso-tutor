@@ -5,14 +5,14 @@ presenza e — la parte che conta — una **cassetta di messaggi anonimi** per
 la festeggiata: gli invitati le scrivono qualcosa prima che diventi
 maggiorenne, e solo lei potrà leggerli.
 
-Arriva in tre versioni, si sceglie con una riga:
+Arriva in quattro versioni, si sceglie con una riga:
 
-| | `"cipria"` | `"discoteca"` | `"neve"` |
-|---|---|---|---|
-| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco |
-| **carattere** | corsivo elegante (Parisienne) | insegna al neon (Monoton) | serif d'inverno (Fraunces) |
-| **sfondo** | pioggia di brillantini e giardino di rose | palla specchiata, fasci di luce e pista | fiocchi di neve e cumuli |
-| **in più** | ceralacca con le iniziali | il nome al neon che tremola | neve posata su pulsanti, moduli e conto alla rovescia |
+| | `"cipria"` | `"discoteca"` | `"neve"` | `"spazio"` |
+|---|---|---|---|---|
+| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco | notte, fuoco e azzurro |
+| **carattere** | Parisienne | Monoton (neon) | Fraunces | Michroma |
+| **sfondo** | brillantini e rose | palla specchiata e fasci di luce | fiocchi di neve e cumuli | il sistema solare che gira |
+| **si apre** | busta con la ceralacca | busta con il bollo al neon | busta innevata | navicella che chiude il portello e parte |
 
 Cambia solo l'aspetto: testi, messaggi anonimi e conferme funzionano identici.
 
@@ -30,6 +30,7 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 | `assets/css/stile.css` | la struttura e il tema cipria | solo se vuoi cambiare stile |
 | `assets/css/discoteca.css` | il tema discoteca | solo se vuoi cambiare stile |
 | `assets/css/neve.css` | il tema neve | solo se vuoi cambiare stile |
+| `assets/css/spazio.css` | il tema spazio | solo se vuoi cambiare stile |
 | `assets/js/*.js` | il funzionamento | no |
 | `backend/Codice.gs` | lo script che salva le risposte nel foglio Google | lo incolli su Google |
 | `backend/ISTRUZIONI.md` | la guida passo passo per collegare il foglio | leggila |
@@ -41,11 +42,16 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 Prima riga di `config.js`:
 
 ```js
-tema: "cipria",      // oppure "discoteca", oppure "neve"
+tema: "cipria",      // "discoteca", "neve" oppure "spazio"
 ```
 
 Non serve toccare altro: cambiano colori, caratteri e sfondo di tutte e due
 le pagine, invito e cassetta dei messaggi.
+
+Con `"spazio"` la busta diventa una navicella con il portello aperto: al
+tocco la porta si chiude, si accende il motore e parte verso l'alto.
+La frase sopra è "Sali a bordo" — se in `config.js` lasci
+`istruzioneBusta: ""` la scrive il tema, altrimenti vale quella che ci metti tu.
 
 ## 2. Personalizza (5 minuti)
 

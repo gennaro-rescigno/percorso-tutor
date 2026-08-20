@@ -1,0 +1,491 @@
+/* =====================================================================
+   SPAZIO — il quarto tema.
+   Si accende scrivendo  tema: "spazio"  dentro config.js.
+   Dietro gira il sistema solare; al posto della busta c'è una navicella
+   con il portello aperto che al tocco si chiude e parte.
+   ===================================================================== */
+
+[data-tema="spazio"] {
+  /* Colori: notte profonda con dentro il blu, il fuoco del motore,
+     l'azzurro della Terra */
+  --cipria:      #05070F;
+  --cipria-cupa: #02030A;
+  --carta:       #0E1424;
+  --carta-velo:  rgba(18, 26, 45, 0.6);
+  --oro:         #FF8A3D;          /* il fuoco è il colore forte */
+  --oro-chiaro:  #5EC8FF;          /* l'azzurro risponde, in piccolo */
+  --inchiostro:  #E8EEFB;
+  --inchiostro-tenue: #98A8C8;
+  --diamante:    #DCE6FA;
+  --ombra:       rgba(0, 0, 0, 0.6);
+  --ombra-forte: rgba(0, 0, 0, 0.8);
+
+  --corsivo: "Michroma", "Eurostile", sans-serif;
+  --serif:   "Sora", "Helvetica Neue", Arial, sans-serif;
+  --mano:    "Caveat", "Bradley Hand", cursive;
+
+  --metallo:    #C9D4E8;
+  --metallo-cupo: #6C7A97;
+  --vetro:      rgba(255, 255, 255, 0.05);
+  --filo-vetro: rgba(120, 160, 220, 0.22);
+
+  /* il decollo dura più di una busta che si apre */
+  --attesa-apertura: 2750;
+}
+
+/* --- Lo spazio ---------------------------------------------------------- */
+[data-tema="spazio"] body { background: #05070F; }
+
+[data-tema="spazio"] .fondo {
+  background:
+    radial-gradient(130% 85% at 50% 8%, #16203C 0%, #0B1124 40%, #060A16 72%, #03050C 100%);
+}
+[data-tema="spazio"] .fondo::after {
+  background: radial-gradient(75% 55% at 50% 45%, transparent 35%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* niente fascia in fondo: qui sotto c'è il sistema solare */
+[data-tema="spazio"] #rose { display: none; }
+
+/* il sistema solare resta un gradino sotto: sopra ci scorrono i testi */
+[data-tema="spazio"] #glitter { opacity: 0.85; }
+
+/* --- Tipografia ---------------------------------------------------------- */
+[data-tema="spazio"] body { font-weight: 300; }
+
+/* Dietro passano il Sole e i pianeti: una piccola ombra sotto al testo
+   lo tiene leggibile qualunque cosa gli scorra dietro. */
+[data-tema="spazio"] .invito,
+[data-tema="spazio"] .scrigno,
+[data-tema="spazio"] .serratura { text-shadow: 0 1px 7px rgba(3, 6, 14, 0.95); }
+[data-tema="spazio"] .bottone,
+[data-tema="spazio"] .numero { text-shadow: none; }
+
+[data-tema="spazio"] .occhiello {
+  color: var(--oro-chiaro);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+}
+[data-tema="spazio"] .titolo-sezione {
+  font-family: var(--serif);
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #FFFFFF;
+}
+[data-tema="spazio"] .filo { color: rgba(94, 200, 255, 0.4); }
+[data-tema="spazio"] .filo::before,
+[data-tema="spazio"] .filo::after {
+  background: linear-gradient(90deg, transparent, rgba(94, 200, 255, 0.45), transparent);
+}
+
+/* =====================================================================
+   LA NAVICELLA
+   Sono gli stessi pezzi della busta, con un altro mestiere:
+     .busta-falda   → il cono di punta
+     .busta-corpo   → la fusoliera
+     .busta-fronte  → le alette
+     .busta-sigillo → il portello (::before è la porta)
+     .busta-lettera → la fiamma del motore
+   ===================================================================== */
+
+[data-tema="spazio"] .scena-busta { gap: 3.4rem; }
+
+[data-tema="spazio"] .busta-istruzione {
+  color: var(--oro-chiaro);
+  font-weight: 500;
+  text-shadow: 0 0 16px rgba(94, 200, 255, 0.55);
+}
+
+[data-tema="spazio"] .busta {
+  width: min(12rem, 44vw);
+  aspect-ratio: 1 / 2.1;
+  perspective: 800px;
+}
+[data-tema="spazio"] .busta:hover { transform: translateY(-8px); }
+
+/* la fusoliera */
+[data-tema="spazio"] .busta-corpo {
+  top: 22%;
+  bottom: 9%;
+  left: 12%;
+  right: 12%;
+  border-radius: 46% 46% 34% 34% / 14% 14% 9% 9%;
+  background:
+    /* la sezione motore, scura, in fondo */
+    linear-gradient(180deg, transparent 86%, rgba(46, 54, 72, 0.92) 86%),
+    linear-gradient(90deg,
+      #59667F 0%, #93A2BC 14%, #E8EEF8 34%, #FFFFFF 44%,
+      #D3DCEC 60%, #8E9CB7 80%, #4E5A72 100%);
+  box-shadow:
+    0 30px 60px -24px #000,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+/* le fasce dipinte sulla fiancata */
+[data-tema="spazio"] .busta-corpo::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 46%;
+  height: 7%;
+  background: linear-gradient(90deg, rgba(180,70,30,0.85), rgba(255,138,61,0.95), rgba(180,70,30,0.85));
+  opacity: 0.9;
+}
+/* la nuvola di fumo che sboccia all'accensione */
+[data-tema="spazio"] .busta-corpo::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -18%;
+  width: 12rem;
+  height: 6rem;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(226,232,245,0.5) 0%, rgba(180,195,220,0.22) 45%, transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* il cono di punta: lo stesso triangolo della falda, girato in su */
+[data-tema="spazio"] .busta-falda {
+  top: 0;
+  height: 26%;
+  left: 12%;
+  right: 12%;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  transform: none;
+  background:
+    linear-gradient(90deg, #8A3417 0%, #D9542A 22%, #FF8A3D 44%, #E8632F 66%, #7E2F14 100%);
+  filter: none;
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-falda { transform: none; z-index: 4; }
+
+/* le alette */
+[data-tema="spazio"] .busta-fronte {
+  top: auto;
+  bottom: 4%;
+  height: 22%;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+  clip-path: polygon(0 100%, 26% 34%, 26% 100%, 74% 100%, 74% 34%, 100% 100%);
+  background: linear-gradient(180deg, #D9542A, #8A3417);
+  filter: none;
+  box-shadow: none;
+}
+
+/* il portello */
+[data-tema="spazio"] .busta-sigillo {
+  top: 44%;
+  width: 3.6rem;
+  height: 3.6rem;
+  perspective: 500px;
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #FFD9A8;
+  text-shadow: 0 0 10px rgba(255, 180, 100, 0.9);
+  background: radial-gradient(circle at 50% 45%, #3A2A18 0%, #1B1710 60%, #0D0B08 100%);
+  box-shadow:
+    inset 0 0 0 3px #9EAEC8,
+    inset 0 0 18px rgba(255, 170, 90, 0.55),
+    0 0 22px -6px rgba(255, 170, 90, 0.7);
+  animation: none;
+}
+/* la porta: aperta di lato, poi si chiude */
+[data-tema="spazio"] .busta-sigillo::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: 2;
+  border-radius: 50%;
+  background:
+    /* il finestrino */
+    radial-gradient(circle at 50% 42%, #16202F 0%, #16202F 22%, transparent 23%),
+    radial-gradient(circle at 50% 42%, rgba(94,200,255,0.5) 0%, rgba(94,200,255,0.5) 26%, transparent 27%),
+    radial-gradient(circle at 36% 30%, #EEF3FB 0%, #B8C4DA 45%, #78869F 100%);
+  box-shadow: inset 0 0 0 2px #6C7A97, 0 6px 14px -6px #000;
+  transform-origin: left center;
+  transform: rotateY(-115deg);
+  opacity: 1;
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-sigillo {
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: none;
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-sigillo::before {
+  animation: portello 0.55s cubic-bezier(0.5, 0, 0.35, 1.25) forwards;
+}
+
+/* la fiamma, sotto al razzo */
+[data-tema="spazio"] .busta-lettera {
+  top: 95%;
+  left: 33%;
+  right: 33%;
+  height: 34%;
+  z-index: 1;
+  border-radius: 46% 46% 50% 50% / 18% 18% 82% 82%;
+  background: linear-gradient(180deg, #FFD16B 0%, #FF8A3D 26%, #F2451E 52%, rgba(190,40,12,0.45) 74%, rgba(160,25,8,0) 100%);
+  box-shadow: none;
+  transform-origin: top center;
+  transform: scaleY(0);
+  opacity: 0;
+  filter: blur(1px);
+  transition: none;
+}
+[data-tema="spazio"] .busta-lettera::before,
+[data-tema="spazio"] .busta-lettera::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  translate: -50% 0;
+  border-radius: 46% 46% 50% 50% / 18% 18% 82% 82%;
+}
+[data-tema="spazio"] .busta-lettera::before {
+  width: 62%;
+  height: 52%;
+  background: linear-gradient(180deg, #FFF3C4 0%, #FFC24B 40%, rgba(255,180,60,0) 100%);
+}
+[data-tema="spazio"] .busta-lettera::after {
+  width: 32%;
+  height: 26%;
+  background: linear-gradient(180deg, #FFFFFF 0%, #CFE9FF 45%, rgba(180,220,255,0) 100%);
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-lettera {
+  transform: scaleY(0);
+  opacity: 1;
+  animation: fiamma 2.3s linear 0.45s forwards;
+}
+
+/* il decollo: prima trema, poi accelera verso l'alto */
+[data-tema="spazio"] .scena-busta.aperta .busta {
+  animation: decollo 2.6s linear 0.15s forwards;
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-corpo::after {
+  animation: fumo 2.2s ease-out 0.45s forwards;
+}
+[data-tema="spazio"] .scena-busta.aperta .busta-istruzione {
+  animation: none;
+}
+
+@keyframes portello {
+  from { transform: rotateY(-115deg); }
+  to   { transform: rotateY(0deg); }
+}
+
+@keyframes fiamma {
+  0%   { transform: scaleY(0)    scaleX(0.6); opacity: 0.9; }
+  7%   { transform: scaleY(1.15) scaleX(1.1); opacity: 1; }
+  11%  { transform: scaleY(0.85) scaleX(0.92); }
+  15%  { transform: scaleY(1.2)  scaleX(1.06); }
+  19%  { transform: scaleY(0.95) scaleX(0.96); }
+  24%  { transform: scaleY(1.3)  scaleX(1.08); }
+  30%  { transform: scaleY(1.6)  scaleX(1.02); }
+  45%  { transform: scaleY(2.2)  scaleX(0.88); }
+  70%  { transform: scaleY(3.1)  scaleX(0.68); opacity: 0.8; }
+  100% { transform: scaleY(3.6)  scaleX(0.42); opacity: 0; }
+}
+
+@keyframes fumo {
+  0%   { opacity: 0;   transform: scale(0.3); }
+  12%  { opacity: 0.9; transform: scale(1); }
+  40%  { opacity: 0.5; transform: scale(1.9); }
+  100% { opacity: 0;   transform: scale(3.2); }
+}
+
+/* Il conto alla rovescia del decollo sta tutto qui: fino al 34% il razzo
+   vibra sul posto, poi parte e accelera (i salti fra un passo e l'altro
+   crescono apposta). */
+@keyframes decollo {
+  0%   { transform: translate3d(0, 0, 0); }
+  5%   { transform: translate3d(1.5px, 0, 0); }
+  9%   { transform: translate3d(-1.5px, 1px, 0); }
+  13%  { transform: translate3d(2px, -1px, 0); }
+  17%  { transform: translate3d(-2px, 0, 0); }
+  21%  { transform: translate3d(1.5px, 1px, 0); }
+  25%  { transform: translate3d(-2px, -1px, 0); }
+  29%  { transform: translate3d(2px, 0, 0); }
+  34%  { transform: translate3d(0, 0, 0) scale(1); }
+  42%  { transform: translate3d(0, -2vh, 0) scale(0.99); }
+  52%  { transform: translate3d(0, -9vh, 0) scale(0.95); }
+  62%  { transform: translate3d(0, -22vh, 0) scale(0.88); }
+  74%  { transform: translate3d(0, -48vh, 0) scale(0.76); }
+  86%  { transform: translate3d(0, -88vh, 0) scale(0.6); }
+  100% { transform: translate3d(0, -150vh, 0) scale(0.4); }
+}
+
+/* =====================================================================
+   IL RESTO DELL'INVITO
+   ===================================================================== */
+
+[data-tema="spazio"] .numero {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  background: linear-gradient(112deg,
+    #5C6B8A 0%, #FFFFFF 13%, #9FC8F0 26%, #FFFFFF 38%,
+    #FFB877 50%, #FFFFFF 62%, #A8CDF2 74%, #FFFFFF 86%, #5C6B8A 100%);
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(94, 200, 255, 0.45)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.8));
+}
+
+[data-tema="spazio"] .nome {
+  font-family: var(--corsivo);
+  font-size: clamp(1.9rem, 8.5vw, 3rem);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: #FFFFFF;
+  text-shadow: 0 0 12px rgba(94, 200, 255, 0.8), 0 0 34px rgba(94, 200, 255, 0.45);
+}
+
+[data-tema="spazio"] .quando-testo .data { color: #FFFFFF; font-weight: 600; }
+[data-tema="spazio"] .ora { color: var(--inchiostro-tenue); }
+
+[data-tema="spazio"] .bollo { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="spazio"] .bollo .segno {
+  border-color: rgba(94, 200, 255, 0.4);
+  background: rgba(14, 20, 36, 0.7);
+  box-shadow: 0 0 18px -8px rgba(94, 200, 255, 0.8);
+}
+[data-tema="spazio"] .bollo .segno::before { border-color: rgba(255, 138, 61, 0.35); }
+[data-tema="spazio"] .bollo:hover .segno,
+[data-tema="spazio"] .bollo:focus-visible .segno {
+  background: rgba(255, 138, 61, 0.14);
+  border-color: rgba(255, 138, 61, 0.75);
+  box-shadow: 0 0 24px -6px rgba(255, 138, 61, 0.8);
+}
+
+[data-tema="spazio"] .conto-voce {
+  background: var(--vetro);
+  border-color: var(--filo-vetro);
+}
+[data-tema="spazio"] .conto-numero {
+  color: #FFFFFF;
+  font-weight: 600;
+  text-shadow: 0 0 16px rgba(94, 200, 255, 0.7);
+}
+[data-tema="spazio"] .conto-etichetta { color: var(--oro-chiaro); }
+
+[data-tema="spazio"] .carta {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  border-color: var(--filo-vetro);
+  box-shadow: 0 24px 50px -34px #000, inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+[data-tema="spazio"] .dettaglio-riga + .dettaglio-riga { border-top-color: rgba(120, 160, 220, 0.2); }
+[data-tema="spazio"] .dettaglio-valore { color: #FFFFFF; font-weight: 500; }
+[data-tema="spazio"] .apertura { color: #DDE6F8; font-style: normal; }
+
+[data-tema="spazio"] .programma-ora { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="spazio"] .programma-filo { background: rgba(255, 138, 61, 0.3); }
+[data-tema="spazio"] .programma-filo::before {
+  background: var(--oro);
+  box-shadow: 0 0 10px rgba(255, 138, 61, 0.9);
+}
+[data-tema="spazio"] .programma-cosa { color: #FFFFFF; font-weight: 500; }
+
+[data-tema="spazio"] .campo textarea.foglio {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(120, 160, 220, 0.22) 2.1rem, rgba(120, 160, 220, 0.22) calc(2.1rem + 1px));
+  border-color: var(--filo-vetro);
+  color: #EEF3FD;
+}
+[data-tema="spazio"] .campo textarea.foglio::placeholder { color: #6D7C9C; }
+[data-tema="spazio"] .promessa { color: var(--inchiostro-tenue); font-style: normal; }
+[data-tema="spazio"] .promessa .segno { color: var(--oro-chiaro); }
+
+[data-tema="spazio"] .campo label,
+[data-tema="spazio"] .gruppo-legenda { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="spazio"] .campo input[type="text"],
+[data-tema="spazio"] .campo input[type="number"],
+[data-tema="spazio"] .campo input[type="password"],
+[data-tema="spazio"] .campo textarea,
+[data-tema="spazio"] .campo select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--filo-vetro);
+  color: #EEF3FD;
+}
+[data-tema="spazio"] .scelta {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--filo-vetro);
+  color: #DDE6F8;
+}
+[data-tema="spazio"] .scelta:has(input:checked) {
+  background: rgba(255, 138, 61, 0.15);
+  border-color: rgba(255, 138, 61, 0.75);
+}
+
+[data-tema="spazio"] .bottone {
+  background: linear-gradient(180deg, #FF9A52, #E06321);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #1A0F06;
+  font-weight: 600;
+  box-shadow: 0 0 26px -8px rgba(255, 138, 61, 0.9);
+}
+[data-tema="spazio"] .bottone-lieve {
+  background: transparent;
+  border-color: rgba(94, 200, 255, 0.5);
+  color: var(--oro-chiaro);
+  box-shadow: none;
+}
+
+[data-tema="spazio"] .avviso {
+  background: rgba(255, 90, 70, 0.12);
+  border-color: rgba(255, 130, 110, 0.5);
+  color: #FFC4B8;
+}
+
+[data-tema="spazio"] .esito .segno-grande { color: var(--oro); }
+[data-tema="spazio"] .esito-titolo,
+[data-tema="spazio"] .conta-messaggi {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.8rem;
+  color: #FFFFFF;
+}
+[data-tema="spazio"] .firma {
+  font-family: var(--corsivo);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: #FFFFFF;
+  text-shadow: 0 0 12px rgba(94, 200, 255, 0.7);
+}
+[data-tema="spazio"] .piede { color: var(--inchiostro-tenue); }
+
+[data-tema="spazio"] .messaggio {
+  background-color: rgba(255, 255, 255, 0.05);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(120, 160, 220, 0.2) 2.1rem, rgba(120, 160, 220, 0.2) calc(2.1rem + 1px));
+  border-color: var(--filo-vetro);
+  color: #EEF3FD;
+}
+[data-tema="spazio"] .messaggio-numero {
+  background: radial-gradient(circle at 34% 30%, #FFC58A, #E06321);
+  color: #1A0F06;
+}
+[data-tema="spazio"] .sigillo-piccolo {
+  font-family: var(--serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: radial-gradient(circle at 34% 30%, #9EAEC8, #4E5A72);
+  color: #EEF3FD;
+}
+[data-tema="spazio"] .tabella-conferme th { color: var(--oro-chiaro); }
+[data-tema="spazio"] .tabella-conferme th,
+[data-tema="spazio"] .tabella-conferme td { border-bottom-color: rgba(120, 160, 220, 0.2); }
+[data-tema="spazio"] .pastiglia.si { background: rgba(94, 200, 255, 0.18); color: #A9DEFF; }
+[data-tema="spazio"] .pastiglia.no { background: rgba(255, 138, 61, 0.18); color: #FFC49A; }
+
+[data-tema="spazio"] .musica {
+  background: rgba(14, 20, 36, 0.8);
+  border-color: rgba(94, 200, 255, 0.45);
+  color: var(--oro-chiaro);
+}

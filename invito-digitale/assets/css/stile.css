@@ -25,6 +25,10 @@
   /* Misure */
   --colonna: 33rem;
   --bordo:   1.6rem;
+
+  /* Quanto dura l'apertura della busta, in millesimi di secondo.
+     Ogni tema può allungarla: il decollo di un razzo non è una busta. */
+  --attesa-apertura: 1500;
 }
 
 * { box-sizing: border-box; }

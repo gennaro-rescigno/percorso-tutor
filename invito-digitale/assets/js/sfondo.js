@@ -757,10 +757,247 @@
   }
 
   /* =====================================================================
+     TEMA SPAZIO — il sistema solare che gira
+     ===================================================================== */
+
+  function sistemaSolare() {
+    var ctx, L, A, cx, cy, scala, stelle = [], cadute = [];
+
+    /* Distanze e misure non sono in scala vera: Nettuno sarebbe fuori
+       dallo schermo e Mercurio invisibile. Sono compresse per stare
+       tutte insieme, tenendo l'ordine e le proporzioni riconoscibili. */
+    var PIANETI = [
+      { nome: "Mercurio", orbita: 0.12, raggio: 1.9, giro: 0.62,  tinta: "#B7A99A", fase: 0.4 },
+      { nome: "Venere",   orbita: 0.18, raggio: 3.0, giro: 0.44,  tinta: "#E4C08A", fase: 2.1 },
+      { nome: "Terra",    orbita: 0.25, raggio: 3.2, giro: 0.34,  tinta: "#5EA9E8", fase: 4.0, luna: true },
+      { nome: "Marte",    orbita: 0.32, raggio: 2.4, giro: 0.27,  tinta: "#D2694A", fase: 1.2 },
+      { nome: "Giove",    orbita: 0.47, raggio: 7.2, giro: 0.15,  tinta: "#D8B48C", fase: 5.2, fasce: true },
+      { nome: "Saturno",  orbita: 0.60, raggio: 6.0, giro: 0.11,  tinta: "#E3CD9A", fase: 0.9, anello: true },
+      { nome: "Urano",    orbita: 0.72, raggio: 4.2, giro: 0.08,  tinta: "#9FD9DC", fase: 3.3 },
+      { nome: "Nettuno",  orbita: 0.84, raggio: 4.0, giro: 0.06,  tinta: "#5A78D0", fase: 5.9 }
+    ];
+
+    var SCHIACCIATA = 0.34;        /* le orbite viste di sbieco: ellissi */
+
+    function costruisciStelle() {
+      var rnd = caso(31337);
+      stelle = [];
+      var quante = Math.round(Math.min(260, (L * A) / 2400));
+      for (var i = 0; i < quante; i++) {
+        stelle.push({
+          x: rnd() * L,
+          y: rnd() * A,
+          r: 0.3 + rnd() * 1.3,
+          base: 0.25 + rnd() * 0.6,
+          ritmo: 0.3 + rnd() * 1.6,
+          fase: rnd() * Math.PI * 2,
+          calda: rnd() < 0.22        /* qualcuna tende all'arancio */
+        });
+      }
+    }
+
+    function ridimensiona() {
+      var m = preparaTela(telaGlitter, 1.5);
+      ctx = m.ctx; L = m.l; A = m.a;
+      cx = L * 0.36;   /* non dietro al razzo, che sta in mezzo */
+      cy = A * 0.72;
+      scala = Math.min(L, A * 0.85) * 0.56;
+      costruisciStelle();
+    }
+
+    function disegnaStelle(t) {
+      for (var i = 0; i < stelle.length; i++) {
+        var s = stelle[i];
+        var luce = s.base * (0.55 + 0.45 * Math.sin(t * s.ritmo + s.fase));
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = s.calda
+          ? "rgba(255,224,180," + luce.toFixed(3) + ")"
+          : "rgba(226,236,255," + luce.toFixed(3) + ")";
+        ctx.fill();
+      }
+    }
+
+    /* ogni tanto passa una stella cadente */
+    function stelleCadenti(t, dt) {
+      if (!fermoImmagine && Math.random() < dt * 0.28 && cadute.length < 2) {
+        cadute.push({
+          x: Math.random() * L,
+          y: Math.random() * A * 0.5,
+          v: 380 + Math.random() * 320,
+          ang: 0.5 + Math.random() * 0.5,
+          vita: 1
+        });
+      }
+      for (var i = cadute.length - 1; i >= 0; i--) {
+        var c = cadute[i];
+        c.x += Math.cos(c.ang) * c.v * dt;
+        c.y += Math.sin(c.ang) * c.v * dt;
+        c.vita -= dt * 0.9;
+        if (c.vita <= 0) { cadute.splice(i, 1); continue; }
+        var lx = Math.cos(c.ang) * 70, ly = Math.sin(c.ang) * 70;
+        var g = ctx.createLinearGradient(c.x - lx, c.y - ly, c.x, c.y);
+        g.addColorStop(0, "rgba(255,255,255,0)");
+        g.addColorStop(1, "rgba(255,255,255," + (c.vita * 0.8).toFixed(3) + ")");
+        ctx.strokeStyle = g;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(c.x - lx, c.y - ly);
+        ctx.lineTo(c.x, c.y);
+        ctx.stroke();
+      }
+    }
+
+    function disegnaSole(t) {
+      var r = Math.max(7, scala * 0.055);
+      var pulsa = 1 + 0.05 * Math.sin(t * 1.4);
+
+      var alone = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 7 * pulsa);
+      alone.addColorStop(0, "rgba(255,196,90,0.42)");
+      alone.addColorStop(0.25, "rgba(255,150,50,0.13)");
+      alone.addColorStop(1, "rgba(255,120,30,0)");
+      ctx.fillStyle = alone;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * 7 * pulsa, 0, Math.PI * 2);
+      ctx.fill();
+
+      var disco = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
+      disco.addColorStop(0, "#FFFDF2");
+      disco.addColorStop(0.5, "#FFD265");
+      disco.addColorStop(1, "#FF8A2B");
+      ctx.fillStyle = disco;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r * pulsa, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function disegnaOrbita(rx) {
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, rx * SCHIACCIATA, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(150,180,235,0.16)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    function disegnaFasciaAsteroidi(t) {
+      var rnd = caso(9091);
+      var rx = scala * 0.395;
+      for (var i = 0; i < 90; i++) {
+        var a = rnd() * Math.PI * 2 + t * 0.18;
+        var d = rx * (0.94 + rnd() * 0.12);
+        var x = cx + Math.cos(a) * d;
+        var y = cy + Math.sin(a) * d * SCHIACCIATA;
+        ctx.beginPath();
+        ctx.arc(x, y, 0.6 + rnd() * 0.8, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(190,180,165,0.4)";
+        ctx.fill();
+      }
+    }
+
+    function disegnaPianeta(p, t) {
+      var rx = scala * p.orbita;
+      var a = p.fase + t * p.giro;
+      var x = cx + Math.cos(a) * rx;
+      var y = cy + Math.sin(a) * rx * SCHIACCIATA;
+      /* quando è dietro al Sole si vede un po' meno */
+      var davanti = Math.sin(a) > 0;
+      var r = Math.max(1.6, p.raggio * (scala / 230));
+
+      ctx.globalAlpha = davanti ? 1 : 0.75;
+
+      if (p.anello) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, 0.32);
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 2.1, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(230,214,175,0.75)";
+        ctx.lineWidth = r * 0.75;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      var sfera = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+      sfera.addColorStop(0, "#FFFFFF");
+      sfera.addColorStop(0.35, p.tinta);
+      sfera.addColorStop(1, "rgba(0,0,0,0.75)");
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = sfera;
+      ctx.fill();
+
+      if (p.fasce) {                       /* le bande di Giove */
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.strokeStyle = "rgba(150,110,80,0.4)";
+        ctx.lineWidth = r * 0.22;
+        for (var k = -1; k <= 1; k++) {
+          ctx.beginPath();
+          ctx.moveTo(x - r, y + k * r * 0.45);
+          ctx.lineTo(x + r, y + k * r * 0.45);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      if (p.luna) {                        /* la Luna attorno alla Terra */
+        var am = t * 2.4 + p.fase;
+        var dl = r * 2.6;
+        ctx.beginPath();
+        ctx.arc(x + Math.cos(am) * dl, y + Math.sin(am) * dl * 0.6, Math.max(0.9, r * 0.28), 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(226,226,232,0.95)";
+        ctx.fill();
+      }
+
+      ctx.globalAlpha = 1;
+    }
+
+    function disegnaTutto(t) {
+      ctx.clearRect(0, 0, L, A);
+      disegnaStelle(t);
+
+      for (var i = 0; i < PIANETI.length; i++) disegnaOrbita(scala * PIANETI[i].orbita);
+      disegnaFasciaAsteroidi(t);
+
+      /* prima i pianeti che passano dietro al Sole, poi il Sole,
+         poi quelli davanti: così il Sole li copre davvero */
+      var dietro = [], davanti = [];
+      for (i = 0; i < PIANETI.length; i++) {
+        var p = PIANETI[i];
+        (Math.sin(p.fase + t * p.giro) > 0 ? davanti : dietro).push(p);
+      }
+      for (i = 0; i < dietro.length; i++) disegnaPianeta(dietro[i], t);
+      disegnaSole(t);
+      for (i = 0; i < davanti.length; i++) disegnaPianeta(davanti[i], t);
+    }
+
+    var ultimo = 0;
+    function anima(tms) {
+      var t = tms / 1000;
+      var dt = ultimo ? Math.min(t - ultimo, 0.05) : 0;
+      ultimo = t;
+      disegnaTutto(t);
+      stelleCadenti(t, dt);
+      requestAnimationFrame(anima);
+    }
+
+    ridimensiona();
+    if (fermoImmagine) disegnaTutto(6); else requestAnimationFrame(anima);
+    window.addEventListener("resize", function () {
+      ridimensiona();
+      if (fermoImmagine) disegnaTutto(6);
+    });
+  }
+
+  /* =====================================================================
      Si accende il tema giusto
      ===================================================================== */
   if (tema === "discoteca") {
     if (telaGlitter) luciDaDiscoteca();
+  } else if (tema === "spazio") {
+    if (telaGlitter) sistemaSolare();
   } else if (tema === "neve") {
     if (telaGlitter) nevicata();
     if (telaRose) cumuliDiNeve();

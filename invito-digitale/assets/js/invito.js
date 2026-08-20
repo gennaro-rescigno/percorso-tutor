@@ -13,7 +13,8 @@
     cipria:    "Tocca la busta per aprire l'invito",
     discoteca: "Tocca la busta per aprire l'invito",
     neve:      "Tocca la busta per aprire l'invito",
-    spazio:    "Sali a bordo"
+    spazio:    "Sali a bordo",
+    casino:    "Tira la leva"
   };
 
   /* Quanto aspettare prima di mostrare l'invito: lo decide il tema, in CSS */

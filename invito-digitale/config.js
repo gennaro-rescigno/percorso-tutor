@@ -12,7 +12,8 @@ window.CONFIG = {
      "cipria"    = rosa, glitter e rose (elegante)
      "discoteca" = nero, neon e luci che girano (serata)
      "neve"      = azzurro, fiocchi che scendono e neve posata sopra
-     "spazio"    = notte, sistema solare che gira e navicella che parte   */
+     "spazio"    = notte, sistema solare che gira e navicella che parte
+     "casino"    = verde e oro, torcia al buio e slot che paga            */
   tema: "cipria",
 
   /* --- 1. CHI FESTEGGIA ---------------------------------------------- */
@@ -43,7 +44,7 @@ window.CONFIG = {
 
   /* --- 3. LE FRASI DELL'INVITO ---------------------------------------- */
   testi: {
-    // Lascia vuoto "" e ci pensa il tema (con "spazio" diventa "Sali a bordo")
+    // Lascia vuoto "" e ci pensa il tema ("Sali a bordo", "Tira la leva"...)
     istruzioneBusta: "",
     soprannome: "Ti aspetto il",              // frase sopra la data
     apertura: "Diciotto anni si compiono una volta sola.",

@@ -992,10 +992,327 @@
   }
 
   /* =====================================================================
+     TEMA CASINÒ — la sala, e la vincita che scende dalla slot
+     ===================================================================== */
+
+  function salaDaGioco() {
+    var ctx, L, A;
+    var semi = [], bagliori = [], vincita = [];
+    var SEMI = ["\u2660", "\u2665", "\u2666", "\u2663"];
+
+    /* --- i semi che galleggiano nel buio ---------------------------- */
+    function costruisciSemi() {
+      var rnd = caso(4242);
+      semi = [];
+      var quanti = L < 420 ? 9 : 14;
+      for (var i = 0; i < quanti; i++) {
+        semi.push({
+          x: rnd() * L,
+          y: rnd() * A,
+          lato: 26 + rnd() * 64,
+          v: 5 + rnd() * 13,
+          onda: rnd() * Math.PI * 2,
+          ampiezza: 8 + rnd() * 22,
+          giro: (rnd() - 0.5) * 0.25,
+          rot: rnd() * Math.PI * 2,
+          seme: SEMI[Math.floor(rnd() * 4)],
+          rosso: rnd() < 0.5,
+          alfa: 0.05 + rnd() * 0.06
+        });
+      }
+    }
+
+    /* --- i punti di luce dorati ------------------------------------- */
+    function costruisciBagliori() {
+      var rnd = caso(808);
+      bagliori = [];
+      var quanti = L < 420 ? 16 : 26;
+      for (var i = 0; i < quanti; i++) {
+        bagliori.push({
+          x: rnd() * L,
+          y: rnd() * A,
+          r: 1.5 + rnd() * 7,
+          base: 0.1 + rnd() * 0.28,
+          ritmo: 0.25 + rnd() * 1.1,
+          fase: rnd() * Math.PI * 2
+        });
+      }
+    }
+
+    function ridimensiona() {
+      var m = preparaTela(telaGlitter, 1.5);
+      ctx = m.ctx; L = m.l; A = m.a;
+      costruisciSemi();
+      costruisciBagliori();
+    }
+
+    function disegnaSemi(t, dt) {
+      for (var i = 0; i < semi.length; i++) {
+        var s = semi[i];
+        if (!fermoImmagine) {
+          s.y -= s.v * dt;
+          s.rot += s.giro * dt;
+          if (s.y + s.lato < 0) { s.y = A + s.lato; s.x = Math.random() * L; }
+        }
+        var x = s.x + Math.sin(t * 0.3 + s.onda) * s.ampiezza;
+        ctx.save();
+        ctx.translate(x, s.y);
+        ctx.rotate(s.rot);
+        ctx.font = s.lato + "px Georgia, serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = s.rosso
+          ? "rgba(194,42,52," + s.alfa.toFixed(3) + ")"
+          : "rgba(240,230,206," + (s.alfa * 0.8).toFixed(3) + ")";
+        ctx.fillText(s.seme, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    function disegnaBagliori(t) {
+      for (var i = 0; i < bagliori.length; i++) {
+        var b = bagliori[i];
+        var luce = b.base * (0.5 + 0.5 * Math.sin(t * b.ritmo + b.fase));
+        var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 3.5);
+        g.addColorStop(0, "rgba(255,236,180," + luce.toFixed(3) + ")");
+        g.addColorStop(1, "rgba(255,200,110,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r * 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    /* --- la vincita: gettoni, monete e carte che scendono ------------ */
+    function nuovoOggetto(x, y, larghezza) {
+      var tipo = Math.random();
+      return {
+        x: x + (Math.random() - 0.5) * larghezza,
+        y: y + (Math.random() - 0.5) * 16,
+        vx: (Math.random() - 0.5) * 300,
+        vy: -110 - Math.random() * 210,
+        r: 9 + Math.random() * 9,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 7,
+        fase: Math.random() * Math.PI * 2,
+        vfase: 3 + Math.random() * 5,
+        tipo: tipo < 0.46 ? "moneta" : (tipo < 0.82 ? "fiche" : "carta"),
+        seme: SEMI[Math.floor(Math.random() * 4)],
+        tinta: Math.random() < 0.5 ? "#C22A34" : "#123A2C"
+      };
+    }
+
+    function moneta(o) {
+      /* la larghezza si stringe e si riapre: sembra che giri su sé stessa */
+      var schiaccia = Math.abs(Math.cos(o.fase));
+      ctx.save();
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.rot * 0.25);
+      ctx.scale(Math.max(0.06, schiaccia), 1);
+      var g = ctx.createLinearGradient(-o.r, -o.r, o.r, o.r);
+      g.addColorStop(0, "#8A6B2A");
+      g.addColorStop(0.35, "#F3DFA8");
+      g.addColorStop(0.6, "#D9B45B");
+      g.addColorStop(1, "#7C5F22");
+      ctx.beginPath();
+      ctx.arc(0, 0, o.r, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, o.r * 0.66, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(120,90,30,0.75)";
+      ctx.lineWidth = Math.max(1, o.r * 0.12);
+      ctx.stroke();
+      ctx.restore();
+      /* il taglio della moneta quando è di profilo */
+      if (schiaccia < 0.3) {
+        ctx.save();
+        ctx.translate(o.x, o.y);
+        ctx.rotate(o.rot * 0.25);
+        ctx.fillStyle = "#B08B35";
+        ctx.fillRect(-Math.max(1.4, o.r * schiaccia), -o.r, Math.max(2.8, o.r * schiaccia * 2), o.r * 2);
+        ctx.restore();
+      }
+    }
+
+    function fiche(o) {
+      ctx.save();
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.rot);
+      ctx.beginPath();
+      ctx.arc(0, 0, o.r, 0, Math.PI * 2);
+      ctx.fillStyle = o.tinta;
+      ctx.fill();
+      /* le tacche bianche sul bordo */
+      ctx.strokeStyle = "#F0E6CE";
+      ctx.lineWidth = o.r * 0.3;
+      for (var k = 0; k < 6; k++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, o.r * 0.86, k * Math.PI / 3, k * Math.PI / 3 + 0.42);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, o.r * 0.52, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(240,230,206,0.9)";
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(0, 0, o.r * 0.42, 0, Math.PI * 2);
+      ctx.fillStyle = o.tinta;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function carta(o) {
+      var l = o.r * 1.5, h = o.r * 2.1;
+      var schiaccia = Math.abs(Math.cos(o.fase * 0.6));
+      ctx.save();
+      ctx.translate(o.x, o.y);
+      ctx.rotate(o.rot * 0.4);
+      ctx.scale(Math.max(0.1, schiaccia), 1);
+      ctx.beginPath();
+      ctx.roundRect(-l / 2, -h / 2, l, h, o.r * 0.22);
+      ctx.fillStyle = "#F6F1E4";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(120,100,60,0.55)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.font = (o.r * 1.1) + "px Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = (o.seme === "\u2665" || o.seme === "\u2666") ? "#C22A34" : "#1A1A1A";
+      ctx.fillText(o.seme, 0, 0);
+      ctx.restore();
+    }
+
+    function disegnaVincita(dt) {
+      for (var i = vincita.length - 1; i >= 0; i--) {
+        var o = vincita[i];
+        o.vy += 780 * dt;
+        o.x += o.vx * dt;
+        o.y += o.vy * dt;
+        o.rot += o.vrot * dt;
+        o.fase += o.vfase * dt;
+        if (o.y - o.r > A + 40) { vincita.splice(i, 1); continue; }
+        if (o.tipo === "moneta") moneta(o);
+        else if (o.tipo === "fiche") fiche(o);
+        else carta(o);
+      }
+    }
+
+    /* la slot ha pagato: si guarda la scena, non serve che il resto avvisi */
+    var vintoA = -1;
+    var lanciati = 0;
+    function guardaVincita(t) {
+      var scena = document.querySelector(".scena-busta.aperta");
+      if (!scena) return;
+      if (vintoA < 0) { vintoA = t; lanciati = 0; }
+
+      /* i rulli si fermano dopo 2,35 s: prima non paga */
+      var da = t - vintoA - 2.35;
+      if (da < 0) return;
+
+      var vuoi = Math.min(90, Math.floor(da / 0.016));
+      if (lanciati >= vuoi || lanciati >= 90) return;
+
+      /* Escono dal bordo basso della macchina, non dal vassoio: la tela
+         sta dietro alla slot, e da lì dentro non si vedrebbero uscire. */
+      var macchina = document.getElementById("busta");
+      var x = L / 2, y = A * 0.72, larghezza = 160;
+      if (macchina) {
+        var r = macchina.getBoundingClientRect();
+        x = r.left + r.width / 2;
+        y = r.bottom - r.height * 0.04;
+        larghezza = r.width * 0.86;
+      }
+      var quanti = Math.min(3, vuoi - lanciati);
+      for (var i = 0; i < quanti; i++) { vincita.push(nuovoOggetto(x, y, larghezza)); lanciati++; }
+    }
+
+    var ultimo = 0;
+    function anima(tms) {
+      var t = tms / 1000;
+      var dt = ultimo ? Math.min(t - ultimo, 0.05) : 0;
+      ultimo = t;
+
+      ctx.clearRect(0, 0, L, A);
+      disegnaSemi(t, dt);
+      disegnaBagliori(t);
+      if (!fermoImmagine) guardaVincita(t);
+      disegnaVincita(dt);
+
+      requestAnimationFrame(anima);
+    }
+
+    ridimensiona();
+    if (fermoImmagine) { disegnaSemi(3, 0); disegnaBagliori(3); }
+    else requestAnimationFrame(anima);
+
+    window.addEventListener("resize", function () {
+      ridimensiona();
+      if (fermoImmagine) { disegnaSemi(3, 0); disegnaBagliori(3); }
+    });
+  }
+
+  /* --- il bordo del tavolo verde in fondo alla pagina ---------------- */
+  function bordoDelTavolo() {
+    function disegna() {
+      var m = preparaTela(telaRose);
+      var ctx = m.ctx, L = m.l, A = m.a;
+      ctx.clearRect(0, 0, L, A);
+
+      /* il panno */
+      var panno = ctx.createLinearGradient(0, A * 0.3, 0, A);
+      panno.addColorStop(0, "rgba(11,59,46,0)");
+      panno.addColorStop(0.45, "rgba(11,59,46,0.75)");
+      panno.addColorStop(1, "rgba(6,32,25,0.95)");
+      ctx.fillStyle = panno;
+      ctx.fillRect(0, A * 0.3, L, A * 0.7);
+
+      /* il corrimano dorato */
+      var y = A * 0.42;
+      var rail = ctx.createLinearGradient(0, y - 7, 0, y + 7);
+      rail.addColorStop(0, "rgba(124,95,34,0.9)");
+      rail.addColorStop(0.35, "rgba(243,223,168,0.95)");
+      rail.addColorStop(0.6, "rgba(201,162,78,0.9)");
+      rail.addColorStop(1, "rgba(90,68,22,0.9)");
+      ctx.fillStyle = rail;
+      ctx.beginPath();
+      ctx.roundRect(-10, y - 6, L + 20, 12, 6);
+      ctx.fill();
+
+      /* i semi cuciti sul panno */
+      var rnd = caso(1717);
+      var simboli = ["\u2660", "\u2665", "\u2666", "\u2663"];
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (var i = 0; i < 9; i++) {
+        var lato = 14 + rnd() * 16;
+        ctx.save();
+        ctx.translate(rnd() * L, y + 22 + rnd() * (A - y - 34));
+        ctx.rotate((rnd() - 0.5) * 0.8);
+        ctx.font = lato + "px Georgia, serif";
+        ctx.fillStyle = "rgba(240,230,206,0.09)";
+        ctx.fillText(simboli[Math.floor(rnd() * 4)], 0, 0);
+        ctx.restore();
+      }
+    }
+
+    disegna();
+    var attesa;
+    window.addEventListener("resize", function () {
+      clearTimeout(attesa);
+      attesa = setTimeout(disegna, 150);
+    });
+  }
+
+  /* =====================================================================
      Si accende il tema giusto
      ===================================================================== */
   if (tema === "discoteca") {
     if (telaGlitter) luciDaDiscoteca();
+  } else if (tema === "casino") {
+    if (telaGlitter) salaDaGioco();
+    if (telaRose) bordoDelTavolo();
   } else if (tema === "spazio") {
     if (telaGlitter) sistemaSolare();
   } else if (tema === "neve") {

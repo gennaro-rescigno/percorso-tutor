@@ -5,14 +5,14 @@ presenza e — la parte che conta — una **cassetta di messaggi anonimi** per
 la festeggiata: gli invitati le scrivono qualcosa prima che diventi
 maggiorenne, e solo lei potrà leggerli.
 
-Arriva in quattro versioni, si sceglie con una riga:
+Arriva in cinque versioni, si sceglie con una riga:
 
-| | `"cipria"` | `"discoteca"` | `"neve"` | `"spazio"` |
-|---|---|---|---|---|
-| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco | notte, fuoco e azzurro |
-| **carattere** | Parisienne | Monoton (neon) | Fraunces | Michroma |
-| **sfondo** | brillantini e rose | palla specchiata e fasci di luce | fiocchi di neve e cumuli | il sistema solare che gira |
-| **si apre** | busta con la ceralacca | busta con il bollo al neon | busta innevata | navicella che chiude il portello e parte |
+| | `"cipria"` | `"discoteca"` | `"neve"` | `"spazio"` | `"casino"` |
+|---|---|---|---|---|---|
+| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco | notte, fuoco e azzurro | verde tavolo e oro |
+| **carattere** | Parisienne | Monoton (neon) | Fraunces | Michroma | Bodoni Moda |
+| **sfondo** | brillantini e rose | palla specchiata e fasci di luce | fiocchi e cumuli | il sistema solare che gira | semi che galleggiano e panno verde |
+| **si apre** | busta con la ceralacca | busta con il bollo al neon | busta innevata | navicella che parte | slot che gira e paga |
 
 Cambia solo l'aspetto: testi, messaggi anonimi e conferme funzionano identici.
 
@@ -31,6 +31,7 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 | `assets/css/discoteca.css` | il tema discoteca | solo se vuoi cambiare stile |
 | `assets/css/neve.css` | il tema neve | solo se vuoi cambiare stile |
 | `assets/css/spazio.css` | il tema spazio | solo se vuoi cambiare stile |
+| `assets/css/casino.css` | il tema casinò | solo se vuoi cambiare stile |
 | `assets/js/*.js` | il funzionamento | no |
 | `backend/Codice.gs` | lo script che salva le risposte nel foglio Google | lo incolli su Google |
 | `backend/ISTRUZIONI.md` | la guida passo passo per collegare il foglio | leggila |
@@ -42,16 +43,23 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 Prima riga di `config.js`:
 
 ```js
-tema: "cipria",      // "discoteca", "neve" oppure "spazio"
+tema: "cipria",      // "discoteca", "neve", "spazio" oppure "casino"
 ```
 
 Non serve toccare altro: cambiano colori, caratteri e sfondo di tutte e due
 le pagine, invito e cassetta dei messaggi.
 
-Con `"spazio"` la busta diventa una navicella con il portello aperto: al
-tocco la porta si chiude, si accende il motore e parte verso l'alto.
-La frase sopra è "Sali a bordo" — se in `config.js` lasci
-`istruzioneBusta: ""` la scrive il tema, altrimenti vale quella che ci metti tu.
+In due temi la busta non è una busta:
+
+- **`"spazio"`**: è una navicella col portello aperto. Al tocco la porta si
+  chiude, si accende il motore e parte verso l'alto. La frase è "Sali a bordo".
+- **`"casino"`**: si apre al buio e una torcia gira sulla sala scoprendo un
+  pezzo di slot alla volta; dopo un paio di secondi si accendono le luci.
+  Al tocco i tre rulli partono, si fermano uno alla volta sul 7 e la vincita
+  fa piovere gettoni, monete e carte. La frase è "Tira la leva".
+
+La frase sopra la busta la mette il tema quando in `config.js` lasci
+`istruzioneBusta: ""`; se ci scrivi qualcosa tu, vince la tua.
 
 ## 2. Personalizza (5 minuti)
 

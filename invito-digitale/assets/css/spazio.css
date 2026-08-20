@@ -211,8 +211,12 @@
   transform: rotateY(-115deg);
   opacity: 1;
 }
+/* Qui serve solo spegnere la ceralacca che salta via (regola di base).
+   Il portello è già centrato dalla proprietà translate: scrivere qui
+   transform: translate(-50%,-50%) non la sostituirebbe, ci si sommerebbe,
+   e il portello si sposterebbe di mezza larghezza in su e a sinistra. */
 [data-tema="spazio"] .scena-busta.aperta .busta-sigillo {
-  transform: translate(-50%, -50%);
+  transform: none;
   opacity: 1;
   transition: none;
 }

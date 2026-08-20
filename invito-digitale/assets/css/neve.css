@@ -65,13 +65,14 @@
    distanze diverse: da lontano è neve posata, non una riga bianca.
    ===================================================================== */
 
-/* La neve si posa solo su quello che si tocca o si compila:
-   pulsanti, moduli, campi. Sulle scritte no: le copre e imbruttisce. */
+/* La neve si posa su quello che si tocca o si compila, più i riquadri
+   del conto alla rovescia. Sulle scritte no: le copre e imbruttisce. */
 [data-tema="neve"] .bottone,
 [data-tema="neve"] .carta,
 [data-tema="neve"] .campo textarea.foglio,
 [data-tema="neve"] .scelta,
 [data-tema="neve"] .bollo .segno,
+[data-tema="neve"] .conto-voce,
 [data-tema="neve"] .musica {
   position: relative;
 }
@@ -81,6 +82,7 @@
 [data-tema="neve"] .campo textarea.foglio::before,
 [data-tema="neve"] .scelta::before,
 [data-tema="neve"] .bollo .segno::before,
+[data-tema="neve"] .conto-voce::before,
 [data-tema="neve"] .musica::before {
   content: "";
   position: absolute;
@@ -139,6 +141,7 @@
     linear-gradient(var(--neve) 0 0) top / 100% 5px no-repeat;
 }
 
+[data-tema="neve"] .conto-voce::before,
 [data-tema="neve"] .musica::before {
   height: 16px;
   background:

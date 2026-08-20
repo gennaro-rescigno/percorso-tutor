@@ -574,10 +574,196 @@
   }
 
   /* =====================================================================
+     TEMA NEVE
+     ===================================================================== */
+
+  function nevicata() {
+    var ctxN, L, A, fiocchi = [], modelli = [];
+
+    /* Un fiocco vero: sei bracci uguali con i rametti laterali.
+       Lo disegno una volta sola su una telina a parte e poi lo ricopio:
+       ridisegnarne ottanta a ogni fotogramma costerebbe troppo.          */
+    function costruisciModello(lato, rametti) {
+      var tela = document.createElement("canvas");
+      tela.width = tela.height = lato;
+      var x = tela.getContext("2d");
+      x.translate(lato / 2, lato / 2);
+      x.strokeStyle = "#FFFFFF";
+      x.lineCap = "round";
+      x.lineWidth = lato * 0.05;
+
+      var R = lato * 0.42;
+      for (var i = 0; i < 6; i++) {
+        x.save();
+        x.rotate((i * Math.PI) / 3);
+        x.beginPath();
+        x.moveTo(0, 0);
+        x.lineTo(0, -R);
+        for (var k = 0; k < rametti.length; k++) {
+          var r = rametti[k];
+          var y = -R * r.dove;
+          var dx = Math.sin(0.95) * R * r.lungo;
+          var dy = Math.cos(0.95) * R * r.lungo;
+          x.moveTo(0, y); x.lineTo(dx, y - dy);
+          x.moveTo(0, y); x.lineTo(-dx, y - dy);
+        }
+        x.stroke();
+        x.restore();
+      }
+
+      x.beginPath();
+      x.arc(0, 0, lato * 0.05, 0, Math.PI * 2);
+      x.fillStyle = "#FFFFFF";
+      x.fill();
+      return tela;
+    }
+
+    function costruisciModelli() {
+      modelli = [
+        costruisciModello(96, [{ dove: 0.4, lungo: 0.3 }, { dove: 0.7, lungo: 0.22 }]),
+        costruisciModello(96, [{ dove: 0.32, lungo: 0.26 }, { dove: 0.56, lungo: 0.3 }, { dove: 0.8, lungo: 0.18 }]),
+        costruisciModello(96, [{ dove: 0.5, lungo: 0.34 }])
+      ];
+    }
+
+    function nuovoFiocco(iniziale) {
+      var lontano = Math.random() < 0.45;          // i fiocchi in fondo sono piccoli e lenti
+      return {
+        x: Math.random() * L,
+        y: iniziale ? Math.random() * A : -30,
+        lato: lontano ? 5 + Math.random() * 7 : 12 + Math.random() * 16,
+        v: lontano ? 16 + Math.random() * 22 : 34 + Math.random() * 42,
+        alfa: lontano ? 0.4 + Math.random() * 0.3 : 0.72 + Math.random() * 0.28,
+        onda: Math.random() * Math.PI * 2,
+        ampiezza: 8 + Math.random() * 26,
+        ritmo: 0.3 + Math.random() * 0.7,
+        giro: Math.random() * Math.PI * 2,
+        vgiro: (Math.random() - 0.5) * 0.7,
+        modello: modelli[Math.floor(Math.random() * modelli.length)]
+      };
+    }
+
+    function popola() {
+      var quanti = Math.round(Math.min(110, (L * A) / 4200));
+      fiocchi = [];
+      for (var i = 0; i < quanti; i++) fiocchi.push(nuovoFiocco(true));
+    }
+
+    function ridimensiona() {
+      var m = preparaTela(telaGlitter, 1.75);
+      ctxN = m.ctx; L = m.l; A = m.a;
+      popola();
+    }
+
+    function disegna(t) {
+      ctxN.clearRect(0, 0, L, A);
+      for (var i = 0; i < fiocchi.length; i++) {
+        var f = fiocchi[i];
+        var x = f.x + Math.sin(t * f.ritmo + f.onda) * f.ampiezza;
+        ctxN.save();
+        ctxN.globalAlpha = f.alfa;
+        ctxN.translate(x, f.y);
+        ctxN.rotate(f.giro);
+        ctxN.drawImage(f.modello, -f.lato / 2, -f.lato / 2, f.lato, f.lato);
+        ctxN.restore();
+      }
+      ctxN.globalAlpha = 1;
+    }
+
+    var ultimo = 0;
+    function anima(t) {
+      var dt = ultimo ? Math.min((t - ultimo) / 1000, 0.05) : 0;
+      ultimo = t;
+      for (var i = 0; i < fiocchi.length; i++) {
+        var f = fiocchi[i];
+        f.y += f.v * dt;
+        f.giro += f.vgiro * dt;
+        if (f.y - 40 > A) fiocchi[i] = nuovoFiocco(false);
+      }
+      disegna(t / 1000);
+      requestAnimationFrame(anima);
+    }
+
+    costruisciModelli();
+    ridimensiona();
+    if (fermoImmagine) disegna(0); else requestAnimationFrame(anima);
+    window.addEventListener("resize", function () {
+      ridimensiona();
+      if (fermoImmagine) disegna(0);
+    });
+  }
+
+  /* --- i cumuli di neve in fondo alla pagina ------------------------- */
+  function cumuliDiNeve() {
+    function cumulo(ctx, L, A, quota, colore, seme) {
+      var rnd = caso(seme);
+      var passi = 6;
+      var passo = (L + 60) / passi;
+      var x = -30;
+      var y = A * quota + (rnd() - 0.5) * A * 0.1;
+
+      ctx.beginPath();
+      ctx.moveTo(-30, A + 40);
+      ctx.lineTo(x, y);
+      for (var i = 1; i <= passi; i++) {
+        var nx = -30 + i * passo;
+        var ny = A * quota + (rnd() - 0.5) * A * 0.26;
+        /* la gobba fra un punto e l'altro: la neve non fa spigoli */
+        ctx.quadraticCurveTo((x + nx) / 2, Math.min(y, ny) - A * 0.16, nx, ny);
+        x = nx; y = ny;
+      }
+      ctx.lineTo(L + 30, A + 40);
+      ctx.closePath();
+      ctx.fillStyle = colore;
+      ctx.fill();
+    }
+
+    function luccichio(ctx, x, y, r) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.beginPath();
+      ctx.moveTo(0, -r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.quadraticCurveTo(0, 0, 0, r);
+      ctx.quadraticCurveTo(0, 0, -r, 0);
+      ctx.quadraticCurveTo(0, 0, 0, -r);
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function disegna() {
+      var m = preparaTela(telaRose);
+      var ctx = m.ctx, L = m.l, A = m.a;
+      ctx.clearRect(0, 0, L, A);
+
+      /* tre gobbe: la più lontana è quasi azzurra, quella davanti bianca */
+      cumulo(ctx, L, A, 0.42, "#D3E4F2", 501);
+      cumulo(ctx, L, A, 0.62, "#EAF3FB", 733);
+      cumulo(ctx, L, A, 0.82, "#FFFFFF", 917);
+
+      var rnd = caso(1201);
+      for (var i = 0; i < 16; i++) {
+        luccichio(ctx, rnd() * L, A * (0.55 + rnd() * 0.42), 1.6 + rnd() * 2.6);
+      }
+    }
+
+    disegna();
+    var attesa;
+    window.addEventListener("resize", function () {
+      clearTimeout(attesa);
+      attesa = setTimeout(disegna, 150);
+    });
+  }
+
+  /* =====================================================================
      Si accende il tema giusto
      ===================================================================== */
   if (tema === "discoteca") {
     if (telaGlitter) luciDaDiscoteca();
+  } else if (tema === "neve") {
+    if (telaGlitter) nevicata();
+    if (telaRose) cumuliDiNeve();
   } else {
     if (telaGlitter) pioggiaDiGlitter();
     if (telaRose) giardinoDiRose();

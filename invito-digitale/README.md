@@ -5,13 +5,14 @@ presenza e — la parte che conta — una **cassetta di messaggi anonimi** per
 la festeggiata: gli invitati le scrivono qualcosa prima che diventi
 maggiorenne, e solo lei potrà leggerli.
 
-Arriva in due versioni, si sceglie con una riga:
+Arriva in tre versioni, si sceglie con una riga:
 
-| `tema: "cipria"` | `tema: "discoteca"` |
-|---|---|
-| rosa, glitter, rose e ceralacca | nero, neon, palla specchiata e fasci di luce |
-| corsivo elegante (Parisienne) | insegna al neon (Monoton) |
-| pioggia di brillantini | luci che spazzano la stanza e pista da ballo |
+| | `"cipria"` | `"discoteca"` | `"neve"` |
+|---|---|---|---|
+| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco |
+| **carattere** | corsivo elegante (Parisienne) | insegna al neon (Monoton) | serif d'inverno (Fraunces) |
+| **sfondo** | pioggia di brillantini e giardino di rose | palla specchiata, fasci di luce e pista | fiocchi di neve e cumuli |
+| **in più** | ceralacca con le iniziali | il nome al neon che tremola | neve posata su scritte, pulsanti, campi e riquadri |
 
 Cambia solo l'aspetto: testi, messaggi anonimi e conferme funzionano identici.
 
@@ -28,6 +29,7 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 | `messaggi.html` | la pagina privata dove la festeggiata legge le lettere | no |
 | `assets/css/stile.css` | la struttura e il tema cipria | solo se vuoi cambiare stile |
 | `assets/css/discoteca.css` | il tema discoteca | solo se vuoi cambiare stile |
+| `assets/css/neve.css` | il tema neve | solo se vuoi cambiare stile |
 | `assets/js/*.js` | il funzionamento | no |
 | `backend/Codice.gs` | lo script che salva le risposte nel foglio Google | lo incolli su Google |
 | `backend/ISTRUZIONI.md` | la guida passo passo per collegare il foglio | leggila |
@@ -39,7 +41,7 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 Prima riga di `config.js`:
 
 ```js
-tema: "cipria",      // oppure "discoteca"
+tema: "cipria",      // oppure "discoteca", oppure "neve"
 ```
 
 Non serve toccare altro: cambiano colori, caratteri e sfondo di tutte e due

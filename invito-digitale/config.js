@@ -10,7 +10,8 @@ window.CONFIG = {
 
   /* --- 0. IL TEMA ------------------------------------------------------
      "cipria"    = rosa, glitter e rose (elegante)
-     "discoteca" = nero, neon e luci che girano (serata)                  */
+     "discoteca" = nero, neon e luci che girano (serata)
+     "neve"      = azzurro, fiocchi che scendono e neve posata sopra      */
   tema: "cipria",
 
   /* --- 1. CHI FESTEGGIA ---------------------------------------------- */

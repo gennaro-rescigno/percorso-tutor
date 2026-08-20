@@ -1,0 +1,444 @@
+/* =====================================================================
+   NEVE — il terzo tema.
+   Si accende scrivendo  tema: "neve"  dentro config.js.
+   Fiocchi che scendono, e neve vera appoggiata sopra a scritte,
+   pulsanti, campi e riquadri.
+   ===================================================================== */
+
+[data-tema="neve"] {
+  /* Colori: cielo d'inverno, ghiaccio, blu notte */
+  --cipria:      #E4EFF9;
+  --cipria-cupa: #A8C3DE;
+  --carta:       #FBFDFF;
+  --carta-velo:  rgba(251, 253, 255, 0.78);
+  --oro:         #2E6DA4;          /* il blu fa da colore forte */
+  --oro-chiaro:  #8FB6D8;
+  --inchiostro:  #23405C;
+  --inchiostro-tenue: #5A7996;
+  --diamante:    #EAF3FB;
+  --ombra:       rgba(35, 64, 92, 0.16);
+  --ombra-forte: rgba(35, 64, 92, 0.32);
+
+  --corsivo: "Fraunces", Georgia, serif;
+  --serif:   "Karla", "Helvetica Neue", Arial, sans-serif;
+  --mano:    "Caveat", "Bradley Hand", cursive;
+
+  --neve:       #FFFFFF;
+  --neve-ombra: rgba(88, 124, 160, 0.42);
+}
+
+/* --- Il cielo ----------------------------------------------------------- */
+[data-tema="neve"] body { background: #C8DCEE; }
+
+[data-tema="neve"] .fondo {
+  background:
+    radial-gradient(120% 75% at 50% -10%, #F2F8FD 0%, #DCEAF6 36%, #BCD3E8 70%, #9FBBD6 100%);
+}
+[data-tema="neve"] .fondo::after {
+  background: radial-gradient(80% 60% at 50% 40%, transparent 45%, rgba(88, 124, 160, 0.20) 100%);
+}
+
+/* --- Tipografia ---------------------------------------------------------- */
+[data-tema="neve"] body { font-weight: 400; }
+
+[data-tema="neve"] .occhiello {
+  color: var(--oro);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+}
+[data-tema="neve"] .titolo-sezione {
+  font-family: var(--corsivo);
+  font-size: 2.1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1B354F;
+}
+[data-tema="neve"] .filo { color: rgba(46, 109, 164, 0.45); }
+[data-tema="neve"] .filo::before,
+[data-tema="neve"] .filo::after {
+  background: linear-gradient(90deg, transparent, rgba(46, 109, 164, 0.5), transparent);
+}
+
+/* =====================================================================
+   LA NEVE ACCUMULATA
+   Una banda bianca in cima, più dei gonfiori tondi che pendono sotto a
+   distanze diverse: da lontano è neve posata, non una riga bianca.
+   ===================================================================== */
+
+[data-tema="neve"] .titolo-sezione,
+[data-tema="neve"] .conta-messaggi,
+[data-tema="neve"] .numero,
+[data-tema="neve"] .nome,
+[data-tema="neve"] .bottone,
+[data-tema="neve"] .carta,
+[data-tema="neve"] .conto-voce,
+[data-tema="neve"] .campo textarea.foglio,
+[data-tema="neve"] .messaggio,
+[data-tema="neve"] .scelta,
+[data-tema="neve"] .bollo .segno,
+[data-tema="neve"] .musica {
+  position: relative;
+}
+
+[data-tema="neve"] .titolo-sezione::before,
+[data-tema="neve"] .conta-messaggi::before,
+[data-tema="neve"] .numero::before,
+[data-tema="neve"] .nome::before,
+[data-tema="neve"] .bottone::before,
+[data-tema="neve"] .carta::before,
+[data-tema="neve"] .conto-voce::before,
+[data-tema="neve"] .campo textarea.foglio::before,
+[data-tema="neve"] .messaggio::before,
+[data-tema="neve"] .scelta::before,
+[data-tema="neve"] .bollo .segno::before,
+[data-tema="neve"] .musica::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  left: -3px;
+  right: -3px;
+  top: -6px;
+  height: 20px;
+  border-radius: 40% 55% 0 0 / 9px 7px 0 0;
+  filter: drop-shadow(0 2px 3px var(--neve-ombra));
+  /* Una banda sottile in cima e sotto i mucchi: larghezze, distanze e
+     profondità tutte diverse, altrimenti sembra un merletto e non neve. */
+  background:
+    radial-gradient(9px 6px   at 6% 5px,  var(--neve) 99%, transparent 100%),
+    radial-gradient(21px 14px at 17% 7px, var(--neve) 99%, transparent 100%),
+    radial-gradient(12px 8px  at 31% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(8px 11px  at 40% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(24px 10px at 54% 5px, var(--neve) 99%, transparent 100%),
+    radial-gradient(11px 15px at 68% 7px, var(--neve) 99%, transparent 100%),
+    radial-gradient(16px 8px  at 80% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(10px 12px at 91% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(14px 7px  at 98% 5px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 6px no-repeat;
+}
+
+/* sui titoli basta un velo: se scende troppo non si legge più */
+[data-tema="neve"] .titolo-sezione::before,
+[data-tema="neve"] .conta-messaggi::before { top: -12px; }
+
+/* sulle carte larghe la neve è più abbondante e meno ordinata */
+[data-tema="neve"] .carta::before,
+[data-tema="neve"] .messaggio::before {
+  height: 22px;
+  background:
+    radial-gradient(11px 7px  at 4% 6px,  var(--neve) 99%, transparent 100%),
+    radial-gradient(19px 15px at 13% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(9px 6px   at 23% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(14px 11px at 33% 9px, var(--neve) 99%, transparent 100%),
+    radial-gradient(23px 9px  at 45% 5px, var(--neve) 99%, transparent 100%),
+    radial-gradient(10px 16px at 57% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(16px 8px  at 68% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(12px 13px at 78% 9px, var(--neve) 99%, transparent 100%),
+    radial-gradient(20px 10px at 89% 5px, var(--neve) 99%, transparent 100%),
+    radial-gradient(9px 7px   at 97% 7px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 7px no-repeat;
+}
+
+/* i mucchi cadono in punti diversi da un pezzo all'altro: così è sparsa */
+[data-tema="neve"] .bottone::before,
+[data-tema="neve"] .scelta::before {
+  height: 18px;
+  background:
+    radial-gradient(8px 5px   at 9% 4px,  var(--neve) 99%, transparent 100%),
+    radial-gradient(17px 12px at 24% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(10px 7px  at 39% 3px, var(--neve) 99%, transparent 100%),
+    radial-gradient(13px 10px at 51% 7px, var(--neve) 99%, transparent 100%),
+    radial-gradient(20px 8px  at 67% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(9px 13px  at 81% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(15px 8px  at 94% 4px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 5px no-repeat;
+}
+
+[data-tema="neve"] .conto-voce::before,
+[data-tema="neve"] .musica::before {
+  height: 16px;
+  background:
+    radial-gradient(8px 6px   at 15% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(14px 10px at 40% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(9px 7px   at 62% 3px, var(--neve) 99%, transparent 100%),
+    radial-gradient(12px 8px  at 86% 6px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 5px no-repeat;
+}
+
+/* sui cerchi la neve si posa a calotta */
+[data-tema="neve"] .bollo .segno::before {
+  left: 14%;
+  right: 14%;
+  top: -5px;
+  height: 15px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  background:
+    radial-gradient(9px 6px  at 25% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(12px 8px at 58% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(8px 6px  at 85% 6px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 7px no-repeat;
+}
+
+/* sul numero grande e sul nome la neve è più abbondante */
+[data-tema="neve"] .numero::before {
+  top: 0.03em;
+  height: 26px;
+  left: 2%;
+  right: 2%;
+  background:
+    radial-gradient(17px 13px at 14% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(23px 16px at 36% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(14px 10px at 55% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(20px 14px at 74% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(15px 11px at 91% 8px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 9px no-repeat;
+}
+[data-tema="neve"] .nome::before {
+  top: 0.04em;
+  height: 20px;
+  left: 3%;
+  right: 3%;
+}
+
+/* Sulla busta la neve va appoggiata sul bordo alto di tutta la busta:
+   la falda ha un clip-path a triangolo, che ritaglierebbe via anche la neve. */
+[data-tema="neve"] .busta { position: relative; }
+[data-tema="neve"] .busta::before {
+  content: "";
+  position: absolute;
+  z-index: 6;
+  pointer-events: none;
+  left: -4px;
+  right: -4px;
+  top: -9px;
+  height: 20px;
+  border-radius: 45% 55% 0 0 / 8px 6px 0 0;
+  filter: drop-shadow(0 2px 3px var(--neve-ombra));
+  background:
+    radial-gradient(10px 7px  at 7% 5px,  var(--neve) 99%, transparent 100%),
+    radial-gradient(19px 13px at 20% 7px, var(--neve) 99%, transparent 100%),
+    radial-gradient(11px 8px  at 34% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(22px 10px at 49% 6px, var(--neve) 99%, transparent 100%),
+    radial-gradient(9px 14px  at 63% 8px, var(--neve) 99%, transparent 100%),
+    radial-gradient(16px 8px  at 76% 4px, var(--neve) 99%, transparent 100%),
+    radial-gradient(12px 11px at 90% 7px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 7px no-repeat;
+}
+/* quando la busta si apre la neve se ne va con lei */
+[data-tema="neve"] .scena-busta.aperta .busta::before {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* un ciuffo di neve anche sulla ceralacca */
+[data-tema="neve"] .busta-sigillo::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 16%;
+  right: 16%;
+  top: -4px;
+  height: 13px;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  filter: drop-shadow(0 2px 2px var(--neve-ombra));
+  background:
+    radial-gradient(8px 6px  at 28% 5px, var(--neve) 99%, transparent 100%),
+    radial-gradient(11px 8px at 62% 5px, var(--neve) 99%, transparent 100%),
+    linear-gradient(var(--neve) 0 0) top / 100% 6px no-repeat;
+}
+
+/* =====================================================================
+   I PEZZI, uno per uno
+   ===================================================================== */
+
+/* --- La busta: carta ghiacciata ---------------------------------------- */
+[data-tema="neve"] .glitterato {
+  background-color: #DCEAF6;
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(255,255,255,0.95) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 68% 12%, rgba(255,255,255,0.8) 0.5px, transparent 1.2px),
+    radial-gradient(circle at 42% 68%, rgba(255,255,255,0.9) 0.7px, transparent 1.6px),
+    radial-gradient(circle at 85% 55%, rgba(255,255,255,0.75) 0.5px, transparent 1.3px),
+    radial-gradient(circle at 12% 82%, rgba(255,255,255,0.85) 0.6px, transparent 1.5px),
+    linear-gradient(150deg, #F4FAFF 0%, #D3E5F4 45%, #E9F3FB 70%, #BED7EC 100%);
+  background-size: 34px 34px, 47px 47px, 29px 29px, 53px 53px, 41px 41px, 100% 100%;
+}
+[data-tema="neve"] .busta-corpo {
+  box-shadow: 0 26px 50px -18px var(--ombra-forte), inset 0 0 0 1px rgba(255,255,255,0.8);
+}
+[data-tema="neve"] .busta-lettera {
+  background: linear-gradient(180deg, #FFFFFF, #EFF6FC);
+}
+[data-tema="neve"] .busta-istruzione { color: #2E5A80; }
+
+/* la ceralacca diventa una pallina di ghiaccio */
+[data-tema="neve"] .busta-sigillo {
+  font-family: var(--corsivo);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(30, 70, 110, 0.45);
+  background: radial-gradient(circle at 34% 28%, #FFFFFF 0%, #B8D6EE 42%, #6FA3CC 74%, #40709B 100%);
+  box-shadow:
+    inset 0 2px 5px rgba(255, 255, 255, 0.85),
+    inset 0 -3px 7px rgba(40, 80, 120, 0.35),
+    0 8px 20px -8px var(--ombra-forte);
+}
+
+/* --- Il numero: ghiaccio ------------------------------------------------ */
+[data-tema="neve"] .numero {
+  font-family: var(--corsivo);
+  font-weight: 600;
+  background: linear-gradient(112deg,
+    #4C82AF 0%, #FFFFFF 13%, #7FAACE 25%, #FFFFFF 37%,
+    #3E7099 50%, #FFFFFF 62%, #86B2D4 74%, #FFFFFF 86%, #4C82AF 100%);
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 1px 0 rgba(35,64,92,0.4)) drop-shadow(0 8px 16px rgba(35,64,92,0.3));
+}
+
+[data-tema="neve"] .nome {
+  font-family: var(--corsivo);
+  font-size: clamp(3rem, 15vw, 5rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #1B354F;
+  text-shadow: 0 2px 0 rgba(255,255,255,0.9), 0 10px 22px rgba(35,64,92,0.22);
+}
+
+[data-tema="neve"] .quando-testo .data { color: #1B354F; font-weight: 600; }
+[data-tema="neve"] .ora { color: var(--inchiostro-tenue); }
+
+/* --- Bolli, carte, conto ------------------------------------------------ */
+[data-tema="neve"] .bollo { color: var(--oro); font-weight: 600; }
+[data-tema="neve"] .bollo .segno {
+  border-color: rgba(46, 109, 164, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+}
+[data-tema="neve"] .bollo .segno::after {
+  content: "";
+  position: absolute;
+  inset: 0.28rem;
+  border-radius: 50%;
+  border: 1px dashed rgba(46, 109, 164, 0.35);
+}
+[data-tema="neve"] .bollo .segno svg { position: relative; z-index: 1; }
+
+[data-tema="neve"] .carta {
+  background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(240,247,253,0.85));
+  border-color: rgba(143, 182, 216, 0.6);
+}
+[data-tema="neve"] .conto-voce {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(143, 182, 216, 0.6);
+}
+[data-tema="neve"] .conto-numero { color: #1B354F; font-weight: 600; }
+[data-tema="neve"] .conto-etichetta { color: var(--oro); }
+[data-tema="neve"] .dettaglio-valore { color: #1B354F; font-weight: 600; }
+[data-tema="neve"] .dettaglio-riga + .dettaglio-riga { border-top-color: rgba(143, 182, 216, 0.5); }
+[data-tema="neve"] .apertura { color: #21445F; font-style: normal; }
+
+/* --- Programma ----------------------------------------------------------- */
+[data-tema="neve"] .programma-ora { color: var(--oro); font-weight: 600; }
+[data-tema="neve"] .programma-filo { background: rgba(143, 182, 216, 0.8); }
+[data-tema="neve"] .programma-filo::before { background: var(--oro); }
+[data-tema="neve"] .programma-cosa { color: #1B354F; font-weight: 600; }
+
+/* --- Messaggio e moduli --------------------------------------------------- */
+[data-tema="neve"] .campo textarea.foglio {
+  background-color: #FFFFFF;
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(143, 182, 216, 0.45) 2.1rem, rgba(143, 182, 216, 0.45) calc(2.1rem + 1px));
+  border-color: rgba(143, 182, 216, 0.7);
+  color: #23405C;
+}
+[data-tema="neve"] .campo textarea.foglio::placeholder { color: #9DB6CC; }
+[data-tema="neve"] .campo label,
+[data-tema="neve"] .gruppo-legenda { color: var(--oro); font-weight: 600; }
+[data-tema="neve"] .campo input[type="text"],
+[data-tema="neve"] .campo input[type="number"],
+[data-tema="neve"] .campo input[type="password"],
+[data-tema="neve"] .campo textarea,
+[data-tema="neve"] .campo select {
+  background: #FFFFFF;
+  border-color: rgba(143, 182, 216, 0.75);
+  color: #23405C;
+}
+[data-tema="neve"] .scelta {
+  background: #FFFFFF;
+  border-color: rgba(143, 182, 216, 0.7);
+}
+[data-tema="neve"] .scelta:has(input:checked) {
+  background: #E7F1FA;
+  border-color: var(--oro);
+}
+[data-tema="neve"] .promessa { color: var(--inchiostro-tenue); }
+
+[data-tema="neve"] .bottone {
+  background: linear-gradient(180deg, #3D82BC, #275F92);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+[data-tema="neve"] .bottone-lieve {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(46, 109, 164, 0.5);
+  color: var(--oro);
+}
+
+/* --- Esiti, piede, pagina privata ---------------------------------------- */
+[data-tema="neve"] .esito .segno-grande { color: var(--oro); }
+[data-tema="neve"] .esito-titolo,
+[data-tema="neve"] .conta-messaggi {
+  font-family: var(--corsivo);
+  font-weight: 600;
+  font-size: 2rem;
+  color: #1B354F;
+}
+[data-tema="neve"] .firma {
+  font-family: var(--corsivo);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #21445F;
+}
+[data-tema="neve"] .messaggio {
+  background-color: #FFFFFF;
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(143, 182, 216, 0.4) 2.1rem, rgba(143, 182, 216, 0.4) calc(2.1rem + 1px));
+  border-color: rgba(143, 182, 216, 0.6);
+  color: #23405C;
+}
+[data-tema="neve"] .messaggio-numero {
+  z-index: 3;                        /* la neve sta a 2: il numero le sta sopra */
+  background: radial-gradient(circle at 34% 30%, #A9CCE6, #2E6DA4);
+  color: #FFFFFF;
+}
+[data-tema="neve"] .sigillo-piccolo {
+  font-family: var(--corsivo);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: radial-gradient(circle at 34% 30%, #E4F0F9, #6FA3CC);
+  color: #FFFFFF;
+  text-shadow: 0 1px 1px rgba(30, 70, 110, 0.4);
+}
+[data-tema="neve"] .tabella-conferme th { color: var(--oro); }
+[data-tema="neve"] .tabella-conferme th,
+[data-tema="neve"] .tabella-conferme td { border-bottom-color: rgba(143, 182, 216, 0.5); }
+[data-tema="neve"] .pastiglia.si { background: #DCEEDF; color: #33683B; }
+[data-tema="neve"] .pastiglia.no { background: #E6EEF6; color: #4A6A8A; }
+
+[data-tema="neve"] .musica {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(143, 182, 216, 0.7);
+  color: var(--oro);
+}
+
+/* --- La fascia di neve in fondo ------------------------------------------- */
+[data-tema="neve"] #rose {
+  opacity: 1;
+  height: 26vh;
+  max-height: 12rem;
+}

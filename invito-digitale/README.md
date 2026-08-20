@@ -5,14 +5,16 @@ presenza e — la parte che conta — una **cassetta di messaggi anonimi** per
 la festeggiata: gli invitati le scrivono qualcosa prima che diventi
 maggiorenne, e solo lei potrà leggerli.
 
-Arriva in cinque versioni, si sceglie con una riga:
+Arriva in sei versioni, si sceglie con una riga:
 
-| | `"cipria"` | `"discoteca"` | `"neve"` | `"spazio"` | `"casino"` |
-|---|---|---|---|---|---|
-| **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco | notte, fuoco e azzurro | verde tavolo e oro |
-| **carattere** | Parisienne | Monoton (neon) | Fraunces | Michroma | Bodoni Moda |
-| **sfondo** | brillantini e rose | palla specchiata e fasci di luce | fiocchi e cumuli | il sistema solare che gira | semi che galleggiano e panno verde |
-| **si apre** | busta con la ceralacca | busta con il bollo al neon | busta innevata | navicella che parte | slot che gira e paga |
+| | colori | carattere | sfondo | si apre così |
+|---|---|---|---|---|
+| **`"cipria"`** | rosa e oro rosa | Parisienne | brillantini e rose | busta con la ceralacca |
+| **`"discoteca"`** | nero, magenta e ciano | Monoton (neon) | palla specchiata e fasci di luce | busta con il bollo al neon |
+| **`"neve"`** | azzurro e bianco | Fraunces | fiocchi e cumuli | busta innevata |
+| **`"spazio"`** | notte, fuoco e azzurro | Michroma | il sistema solare che gira | navicella che parte |
+| **`"casino"`** | verde tavolo e oro | Bodoni Moda | semi che galleggiano | slot che gira e paga |
+| **`"calcio"`** | notte da stadio e oro | Saira Condensed | pulviscolo nei fari | rigore da segnare |
 
 Cambia solo l'aspetto: testi, messaggi anonimi e conferme funzionano identici.
 
@@ -32,6 +34,7 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 | `assets/css/neve.css` | il tema neve | solo se vuoi cambiare stile |
 | `assets/css/spazio.css` | il tema spazio | solo se vuoi cambiare stile |
 | `assets/css/casino.css` | il tema casinò | solo se vuoi cambiare stile |
+| `assets/css/calcio.css` | il tema calcio | solo se vuoi cambiare stile |
 | `assets/js/*.js` | il funzionamento | no |
 | `backend/Codice.gs` | lo script che salva le risposte nel foglio Google | lo incolli su Google |
 | `backend/ISTRUZIONI.md` | la guida passo passo per collegare il foglio | leggila |
@@ -43,13 +46,13 @@ Tutto è già pronto: **devi cambiare solo `config.js`**.
 Prima riga di `config.js`:
 
 ```js
-tema: "cipria",      // "discoteca", "neve", "spazio" oppure "casino"
+tema: "cipria",      // "discoteca", "neve", "spazio", "casino" oppure "calcio"
 ```
 
 Non serve toccare altro: cambiano colori, caratteri e sfondo di tutte e due
 le pagine, invito e cassetta dei messaggi.
 
-In due temi la busta non è una busta:
+In tre temi la busta non è una busta:
 
 - **`"spazio"`**: è una navicella col portello aperto. Al tocco la porta si
   chiude, si accende il motore e parte verso l'alto. La frase è "Sali a bordo".
@@ -57,6 +60,11 @@ In due temi la busta non è una busta:
   pezzo di slot alla volta; dopo un paio di secondi si accendono le luci.
   Al tocco i tre rulli partono, si fermano uno alla volta sul 7 e la vincita
   fa piovere gettoni, monete e carte. La frase è "Tira la leva".
+- **`"calcio"`**: c'è un rigore da segnare. Il giocatore ha il nome e l'età
+  della festeggiata sulla maglia, e davanti c'è il portiere. Scegli uno dei
+  cinque angoli della porta: lui si tuffa a caso, e su cinque volte una te
+  lo para. Se para esce "Non sei degno di aprire l'invito" e si ritira; se
+  segni, gol, coriandoli e si apre. La frase è "Scegli dove tirare".
 
 La frase sopra la busta la mette il tema quando in `config.js` lasci
 `istruzioneBusta: ""`; se ci scrivi qualcosa tu, vince la tua.

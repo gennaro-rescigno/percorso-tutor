@@ -13,7 +13,8 @@ window.CONFIG = {
      "discoteca" = nero, neon e luci che girano (serata)
      "neve"      = azzurro, fiocchi che scendono e neve posata sopra
      "spazio"    = notte, sistema solare che gira e navicella che parte
-     "casino"    = verde e oro, torcia al buio e slot che paga            */
+     "casino"    = verde e oro, torcia al buio e slot che paga
+     "calcio"    = stadio di notte, con un rigore da segnare per entrare  */
   tema: "cipria",
 
   /* --- 1. CHI FESTEGGIA ---------------------------------------------- */

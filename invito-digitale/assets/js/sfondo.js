@@ -1306,10 +1306,100 @@
   }
 
   /* =====================================================================
+     TEMA CALCIO — l'aria dello stadio di notte
+     ===================================================================== */
+
+  function atmosferaStadio() {
+    var ctx, L, A, pulviscolo = [], flash = [];
+
+    function costruisci() {
+      var rnd = caso(2626);
+      pulviscolo = [];
+      var quanti = Math.round(Math.min(80, (L * A) / 9000));
+      for (var i = 0; i < quanti; i++) {
+        pulviscolo.push({
+          x: rnd() * L,
+          y: rnd() * A,
+          r: 0.5 + rnd() * 1.6,
+          v: 4 + rnd() * 16,
+          onda: rnd() * Math.PI * 2,
+          ampiezza: 6 + rnd() * 18,
+          alfa: 0.12 + rnd() * 0.3
+        });
+      }
+      /* i flash dei telefoni sugli spalti, in alto */
+      flash = [];
+      for (var k = 0; k < 18; k++) {
+        flash.push({
+          x: rnd() * L,
+          y: rnd() * A * 0.42,
+          quando: rnd() * 9,
+          ogni: 5 + rnd() * 9
+        });
+      }
+    }
+
+    function ridimensiona() {
+      var m = preparaTela(telaGlitter, 1.5);
+      ctx = m.ctx; L = m.l; A = m.a;
+      costruisci();
+    }
+
+    function disegna(t, dt) {
+      ctx.clearRect(0, 0, L, A);
+
+      for (var i = 0; i < pulviscolo.length; i++) {
+        var p = pulviscolo[i];
+        if (!fermoImmagine) {
+          p.y -= p.v * dt;
+          if (p.y < -6) { p.y = A + 6; p.x = Math.random() * L; }
+        }
+        var x = p.x + Math.sin(t * 0.35 + p.onda) * p.ampiezza;
+        ctx.beginPath();
+        ctx.arc(x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(226, 245, 232," + p.alfa.toFixed(3) + ")";
+        ctx.fill();
+      }
+
+      for (var k = 0; k < flash.length; k++) {
+        var f = flash[k];
+        var quanto = (t - f.quando) % f.ogni;
+        if (quanto < 0 || quanto > 0.16) continue;
+        var forza = 1 - quanto / 0.16;
+        var g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 16);
+        g.addColorStop(0, "rgba(255,255,255," + (forza * 0.85).toFixed(3) + ")");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, 16, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    var ultimo = 0;
+    function anima(tms) {
+      var t = tms / 1000;
+      var dt = ultimo ? Math.min(t - ultimo, 0.05) : 0;
+      ultimo = t;
+      disegna(t, dt);
+      requestAnimationFrame(anima);
+    }
+
+    ridimensiona();
+    if (fermoImmagine) disegna(2, 0); else requestAnimationFrame(anima);
+    window.addEventListener("resize", function () {
+      ridimensiona();
+      if (fermoImmagine) disegna(2, 0);
+    });
+  }
+
+  /* =====================================================================
      Si accende il tema giusto
      ===================================================================== */
   if (tema === "discoteca") {
     if (telaGlitter) luciDaDiscoteca();
+  } else if (tema === "calcio") {
+    if (telaGlitter) atmosferaStadio();
   } else if (tema === "casino") {
     if (telaGlitter) salaDaGioco();
     if (telaRose) bordoDelTavolo();

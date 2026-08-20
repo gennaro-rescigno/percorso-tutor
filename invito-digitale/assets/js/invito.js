@@ -14,7 +14,8 @@
     discoteca: "Tocca la busta per aprire l'invito",
     neve:      "Tocca la busta per aprire l'invito",
     spazio:    "Sali a bordo",
-    casino:    "Tira la leva"
+    casino:    "Tira la leva",
+    calcio:    "Scegli dove tirare"
   };
 
   /* Quanto aspettare prima di mostrare l'invito: lo decide il tema, in CSS */
@@ -177,7 +178,8 @@
     document.body.classList.add("sigillato");
 
     var giaAperta = false;
-    busta.addEventListener("click", function () {
+
+    function apriInvito() {
       if (giaAperta) return;
       giaAperta = true;
 
@@ -192,7 +194,16 @@
         rivelaScorrendo();
         window.scrollTo(0, 0);
       }, fermoImmagine ? 100 : attesaApertura());
-    });
+    }
+
+    /* Un tema può mettere una prova davanti all'invito — nel tema calcio
+       bisogna segnare un rigore. In quel caso decide lei quando si apre. */
+    if (window.SFIDA && window.SFIDA.attiva(tema)) {
+      window.SFIDA.prepara(scena, busta, apriInvito, fermoImmagine);
+      return;
+    }
+
+    busta.addEventListener("click", apriInvito);
   }
 
   /* --- 7. Il messaggio anonimo ------------------------------------------ */

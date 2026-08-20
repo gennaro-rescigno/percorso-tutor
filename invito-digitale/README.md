@@ -12,7 +12,7 @@ Arriva in tre versioni, si sceglie con una riga:
 | **colori** | rosa e oro rosa | nero, magenta e ciano | azzurro e bianco |
 | **carattere** | corsivo elegante (Parisienne) | insegna al neon (Monoton) | serif d'inverno (Fraunces) |
 | **sfondo** | pioggia di brillantini e giardino di rose | palla specchiata, fasci di luce e pista | fiocchi di neve e cumuli |
-| **in più** | ceralacca con le iniziali | il nome al neon che tremola | neve posata su scritte, pulsanti, campi e riquadri |
+| **in più** | ceralacca con le iniziali | il nome al neon che tremola | neve posata su pulsanti, campi e moduli |
 
 Cambia solo l'aspetto: testi, messaggi anonimi e conferme funzionano identici.
 

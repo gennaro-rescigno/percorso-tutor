@@ -65,30 +65,20 @@
    distanze diverse: da lontano è neve posata, non una riga bianca.
    ===================================================================== */
 
-[data-tema="neve"] .titolo-sezione,
-[data-tema="neve"] .conta-messaggi,
-[data-tema="neve"] .numero,
-[data-tema="neve"] .nome,
+/* La neve si posa solo su quello che si tocca o si compila:
+   pulsanti, moduli, campi. Sulle scritte no: le copre e imbruttisce. */
 [data-tema="neve"] .bottone,
 [data-tema="neve"] .carta,
-[data-tema="neve"] .conto-voce,
 [data-tema="neve"] .campo textarea.foglio,
-[data-tema="neve"] .messaggio,
 [data-tema="neve"] .scelta,
 [data-tema="neve"] .bollo .segno,
 [data-tema="neve"] .musica {
   position: relative;
 }
 
-[data-tema="neve"] .titolo-sezione::before,
-[data-tema="neve"] .conta-messaggi::before,
-[data-tema="neve"] .numero::before,
-[data-tema="neve"] .nome::before,
 [data-tema="neve"] .bottone::before,
 [data-tema="neve"] .carta::before,
-[data-tema="neve"] .conto-voce::before,
 [data-tema="neve"] .campo textarea.foglio::before,
-[data-tema="neve"] .messaggio::before,
 [data-tema="neve"] .scelta::before,
 [data-tema="neve"] .bollo .segno::before,
 [data-tema="neve"] .musica::before {
@@ -117,13 +107,8 @@
     linear-gradient(var(--neve) 0 0) top / 100% 6px no-repeat;
 }
 
-/* sui titoli basta un velo: se scende troppo non si legge più */
-[data-tema="neve"] .titolo-sezione::before,
-[data-tema="neve"] .conta-messaggi::before { top: -12px; }
-
-/* sulle carte larghe la neve è più abbondante e meno ordinata */
-[data-tema="neve"] .carta::before,
-[data-tema="neve"] .messaggio::before {
+/* sul riquadro del modulo la neve è più abbondante e meno ordinata */
+[data-tema="neve"] .carta::before {
   height: 22px;
   background:
     radial-gradient(11px 7px  at 4% 6px,  var(--neve) 99%, transparent 100%),
@@ -154,7 +139,6 @@
     linear-gradient(var(--neve) 0 0) top / 100% 5px no-repeat;
 }
 
-[data-tema="neve"] .conto-voce::before,
 [data-tema="neve"] .musica::before {
   height: 16px;
   background:
@@ -179,26 +163,6 @@
     linear-gradient(var(--neve) 0 0) top / 100% 7px no-repeat;
 }
 
-/* sul numero grande e sul nome la neve è più abbondante */
-[data-tema="neve"] .numero::before {
-  top: 0.03em;
-  height: 26px;
-  left: 2%;
-  right: 2%;
-  background:
-    radial-gradient(17px 13px at 14% 8px, var(--neve) 99%, transparent 100%),
-    radial-gradient(23px 16px at 36% 8px, var(--neve) 99%, transparent 100%),
-    radial-gradient(14px 10px at 55% 8px, var(--neve) 99%, transparent 100%),
-    radial-gradient(20px 14px at 74% 8px, var(--neve) 99%, transparent 100%),
-    radial-gradient(15px 11px at 91% 8px, var(--neve) 99%, transparent 100%),
-    linear-gradient(var(--neve) 0 0) top / 100% 9px no-repeat;
-}
-[data-tema="neve"] .nome::before {
-  top: 0.04em;
-  height: 20px;
-  left: 3%;
-  right: 3%;
-}
 
 /* Sulla busta la neve va appoggiata sul bordo alto di tutta la busta:
    la falda ha un clip-path a triangolo, che ritaglierebbe via anche la neve. */
@@ -230,22 +194,6 @@
   transition: opacity 0.5s ease;
 }
 
-/* un ciuffo di neve anche sulla ceralacca */
-[data-tema="neve"] .busta-sigillo::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  left: 16%;
-  right: 16%;
-  top: -4px;
-  height: 13px;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  filter: drop-shadow(0 2px 2px var(--neve-ombra));
-  background:
-    radial-gradient(8px 6px  at 28% 5px, var(--neve) 99%, transparent 100%),
-    radial-gradient(11px 8px at 62% 5px, var(--neve) 99%, transparent 100%),
-    linear-gradient(var(--neve) 0 0) top / 100% 6px no-repeat;
-}
 
 /* =====================================================================
    I PEZZI, uno per uno
@@ -357,14 +305,26 @@
 [data-tema="neve"] .campo textarea.foglio::placeholder { color: #9DB6CC; }
 [data-tema="neve"] .campo label,
 [data-tema="neve"] .gruppo-legenda { color: var(--oro); font-weight: 600; }
+/* Sui campi la neve non può stare in uno pseudo-elemento: input e textarea
+   non ne hanno. La disegno dentro, sul bordo alto, come strati di sfondo —
+   e il campo prende un filo di azzurro, altrimenti bianco su bianco sparisce. */
 [data-tema="neve"] .campo input[type="text"],
 [data-tema="neve"] .campo input[type="number"],
 [data-tema="neve"] .campo input[type="password"],
 [data-tema="neve"] .campo textarea,
 [data-tema="neve"] .campo select {
-  background: #FFFFFF;
   border-color: rgba(143, 182, 216, 0.75);
   color: #23405C;
+  background:
+    radial-gradient(9px 6px  at 8% 4px,  #FFFFFF 99%, transparent 100%),
+    radial-gradient(15px 9px at 24% 6px, #FFFFFF 99%, transparent 100%),
+    radial-gradient(8px 5px  at 39% 3px, #FFFFFF 99%, transparent 100%),
+    radial-gradient(12px 8px at 53% 6px, #FFFFFF 99%, transparent 100%),
+    radial-gradient(18px 6px at 70% 4px, #FFFFFF 99%, transparent 100%),
+    radial-gradient(10px 9px at 84% 5px, #FFFFFF 99%, transparent 100%),
+    radial-gradient(13px 6px at 96% 4px, #FFFFFF 99%, transparent 100%),
+    linear-gradient(#FFFFFF 0 0) top / 100% 4px no-repeat,
+    #F1F8FE;
 }
 [data-tema="neve"] .scelta {
   background: #FFFFFF;
@@ -412,7 +372,6 @@
   color: #23405C;
 }
 [data-tema="neve"] .messaggio-numero {
-  z-index: 3;                        /* la neve sta a 2: il numero le sta sopra */
   background: radial-gradient(circle at 34% 30%, #A9CCE6, #2E6DA4);
   color: #FFFFFF;
 }

@@ -8,6 +8,11 @@
 
 window.CONFIG = {
 
+  /* --- 0. IL TEMA ------------------------------------------------------
+     "cipria"    = rosa, glitter e rose (elegante)
+     "discoteca" = nero, neon e luci che girano (serata)                  */
+  tema: "cipria",
+
   /* --- 1. CHI FESTEGGIA ---------------------------------------------- */
   festeggiata: {
     nome: "Marta",              // il nome che si legge grande, in corsivo

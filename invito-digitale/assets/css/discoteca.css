@@ -1,0 +1,327 @@
+/* =====================================================================
+   DISCOTECA — il secondo tema.
+   Si accende scrivendo  tema: "discoteca"  dentro config.js.
+   Tutto qui dentro parte da [data-tema="discoteca"], quindi con l'altro
+   tema questo file non tocca niente.
+   ===================================================================== */
+
+[data-tema="discoteca"] {
+  /* Colori: nero con dentro il viola, e due neon */
+  --cipria:      #0A0713;
+  --cipria-cupa: #05030B;
+  --carta:       #171029;
+  --carta-velo:  rgba(38, 24, 66, 0.55);
+  --oro:         #FF2E88;          /* il magenta è il colore forte */
+  --oro-chiaro:  #35E7E0;          /* il ciano risponde, in piccolo */
+  --inchiostro:  #F2ECFF;
+  --inchiostro-tenue: #B7AADB;
+  --diamante:    #E9E2FF;
+  --ombra:       rgba(0, 0, 0, 0.55);
+  --ombra-forte: rgba(0, 0, 0, 0.75);
+
+  /* Caratteri: Monoton è un tubo al neon, quindi si usa pochissimo */
+  --corsivo: "Monoton", "Impact", sans-serif;
+  --serif:   "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --mano:    "Caveat", "Bradley Hand", cursive;
+
+  --viola:   #7B3CF0;
+  --vetro:   rgba(255, 255, 255, 0.05);
+  --filo-vetro: rgba(255, 255, 255, 0.12);
+}
+
+/* --- Il fondo: la sala al buio ---------------------------------------- */
+[data-tema="discoteca"] body { background: #0A0713; }
+
+[data-tema="discoteca"] .fondo {
+  background:
+    radial-gradient(120% 80% at 50% -20%, #2A1150 0%, #17092E 42%, #0B0616 74%, #060310 100%);
+}
+[data-tema="discoteca"] .fondo::after {
+  background: radial-gradient(75% 55% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+/* --- Tipografia -------------------------------------------------------- */
+[data-tema="discoteca"] body { font-weight: 300; letter-spacing: 0.005em; }
+
+[data-tema="discoteca"] .occhiello {
+  color: var(--oro-chiaro);
+  font-weight: 500;
+  letter-spacing: 0.36em;
+}
+
+[data-tema="discoteca"] .titolo-sezione {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #FFFFFF;
+}
+
+[data-tema="discoteca"] .filo { color: rgba(255, 46, 136, 0.5); }
+[data-tema="discoteca"] .filo::before,
+[data-tema="discoteca"] .filo::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 46, 136, 0.55), transparent);
+}
+
+/* --- La busta: nera e iridescente -------------------------------------- */
+[data-tema="discoteca"] .glitterato {
+  background-color: #241243;
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(255,255,255,0.95) 0.6px, transparent 1.4px),
+    radial-gradient(circle at 68% 12%, rgba(53,231,224,0.8) 0.5px, transparent 1.2px),
+    radial-gradient(circle at 42% 68%, rgba(255,255,255,0.9) 0.7px, transparent 1.6px),
+    radial-gradient(circle at 85% 55%, rgba(255,46,136,0.75) 0.5px, transparent 1.3px),
+    radial-gradient(circle at 12% 82%, rgba(255,255,255,0.85) 0.6px, transparent 1.5px),
+    linear-gradient(150deg, #3B1B6B 0%, #221046 40%, #4A1C63 62%, #16092E 100%);
+  background-size: 34px 34px, 47px 47px, 29px 29px, 53px 53px, 41px 41px, 100% 100%;
+}
+[data-tema="discoteca"] .busta-corpo {
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.85),
+    0 0 40px -12px rgba(123, 60, 240, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+[data-tema="discoteca"] .busta-lettera {
+  background: linear-gradient(180deg, #D8CEF2, #B6A9D8);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+[data-tema="discoteca"] .busta-fronte { box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.5); }
+
+[data-tema="discoteca"] .busta-istruzione {
+  color: var(--oro-chiaro);
+  font-weight: 500;
+  text-shadow: 0 0 14px rgba(53, 231, 224, 0.6);
+}
+
+/* la ceralacca diventa un bollo al neon */
+[data-tema="discoteca"] .busta-sigillo {
+  font-family: var(--corsivo);
+  font-size: 1.25rem;
+  color: #FFFFFF;
+  background: radial-gradient(circle at 50% 46%, #FF5FA5 0%, #FF2E88 52%, #D0166F 82%, #A00E54 100%);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 22px rgba(255, 46, 136, 0.9);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.35),
+    inset 0 -2px 6px rgba(120, 8, 62, 0.5),
+    0 0 30px -2px rgba(255, 46, 136, 0.9);
+}
+[data-tema="discoteca"] .busta-sigillo::before { opacity: 0.9; }
+
+/* --- Il numero: cromato, con la luce colorata addosso ------------------ */
+[data-tema="discoteca"] .numero {
+  font-family: var(--serif);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  background: linear-gradient(112deg,
+    #6E5C9A 0%, #FFFFFF 12%, #FF6FB0 24%, #FFFFFF 36%,
+    #6FE9E4 48%, #FFFFFF 60%, #C79BFF 72%, #FFFFFF 84%, #6E5C9A 100%);
+  background-size: 320% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 18px rgba(123, 60, 240, 0.55)) drop-shadow(0 6px 20px rgba(0, 0, 0, 0.7));
+  animation: brillio 5s ease-in-out infinite;
+}
+
+/* --- Il nome: un'insegna al neon --------------------------------------- */
+[data-tema="discoteca"] .nome {
+  font-family: var(--corsivo);
+  font-size: clamp(2.6rem, 12vw, 4.2rem);
+  line-height: 1.15;
+  color: #FFE6F3;
+  text-shadow:
+    0 0 4px #FFFFFF,
+    0 0 12px #FF2E88,
+    0 0 28px #FF2E88,
+    0 0 56px rgba(255, 46, 136, 0.7);
+  animation: neon 6s ease-in-out infinite;
+}
+
+/* il tremolio di un tubo al neon: raro e breve, altrimenti stanca */
+@keyframes neon {
+  0%, 92%, 100% { opacity: 1; }
+  93%           { opacity: 0.45; }
+  94%           { opacity: 1; }
+  96%           { opacity: 0.6; }
+  97%           { opacity: 1; }
+}
+
+[data-tema="discoteca"] .quando-testo { color: #E4DBFF; }
+[data-tema="discoteca"] .quando-testo .data {
+  color: #FFFFFF;
+  font-weight: 500;
+}
+[data-tema="discoteca"] .ora { color: var(--inchiostro-tenue); }
+
+/* --- I bolli: cerchi al neon ------------------------------------------- */
+[data-tema="discoteca"] .bollo { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="discoteca"] .bollo .segno {
+  border-color: rgba(53, 231, 224, 0.45);
+  background: rgba(23, 16, 41, 0.6);
+  box-shadow: 0 0 18px -6px rgba(53, 231, 224, 0.7), inset 0 0 14px -6px rgba(53, 231, 224, 0.6);
+}
+[data-tema="discoteca"] .bollo .segno::before { border-color: rgba(255, 46, 136, 0.4); }
+[data-tema="discoteca"] .bollo:hover .segno,
+[data-tema="discoteca"] .bollo:focus-visible .segno {
+  background: rgba(255, 46, 136, 0.14);
+  border-color: rgba(255, 46, 136, 0.75);
+  box-shadow: 0 0 26px -4px rgba(255, 46, 136, 0.85);
+}
+
+/* --- Conto alla rovescia: numeri sul vetro ----------------------------- */
+[data-tema="discoteca"] .conto-voce {
+  background: var(--vetro);
+  border-color: var(--filo-vetro);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+[data-tema="discoteca"] .conto-numero {
+  color: #FFFFFF;
+  font-weight: 600;
+  text-shadow: 0 0 16px rgba(123, 60, 240, 0.8);
+}
+[data-tema="discoteca"] .conto-etichetta { color: var(--oro-chiaro); }
+
+/* --- Le carte: vetro scuro --------------------------------------------- */
+[data-tema="discoteca"] .carta {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  border-color: var(--filo-vetro);
+  box-shadow: 0 24px 50px -34px #000, inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+[data-tema="discoteca"] .dettaglio-riga + .dettaglio-riga { border-top-color: rgba(255, 255, 255, 0.1); }
+[data-tema="discoteca"] .dettaglio-valore { color: #FFFFFF; font-weight: 500; }
+[data-tema="discoteca"] .apertura { color: #EFE7FF; font-style: normal; font-weight: 300; }
+
+/* --- Programma ---------------------------------------------------------- */
+[data-tema="discoteca"] .programma-ora { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="discoteca"] .programma-filo { background: rgba(255, 46, 136, 0.35); }
+[data-tema="discoteca"] .programma-filo::before {
+  background: var(--oro);
+  box-shadow: 0 0 10px rgba(255, 46, 136, 0.9);
+}
+[data-tema="discoteca"] .programma-cosa { color: #FFFFFF; font-weight: 500; }
+
+/* --- Il messaggio: un biglietto scritto al buio ------------------------ */
+[data-tema="discoteca"] .campo textarea.foglio {
+  background-color: rgba(255, 255, 255, 0.055);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(255, 255, 255, 0.12) 2.1rem, rgba(255, 255, 255, 0.12) calc(2.1rem + 1px));
+  border-color: var(--filo-vetro);
+  color: #F6F0FF;
+  box-shadow: inset 0 0 30px rgba(123, 60, 240, 0.15);
+}
+[data-tema="discoteca"] .campo textarea.foglio::placeholder { color: #7E70A6; }
+[data-tema="discoteca"] .promessa { color: var(--inchiostro-tenue); font-style: normal; }
+[data-tema="discoteca"] .promessa .segno { color: var(--oro-chiaro); }
+
+/* --- Campi e scelte ----------------------------------------------------- */
+[data-tema="discoteca"] .campo label,
+[data-tema="discoteca"] .gruppo-legenda { color: var(--oro-chiaro); font-weight: 500; }
+[data-tema="discoteca"] .campo input[type="text"],
+[data-tema="discoteca"] .campo input[type="number"],
+[data-tema="discoteca"] .campo input[type="password"],
+[data-tema="discoteca"] .campo textarea,
+[data-tema="discoteca"] .campo select {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: var(--filo-vetro);
+  color: #F6F0FF;
+}
+[data-tema="discoteca"] .scelta {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: var(--filo-vetro);
+  color: #EFE7FF;
+}
+[data-tema="discoteca"] .scelta:has(input:checked) {
+  background: rgba(255, 46, 136, 0.16);
+  border-color: rgba(255, 46, 136, 0.8);
+  box-shadow: 0 0 20px -8px rgba(255, 46, 136, 0.9);
+}
+
+/* --- Bottoni ------------------------------------------------------------ */
+[data-tema="discoteca"] .bottone {
+  background: linear-gradient(180deg, #FF4B99, #D2126D);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  font-weight: 600;
+  box-shadow: 0 0 26px -6px rgba(255, 46, 136, 0.9);
+}
+[data-tema="discoteca"] .bottone-lieve {
+  background: transparent;
+  border-color: rgba(53, 231, 224, 0.55);
+  color: var(--oro-chiaro);
+  box-shadow: none;
+}
+[data-tema="discoteca"] .bottone-lieve:hover {
+  box-shadow: 0 0 22px -6px rgba(53, 231, 224, 0.9);
+}
+
+[data-tema="discoteca"] .avviso {
+  background: rgba(255, 70, 70, 0.12);
+  border-color: rgba(255, 120, 120, 0.5);
+  color: #FFC2C2;
+}
+
+/* --- Esiti e piede ------------------------------------------------------ */
+[data-tema="discoteca"] .esito .segno-grande { color: var(--oro); text-shadow: 0 0 20px rgba(255,46,136,0.9); }
+[data-tema="discoteca"] .esito-titolo {
+  font-family: var(--serif);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+[data-tema="discoteca"] .firma {
+  font-family: var(--corsivo);
+  font-size: 1.3rem;
+  color: #FFE6F3;
+  text-shadow: 0 0 10px #FF2E88, 0 0 26px rgba(255, 46, 136, 0.7);
+}
+[data-tema="discoteca"] .piede { color: var(--inchiostro-tenue); }
+
+/* --- Musica -------------------------------------------------------------- */
+[data-tema="discoteca"] .musica {
+  background: rgba(23, 16, 41, 0.75);
+  border-color: rgba(53, 231, 224, 0.5);
+  color: var(--oro-chiaro);
+  box-shadow: 0 0 22px -8px rgba(53, 231, 224, 0.9);
+}
+
+/* --- Pagina privata ------------------------------------------------------ */
+[data-tema="discoteca"] .conta-messaggi {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #FFFFFF;
+  text-shadow: 0 0 22px rgba(123, 60, 240, 0.9);
+}
+[data-tema="discoteca"] .messaggio {
+  background-color: rgba(255, 255, 255, 0.055);
+  background-image: repeating-linear-gradient(
+    180deg, transparent, transparent 2.1rem,
+    rgba(255, 255, 255, 0.1) 2.1rem, rgba(255, 255, 255, 0.1) calc(2.1rem + 1px));
+  border-color: var(--filo-vetro);
+  color: #F6F0FF;
+  box-shadow: 0 20px 40px -32px #000;
+}
+[data-tema="discoteca"] .messaggio-numero {
+  background: radial-gradient(circle at 34% 30%, #FF7FB8, #D2126D);
+  color: #FFFFFF;
+  box-shadow: 0 0 16px -4px rgba(255, 46, 136, 0.9);
+}
+[data-tema="discoteca"] .sigillo-piccolo {
+  font-family: var(--corsivo);
+  font-size: 0.8rem;
+  background: radial-gradient(circle at 34% 30%, #FF7FB8, #C4126B);
+  color: #FFFFFF;
+  box-shadow: 0 0 18px -4px rgba(255, 46, 136, 0.85);
+}
+[data-tema="discoteca"] .tabella-conferme th { color: var(--oro-chiaro); }
+[data-tema="discoteca"] .tabella-conferme th,
+[data-tema="discoteca"] .tabella-conferme td { border-bottom-color: rgba(255, 255, 255, 0.1); }
+[data-tema="discoteca"] .pastiglia.si { background: rgba(53, 231, 224, 0.18); color: #8DF6F2; }
+[data-tema="discoteca"] .pastiglia.no { background: rgba(255, 46, 136, 0.18); color: #FFA8CE; }
+
+/* --- Il pavimento della pista, in fondo ---------------------------------- */
+[data-tema="discoteca"] #rose {
+  opacity: 1;
+  height: 32vh;
+  max-height: 15rem;
+}

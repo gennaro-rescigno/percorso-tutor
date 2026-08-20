@@ -63,6 +63,10 @@ body {
 #glitter {
   position: fixed;
   inset: 0;
+  /* larghezza e altezza esplicite: il canvas è un elemento sostituito e con
+     il solo inset: 0 resterebbe alla sua misura di fabbrica, 300x150 */
+  width: 100%;
+  height: 100%;
   z-index: -1;
   pointer-events: none;
 }

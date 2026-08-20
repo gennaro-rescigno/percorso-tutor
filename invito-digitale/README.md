@@ -136,7 +136,16 @@ Poi mandi il link su WhatsApp e basta.
 > si prendono dalle righe `og:title` e `og:description` in cima a `index.html`.
 > Quelle vanno cambiate a mano, perché WhatsApp legge la pagina prima che si riempia.
 
-## 6. Leggere i messaggi
+## 6. Come si chiamano i due link
+
+Le due pagine si presentano già col nome giusto, preso da `config.js`:
+
+- `index.html` → **Invito 18esimo Marta** (il link che mandi agli invitati)
+- `messaggi.html` → **Conferme per il tuo 18esimo** (il link che mandi a lei)
+
+Cambiando nome o età in `config.js` cambiano di conseguenza.
+
+## 7. Leggere i messaggi
 
 La festeggiata apre `.../invito-digitale/messaggi.html`, scrive il codice
 segreto e legge le lettere.

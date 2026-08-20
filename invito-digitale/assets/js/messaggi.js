@@ -16,12 +16,16 @@
   var avviso      = $("#avvisoCodice");
   var tasto       = $("#apri");
 
+  /* Su una pagina dove la cassetta non c'è (l'invito degli ospiti)
+     questo file non ha niente da fare: se ne va prima di toccare
+     il titolo o qualunque altra cosa che non gli appartiene. */
+  if (!serratura || !scrigno || !modulo) return;
+
   var nome = (C.festeggiata && C.festeggiata.nome) || "";
-  if (nome) {
-    $("#titoloSerratura").textContent = "Le lettere di " + nome;
-    document.title = "Le lettere di " + nome;
-  }
-  if (!Ponte.collegato()) {
+  var eta = (C.festeggiata && C.festeggiata.eta) || 18;
+  document.title = "Conferme per il tuo " + eta + "esimo";
+  if (nome) $("#titoloSerratura").textContent = "Le lettere di " + nome;
+  if (!Ponte.collegato() && !Ponte.paginaViva()) {
     campoCodice.value = "PROVA";
     avviso.textContent = "Modo prova: il codice è PROVA e vedrai solo i messaggi scritti su questo telefono.";
     avviso.hidden = false;
@@ -46,7 +50,9 @@
 
   function apri(codice) {
     Ponte.leggi(codice).then(function (risposta) {
-      try { sessionStorage.setItem("invito.codice", codice); } catch (e) { /* niente */ }
+      /* localStorage e non sessionStorage: così il codice resta anche
+         quando chiude l'app, e non deve riscriverlo ogni volta */
+      try { localStorage.setItem("invito.codice", codice); } catch (e) { /* niente */ }
       mostra(risposta);
     }).catch(function (err) {
       errore(err.message === "Failed to fetch"
@@ -151,13 +157,13 @@
   }
 
   $("#chiudi").addEventListener("click", function () {
-    try { sessionStorage.removeItem("invito.codice"); } catch (e) { /* niente */ }
+    try { localStorage.removeItem("invito.codice"); } catch (e) { /* niente */ }
     location.reload();
   });
 
   /* se il codice è già stato messo poco fa, riapro da sola */
   var salvato = null;
-  try { salvato = sessionStorage.getItem("invito.codice"); } catch (e) { /* niente */ }
+  try { salvato = localStorage.getItem("invito.codice"); } catch (e) { /* niente */ }
   if (salvato) {
     campoCodice.value = salvato;
     tasto.disabled = true;

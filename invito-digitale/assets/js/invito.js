@@ -27,6 +27,21 @@
   var $  = function (s, d) { return (d || document).querySelector(s); };
   var $$ = function (s, d) { return Array.prototype.slice.call((d || document).querySelectorAll(s)); };
 
+  /* --- La brutta copia --------------------------------------------------
+     Quello che uno sta scrivendo resta sul suo telefono anche se chiude
+     l'app a metà. Si cancella appena il messaggio parte: dopo non deve
+     restare traccia di niente da nessuna parte.                          */
+  var BRUTTA = "invito.brutta.";
+  function ricorda(chiave, testo) {
+    try { localStorage.setItem(BRUTTA + chiave, testo); } catch (e) { /* memoria piena */ }
+  }
+  function ricordato(chiave) {
+    try { return localStorage.getItem(BRUTTA + chiave) || ""; } catch (e) { return ""; }
+  }
+  function dimentica(chiave) {
+    try { localStorage.removeItem(BRUTTA + chiave); } catch (e) { /* niente */ }
+  }
+
   /* --- Legge un valore annidato: valore("evento.dataTesto") ------------ */
   function valore(percorso) {
     return percorso.split(".").reduce(function (o, k) {
@@ -46,7 +61,7 @@
     $$("[data-c-href]").forEach(function (el) { el.href = valore(el.dataset.cHref); });
     $$("[data-c-segnaposto]").forEach(function (el) { el.placeholder = valore(el.dataset.cSegnaposto); });
 
-    document.title = valore("festeggiata.nome") + " · " + valore("festeggiata.eta") + " anni";
+    document.title = "Invito " + valore("festeggiata.eta") + "esimo " + valore("festeggiata.nome");
     var descr = $('meta[name="description"]');
     if (descr) {
       descr.content = "Invito per i " + valore("festeggiata.eta") + " anni di " +
@@ -224,7 +239,11 @@
       contatore.textContent = usati + " / " + massimo;
       contatore.classList.toggle("pieno", usati >= massimo);
     }
-    foglio.addEventListener("input", aggiornaContatore);
+    foglio.value = ricordato("messaggio");
+    foglio.addEventListener("input", function () {
+      aggiornaContatore();
+      ricorda("messaggio", foglio.value);
+    });
     aggiornaContatore();
 
     lettera.addEventListener("submit", function (ev) {
@@ -247,6 +266,7 @@
       /* mando solo il testo: nessun nome, nessuna mail, nessun indirizzo */
       Ponte.invia("messaggio", { testo: testo })
         .then(function () {
+          dimentica("messaggio");        /* è partito: niente più copie in giro */
           var attesa = Math.max(0, (fermoImmagine ? 0 : 1500) - (Date.now() - partenza));
           setTimeout(function () {
             lettera.hidden = true;
@@ -280,8 +300,23 @@
       var viene = scelto && scelto.value === "si";
       if (seViene) seViene.hidden = !viene;
     }
+    /* ogni campo si ricorda da solo quello che ci hai messo */
+    var CAMPI = ["nome", "accompagnatori", "allergie", "note"];
+    CAMPI.forEach(function (c) {
+      var campo = modulo.querySelector('[name="' + c + '"]');
+      if (!campo) return;
+      var salvato = ricordato("conferma." + c);
+      if (salvato) campo.value = salvato;
+      campo.addEventListener("input", function () { ricorda("conferma." + c, campo.value); });
+    });
+
+    var presenzaSalvata = ricordato("conferma.presenza");
     $$('input[name="presenza"]', modulo).forEach(function (r) {
-      r.addEventListener("change", aggiornaVisibilita);
+      if (presenzaSalvata && r.value === presenzaSalvata) r.checked = true;
+      r.addEventListener("change", function () {
+        ricorda("conferma.presenza", r.value);
+        aggiornaVisibilita();
+      });
     });
     aggiornaVisibilita();
 
@@ -306,6 +341,8 @@
         allergie: presenza === "si" ? String(dati.get("allergie") || "").trim() : "",
         note: String(dati.get("note") || "").trim()
       }).then(function () {
+        CAMPI.forEach(function (c) { dimentica("conferma." + c); });
+        dimentica("conferma.presenza");
         modulo.hidden = true;
         esito.classList.add("visibile");
         $("#esitoConfermaTesto").textContent = presenza === "si"
@@ -327,7 +364,10 @@
 
   /* --- 9. Avviso "modo prova" -------------------------------------------- */
   function avvisoModoProva() {
-    if (Ponte.collegato()) {
+    /* La nota serve solo quando non c'è nessun posto dove salvare.
+       Col foglio Google, o quando è la pagina stessa a fare da quaderno,
+       le risposte si salvano davvero e la nota non ci vuole. */
+    if (Ponte.collegato() || Ponte.paginaViva()) {
       $$(".nota-prova").forEach(function (n) { n.remove(); });
     }
   }

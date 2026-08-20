@@ -133,7 +133,11 @@ h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
   color: #7A5A58;
   animation: respiro 3.4s ease-in-out infinite;
 }
-.scena-busta.aperta .busta-istruzione { opacity: 0; transition: opacity 0.4s ease; }
+.scena-busta.aperta .busta-istruzione {
+  opacity: 0;
+  animation: none;                        /* senza questo il respiro continua a mostrarla */
+  transition: opacity 0.4s ease;
+}
 
 .busta {
   position: relative;
@@ -143,7 +147,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
   border: 0;
   background: none;
   cursor: pointer;
-  transform-style: preserve-3d;
+  perspective: 1100px;
   transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .busta:hover { transform: translateY(-6px); }
@@ -209,10 +213,10 @@ h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   transform: rotateX(0deg);
-  transition: transform 0.85s cubic-bezier(0.6, -0.15, 0.35, 1.2), z-index 0s linear 0.1s;
+  transition: transform 0.85s cubic-bezier(0.6, -0.15, 0.35, 1.2), z-index 0s linear 0.05s;
   filter: brightness(1.03);
 }
-.scena-busta.aperta .busta-falda { transform: rotateX(176deg); z-index: 1; }
+.scena-busta.aperta .busta-falda { transform: rotateX(176deg); z-index: 0; }
 
 /* la ceralacca con le iniziali */
 .busta-sigillo {
@@ -264,7 +268,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; text-wrap: balance; }
   margin: 0 auto;
   padding: 0 1.5rem 5rem;
   opacity: 0;
-  transition: opacity 1.2s ease;
+  transition: opacity 0.9s ease 0.45s;
 }
 .invito.mostrato { opacity: 1; pointer-events: auto; }
 .invito:not(.mostrato) { pointer-events: none; }

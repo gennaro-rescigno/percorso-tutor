@@ -13,6 +13,9 @@ on:
       prezzo_massimo_eur_mese:
         description: "non creare nulla che costi più di questo (€/mese IVA inclusa, IPv4 compreso)"
         default: "10"
+      ram_minima_gb:
+        description: "RAM minima (il sistema ne usa ~0,2 GB; con 2 GB lo script aggiunge 2 GB di swap)"
+        default: "2"
 permissions:
   contents: read
   actions: write   # to switch off the GitHub bot once the VPS takes over (only one bot must answer Telegram)
@@ -29,6 +32,7 @@ jobs:
       MCI_TELEGRAM_CHAT_IDS: ${{ secrets.MCI_TELEGRAM_CHAT_IDS }}
       MCI_JUPITER_API_KEY: ${{ secrets.MCI_JUPITER_API_KEY }}
       MAX_EUR: ${{ inputs.prezzo_massimo_eur_mese }}
+      MIN_RAM: ${{ inputs.ram_minima_gb }}
       GH_TOKEN: ${{ github.token }}
       SSH: ssh -i /tmp/mci_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o BatchMode=yes
     steps:
@@ -36,7 +40,7 @@ jobs:
         with: { sparse-checkout: memecoin-intelligence/deploy }
 
       - name: Plan - cheapest available VPS and its price (buys nothing)
-        run: python3 memecoin-intelligence/deploy/hetzner_vps.py plan --max-eur "$MAX_EUR"
+        run: python3 memecoin-intelligence/deploy/hetzner_vps.py plan --max-eur "$MAX_EUR" --min-ram "$MIN_RAM"
 
       - name: Switch off the GitHub bot (the VPS takes over its state)
         if: inputs.azione == 'crea'
@@ -50,7 +54,7 @@ jobs:
         if: inputs.azione == 'crea'
         run: |
           ssh-keygen -q -t ed25519 -N '' -C "mci-deploy-$GITHUB_RUN_ID" -f /tmp/mci_key
-          python3 memecoin-intelligence/deploy/hetzner_vps.py create --max-eur "$MAX_EUR" \
+          python3 memecoin-intelligence/deploy/hetzner_vps.py create --max-eur "$MAX_EUR" --min-ram "$MIN_RAM" \
             --ssh-pub /tmp/mci_key.pub --key-name "mci-deploy-$GITHUB_RUN_ID"
 
       - name: Wait for the automatic installation and verify it

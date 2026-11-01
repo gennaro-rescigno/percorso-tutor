@@ -4,7 +4,7 @@ Due modi per far girare il bot senza tenere acceso il PC:
 
 | | **VPS (consigliata)** | GitHub Actions (gratis, già attivo) |
 |---|---|---|
-| Costo | ~6–8 €/mese IVA inclusa (pagamento a ore: se cancelli la VPS smetti di pagare) | 0 € |
+| Costo | ~8–10 €/mese IVA inclusa (Hetzner, novembre 2026: da 7,92 €; pagamento a ore: se cancelli la VPS smetti di pagare) | 0 € |
 | Frequenza | scanner ogni 60 s, posizioni ogni 20 s, Pump.fun in tempo reale | finestre di 3 min ogni 15 min (o più: GitHub le ritarda) |
 | Comandi Telegram | risposta immediata | alla finestra successiva |
 | Strategie | A, B, C, D, E | B, C, D, E |
@@ -57,8 +57,8 @@ scrivi un nome (es. `memogenn`) → **add domain**, copia il **token** in alto e
 **Add Server** / **Create Server** e scegli:
 * **Location**: una qualsiasi in Europa (Falkenstein, Norimberga, Helsinki).
 * **Image**: **Ubuntu 24.04**.
-* **Type**: la più economica con **almeno 4 GB di RAM** (es. **CX23** x86 o **CAX11** Arm: il sistema
-  funziona su entrambe). Se compare *non disponibile*, prova un'altra location o il tipo successivo.
+* **Type**: la più economica disponibile con **almeno 2 GB di RAM** (il sistema ne usa circa 0,2 GB;
+  funziona sia x86 sia Arm). Se compare *non disponibile*, prova un'altra location o il tipo successivo.
 * **Networking**: lascia attivo **IPv4 pubblico** (serve: GitHub e alcune API non hanno IPv6).
 * **SSH keys**: puoi saltare (ti arriva via email una password di emergenza). **Firewall**: nessuno (lo
   configura lo script). **Backups**: non necessari (il server fa un backup giornaliero del database).
@@ -75,8 +75,8 @@ bot che rispondono agli stessi comandi.
 mandami la parte finale *senza* righe che contengono token o password (lo script non le stampa mai).
 
 ### Altri provider (OVH, Netcup, Contabo, IONOS...)
-Funziona su qualsiasi VPS **Ubuntu 22.04/24.04** con ≥ 4 GB di RAM (2 GB funzionano: lo script aggiunge la
-swap). Se il provider ha il campo *cloud-init / user data*, incolla lo stesso testo. Altrimenti, dalla
+Funziona su qualsiasi VPS **Ubuntu 22.04/24.04** con almeno 2 GB di RAM (lo script aggiunge 2 GB di swap
+sotto i 3,5 GB). Se il provider ha il campo *cloud-init / user data*, incolla lo stesso testo. Altrimenti, dalla
 console web del provider:
 ```bash
 mkdir -p /etc/mci && nano /etc/mci/config.env      # incolla le righe MCI_... / DOMAIN=... e salva
@@ -430,11 +430,11 @@ strategie (il report lo indica). Il backtest completo arriva dai dati che il ser
 
 | Voce | Costo |
 |---|---|
-| VPS (solo se scegli questa opzione, es. Hetzner con IPv4) | ~6–8 €/mese IVA inclusa, a ore |
+| VPS (solo se scegli questa opzione, es. Hetzner con IPv4) | ~8–10 €/mese IVA inclusa, a ore |
 | Telegram bot | 0 € |
 | Oracle VM Always Free (1 OCPU Ampere, 4 GB, disco incluso) | 0 € |
 | DuckDNS + certificato HTTPS Let's Encrypt | 0 € |
 | API di mercato usate dal sistema | 0 € |
 | Dune piano Free | 0 € |
 | Rete della sessione Claude | 0 € |
-| **Totale** | **0 €/mese** con GitHub Actions o Oracle · **~6–8 €/mese** con una VPS |
+| **Totale** | **0 €/mese** con GitHub Actions o Oracle · **~8–10 €/mese** con una VPS |

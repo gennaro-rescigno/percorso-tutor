@@ -20,6 +20,7 @@ class TelegramClient:
         self.enabled = bool(token) and bool(chat_ids)
         self.sent = 0
         self.failed = 0
+        self.last_error: str | None = None  # Telegram's description, never the token
 
     @property
     def _base(self) -> str:
@@ -60,7 +61,12 @@ class TelegramClient:
             if r.status_code == 200:
                 self.sent += 1
                 return True
-            log.warning("telegram send failed: HTTP %s", r.status_code)
+            try:
+                desc = (r.json() or {}).get("description") or ""
+            except ValueError:
+                desc = ""
+            self.last_error = f"HTTP {r.status_code} {desc}".strip()[:200]
+            log.warning("telegram send failed: %s", self.last_error)
             break
         self.failed += 1
         return False

@@ -135,3 +135,18 @@ async def test_bot_commands_and_authorization(db):
     for cmd in ("/start", "/status", "/positions", "/signals", "/history", "/performance", "/daily", "/risk",
                 "/resume", "/kill", "/help", "/boh"):
         assert bot.handle(cmd)
+
+
+@pytest.mark.asyncio
+async def test_telegram_send_failure_reason_is_recorded_without_token():
+    import httpx
+    import respx
+
+    token = "123456789:SECRET-SECRET-SECRET-SECRET-SECRET"
+    with respx.mock:
+        respx.post(f"https://api.telegram.org/bot{token}/sendMessage").mock(
+            return_value=httpx.Response(401, json={"ok": False, "description": "Unauthorized"}))
+        c = TelegramClient(token, {1})
+        assert await c.send("ciao") is False
+        await c.close()
+    assert c.failed == 1 and c.last_error == "HTTP 401 Unauthorized" and token not in c.last_error

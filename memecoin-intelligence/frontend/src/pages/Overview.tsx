@@ -44,7 +44,11 @@ export default function Overview() {
               <tr><td>Ultimo ciclo scanner</td><td>{fmtTime(w.last_cycle)}</td></tr>
               <tr><td>Token monitorati / registrati</td><td>{fmtNum(w.tracked)} / {fmtNum(data?.tokens_recorded)}</td></tr>
               <tr><td>PumpPortal (tempo reale)</td><td>{w.pumpportal_connected ? "connesso" : "non connesso"}</td></tr>
-              <tr><td>Telegram</td><td>{w.telegram_enabled ? "configurato" : "non configurato"}</td></tr>
+              <tr><td>Telegram</td><td>
+                {!w.telegram_enabled ? "non configurato"
+                  : w.telegram_failed ? <Status level="critical" label={`${w.telegram_failed} non consegnati: ${w.telegram_last_error ?? ""}`} />
+                  : <Status level="good" label={`attivo · ${w.telegram_sent ?? 0} messaggi inviati nell'ultima esecuzione`} />}
+              </td></tr>
               <tr><td>Mercato</td><td>{w.market_state ?? "n/d"}</td></tr>
               {Object.entries(w.sources ?? {}).map(([k, v]: any) => (
                 <tr key={k}><td>Fonte: {k}</td><td>{v.ok ? <Status level="good" label="ok" /> : <Status level="critical" label={(v.error ?? "errore").slice(0, 60)} />}</td></tr>

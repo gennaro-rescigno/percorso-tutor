@@ -93,6 +93,9 @@ class Worker:
             "sol_usd": fxp.usd if fxp else None,
             "pumpportal_connected": bool(self.pump and self.pump.connected),
             "telegram_enabled": self.tg.enabled,
+            "telegram_sent": self.tg.sent,
+            "telegram_failed": self.tg.failed,
+            "telegram_last_error": self.tg.last_error,
             "market_state": anomaly or "nessuna anomalia rilevata",
         }
 
@@ -248,6 +251,15 @@ class Worker:
                 log.exception("final step %s failed", name)
         if self.tg.enabled and self.bot.offset is not None:
             await self.tg.get_updates(self.bot.offset, timeout=0)  # confirm processed commands
+        if self.tg.failed:
+            hint = ""
+            if self.tg.last_error and ("401" in self.tg.last_error or "Unauthorized" in self.tg.last_error):
+                hint = " (token non valido o revocato: aggiorna il secret MCI_TELEGRAM_BOT_TOKEN)"
+            elif self.tg.last_error and "chat not found" in self.tg.last_error.lower():
+                hint = " (chat id errato o bot mai avviato: premi Avvia sul bot e controlla MCI_TELEGRAM_CHAT_IDS)"
+            with session_scope() as s:
+                repo.log_event(s, "error", f"Telegram: {self.tg.failed} messaggi non consegnati: {self.tg.last_error}{hint}",
+                               level="error")
         with session_scope() as s:
             repo.set_state(s, "telegram_offset", self.bot.offset)
             repo.set_state(s, "last_equity_notified", self.engine.last_equity_notified)

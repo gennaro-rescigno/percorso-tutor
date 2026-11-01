@@ -20,7 +20,7 @@ from sqlalchemy import delete, func, select
 from mci.collectors.dexscreener import DexScreenerCollector
 from mci.collectors.fx import SolPriceFeed
 from mci.collectors.geckoterminal import GeckoTerminalCollector
-from mci.collectors.jupiter import JupiterCollector
+from mci.collectors.jupiter import KEYED_BASE_URL, JupiterCollector
 from mci.collectors.pumpportal import PumpPortalListener
 from mci.collectors.rugcheck import RugCheckCollector
 from mci.collectors.social import RedditCollector
@@ -35,8 +35,10 @@ from mci.execution.paper import PaperExecutor
 from mci.paper_trading.engine import TradingEngine
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
+from mci.secrets_store import JUPITER_KEY, jupiter_key, write_secret
 from mci.telegram.bot import TelegramBot, TelegramNotifier, build_daily_report, next_daily_report_time
 from mci.telegram.client import TelegramClient
+from mci.utils.http import SourceUnavailable
 
 log = logging.getLogger("mci.worker")
 
@@ -49,7 +51,9 @@ class Worker:
         self.dex = DexScreenerCollector(s.dexscreener_base_url)
         self.gecko = GeckoTerminalCollector(s.geckoterminal_base_url, s.geckoterminal_calls_per_minute)
         self.rug = RugCheckCollector(s.rugcheck_base_url)
-        self.jup = JupiterCollector(s.jupiter_base_url, s.jupiter_api_key.get_secret_value(), s.jupiter_requests_per_second)
+        jkey = jupiter_key(s)
+        self.jup = JupiterCollector(KEYED_BASE_URL if jkey else s.jupiter_base_url, jkey,
+                                    max(s.jupiter_requests_per_second, 1.0) if jkey else s.jupiter_requests_per_second)
         self.rpc = SolanaRpc(s.solana_rpc_url)
         self.fx = SolPriceFeed(s.coingecko_base_url, s.kraken_base_url)
         reddit = RedditCollector(s.reddit_client_id, s.reddit_client_secret.get_secret_value(), s.reddit_user_agent)
@@ -61,6 +65,7 @@ class Worker:
         self.notifier = TelegramNotifier(self.tg, s, self.mode)
         self.engine = TradingEngine(s, self.scanner, self.executor, get_profile(s.risk_profile), self.costs, self.notifier)
         self.bot = TelegramBot(self.tg, s, self.mode, status_provider=self.status)
+        self.bot.on_jupiter_key = self.set_jupiter_key
         self.pump = PumpPortalListener(s.pumpportal_ws_url, self.scanner.on_pumpportal_event) if s.pumpportal_enabled else None
         self._stop = asyncio.Event()
         self.started_at = utcnow()
@@ -89,6 +94,7 @@ class Worker:
             "cycle": self.scanner.cycle,
             "tracked": len(self.scanner.tokens),
             "sources": self.scanner.source_status,
+            "jupiter_key": self.jup.has_key,
             "sol_eur": fxp.eur if fxp else None,
             "sol_usd": fxp.usd if fxp else None,
             "pumpportal_connected": bool(self.pump and self.pump.connected),
@@ -173,6 +179,18 @@ class Worker:
             except Exception:
                 log.exception("telegram polling error")
                 await asyncio.sleep(5)
+
+    async def set_jupiter_key(self, key: str) -> str:
+        """/jupiterkey from the owner's chat: verify with Jupiter, switch at once, keep it only on this server."""
+        try:
+            await self.jup.use_key(key, rps=max(self.s.jupiter_requests_per_second, 1.0))
+        except SourceUnavailable as e:
+            return f"❌ Jupiter non ha accettato la chiave ({e.detail}): nessuna modifica, resto senza chiave."
+        write_secret(self.s, JUPITER_KEY, key)
+        with session_scope() as s:
+            repo.log_event(s, "system", "chiave Jupiter verificata e attivata (1 richiesta/s su api.jup.ag)")
+        return ("✅ Chiave Jupiter verificata e attiva: le richieste a Jupiter passano da 0,5 a 1 al secondo. "
+                "È salvata solo sul server; il tuo messaggio con la chiave è stato cancellato.")
 
     def _heartbeat(self) -> None:
         with session_scope() as s:

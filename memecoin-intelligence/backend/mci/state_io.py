@@ -57,9 +57,13 @@ def _secret_values() -> list[str]:
     from mci.config import get_settings
 
     s = get_settings()
+    from mci.secrets_store import JUPITER_KEY, read_secret
+
     vals = [s.telegram_bot_token, s.jupiter_api_key, s.dune_api_key, s.reddit_client_secret,
             s.dashboard_password, s.api_secret_key]
-    return [v.get_secret_value() for v in vals if len(v.get_secret_value()) >= 8]
+    out = [v.get_secret_value() for v in vals if len(v.get_secret_value()) >= 8]
+    stored = read_secret(s, JUPITER_KEY)
+    return out + ([stored] if len(stored) >= 8 else [])
 
 
 def scrub(text: str, secrets_: list[str] | None = None) -> str:

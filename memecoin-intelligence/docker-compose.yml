@@ -92,6 +92,8 @@ services:
       disable: true
     volumes:
       - public_site:/srv/site
+      # read-only: lets the export scrub a key stored with /jupiterkey (defence in depth)
+      - ./data:/app/backend/data:ro
     deploy:
       resources:
         limits: { memory: 512m }

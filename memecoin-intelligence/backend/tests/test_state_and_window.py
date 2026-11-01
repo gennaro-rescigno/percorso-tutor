@@ -242,3 +242,32 @@ def test_publish_static_once_writes_site_and_fresh_data(db, tmp_path, monkeypatc
     assert not list(out.glob(".data-*")) and not list(out.glob(".old-*"))
     blob = "".join(f.read_text() for f in (out / "data").rglob("*.json"))
     assert "SECRET-SECRET" not in blob
+
+
+@pytest.mark.asyncio
+async def test_worker_saves_jupiter_key_only_after_jupiter_accepts_it(db, tmp_path, monkeypatch):
+    from mci.secrets_store import JUPITER_KEY, read_secret
+    from mci.utils.http import SourceUnavailable
+    from mci.worker import Worker
+
+    monkeypatch.setenv("MCI_DATA_DIR", str(tmp_path / "data"))
+    reset_settings_cache()
+    w = Worker()
+    assert w.status()["jupiter_key"] is False
+
+    async def refuse(key, rps=1.0):
+        raise SourceUnavailable("jupiter", "HTTP 401")
+
+    monkeypatch.setattr(w.jup, "use_key", refuse)
+    reply = await w.set_jupiter_key("wrong-key-0123456789")
+    assert "non ha accettato" in reply and "HTTP 401" in reply and read_secret(w.s, JUPITER_KEY) == ""
+
+    async def accept(key, rps=1.0):
+        w.jup.has_key = True
+
+    monkeypatch.setattr(w.jup, "use_key", accept)
+    reply = await w.set_jupiter_key("good-key-0123456789")
+    assert reply.startswith("✅") and "good-key" not in reply
+    assert read_secret(w.s, JUPITER_KEY) == "good-key-0123456789" and w.status()["jupiter_key"] is True
+    for c in (w.dex, w.gecko, w.rug, w.jup, w.rpc, w.fx, w.tg):
+        await c.close()

@@ -40,6 +40,7 @@ jobs:
           print(f"- worker attivo: {w.get('worker_alive')} · ultimo ciclo: {w.get('last_cycle')} · token monitorati: {w.get('tracked')} · registrati: {ov.get('tokens_recorded')}")
           print(f"- modalità: {s.get('mode')} · pausa: {s.get('paused')} · kill switch: {s.get('kill_switch')} · PumpPortal: {w.get('pumpportal_connected')}")
           print(f"- Telegram: inviati {w.get('telegram_sent')} · falliti {w.get('telegram_failed')} · ultimo errore: {w.get('telegram_last_error')}")
+          print(f"- Jupiter: {'chiave attiva (1 richiesta/s)' if w.get('jupiter_key') else 'senza chiave (0,5 richieste/s)'}")
           eq = s.get("equity_sol") or 0; eur = s.get("sol_eur") or 0
           print(f"- capitale: {eq:.4f} SOL (≈ {eq*eur:.2f} €) · liquido {s.get('cash_sol', 0):.4f} · investito {s.get('invested_sol', 0):.4f} · ROI {100*(s.get('roi') or 0):+.2f}%")
           print(f"- operazioni chiuse: {s.get('total_trades')} · aperte: {s.get('open_positions')} · win rate: {s.get('win_rate')} · drawdown: {100*(s.get('drawdown') or 0):.1f}%\n")

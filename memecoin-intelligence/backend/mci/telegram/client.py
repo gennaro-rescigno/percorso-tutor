@@ -71,6 +71,17 @@ class TelegramClient:
         self.failed += 1
         return False
 
+    async def delete_message(self, chat_id: int, message_id: int) -> bool:
+        """Bots may delete incoming messages in private chats (used to remove a message containing a key)."""
+        try:
+            r = await self._http.post(f"{self._base}/deleteMessage", json={"chat_id": chat_id, "message_id": message_id})
+        except httpx.HTTPError as e:
+            log.warning("telegram delete error: %s", type(e).__name__)
+            return False
+        if r.status_code != 200:
+            log.warning("telegram delete failed: HTTP %s", r.status_code)
+        return r.status_code == 200
+
     async def get_updates(self, offset: int | None, timeout: int = 30) -> list[dict[str, Any]]:
         params: dict[str, Any] = {"timeout": timeout, "allowed_updates": '["message"]'}
         if offset is not None:

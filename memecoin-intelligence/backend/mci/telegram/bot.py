@@ -30,7 +30,7 @@ HELP = (
     "/signals – ultimi segnali\n/history – ultime operazioni chiuse\n/performance – metriche complessive\n"
     "/daily – report giornaliero\n/risk – stato del risk management\n/pause – sospende nuovi ingressi\n"
     "/resume – riprende (disattiva anche il kill switch)\n/kill – attiva il kill switch\n"
-    "/paper – modalità di trading\n/help – questo messaggio"
+    "/paper – modalità di trading\n/jupiterkey CHIAVE – attiva la chiave gratuita di Jupiter (il messaggio viene cancellato)\n/help – questo messaggio"
 )
 
 
@@ -125,6 +125,7 @@ class TelegramBot:
         self.status_provider = status_provider  # callable -> dict with live worker status
         self.offset: int | None = None
         self._told: set[int] = set()
+        self.on_jupiter_key = None  # async (key) -> reply text, set by the worker
 
     async def poll_once(self) -> int:
         updates = await self.client.get_updates(self.offset)
@@ -149,12 +150,31 @@ class TelegramBot:
                     )
                 continue
             try:
-                reply = self.handle(cmd)
+                if cmd == "/jupiterkey":
+                    reply = await self._jupiter_key(chat, msg, text)
+                else:
+                    reply = self.handle(cmd)
             except Exception:
                 log.exception("command %s failed", cmd)
                 reply = "Errore nell'elaborazione del comando."
             await self.client.send(reply, chat_id=chat)
         return len(updates)
+
+    async def _jupiter_key(self, chat: int, msg: dict[str, Any], text: str) -> str:
+        from mci.secrets_store import JUPITER_KEY_RE
+
+        if msg.get("message_id") is not None:  # the key must not stay in the chat history
+            await self.client.delete_message(chat, msg["message_id"])
+        parts = text.split(maxsplit=1)
+        if len(parts) < 2:
+            return ("Uso: <code>/jupiterkey LA_TUA_CHIAVE</code> (chiave gratuita da portal.jup.ag). "
+                    "Il messaggio con la chiave viene cancellato subito.")
+        key = parts[1].strip()
+        if not JUPITER_KEY_RE.fullmatch(key):
+            return "❌ Formato della chiave non valido: nessuna modifica."
+        if self.on_jupiter_key is None:
+            return "Comando non disponibile in questa modalità."
+        return await self.on_jupiter_key(key)
 
     # ------------------------------------------------------------------ commands
     def _sol_eur(self) -> float | None:
@@ -197,6 +217,7 @@ class TelegramBot:
                     for k, v in srcs.items()) or "n/d"
                 return (f"📟 <b>STATO – {tag}</b>\nUltimo ciclo scanner: {st.get('last_cycle') or 'n/d'}\n"
                         f"Token monitorati: {st.get('tracked', 'n/d')}\nFonti: {src_txt}\n"
+                        f"Jupiter: {'chiave attiva (1 richiesta/s)' if st.get('jupiter_key') else 'senza chiave (0,5 richieste/s)'}\n"
                         f"In pausa: {'sì' if summ['paused'] else 'no'} — kill switch: {'ATTIVO' if summ['kill_switch'] else 'no'}\n"
                         f"Capitale: {fm._sol_eur(summ['equity_sol'], sol_eur)}")
             if cmd == "/balance":

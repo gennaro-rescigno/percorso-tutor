@@ -194,3 +194,92 @@ def test_status_shows_why_a_source_is_down(db):
                                       "geckoterminal": {"ok": False, "error": "geckoterminal: rate limited (429)"}}})
     out = bot.handle("/status")
     assert "dexscreener:ok" in out and "geckoterminal:KO (geckoterminal: rate limited (429))" in out
+
+
+class FakeTGDel(FakeTG):
+    def __init__(self):
+        super().__init__()
+        self.deleted = []
+
+    async def delete_message(self, chat_id, message_id):
+        self.deleted.append((chat_id, message_id))
+        return True
+
+
+@pytest.mark.asyncio
+async def test_jupiterkey_command_is_private_deleted_and_never_echoed(db):
+    from mci.config import get_settings
+
+    key = "jup-free-key-0123456789abcdef"
+    tg = FakeTGDel()
+    bot = TelegramBot(tg, get_settings(), "paper", status_provider=lambda: {})
+    got = []
+
+    async def hook(k):
+        got.append(k)
+        return "✅ ok"
+
+    bot.on_jupiter_key = hook
+    tg._updates = [
+        {"update_id": 1, "message": {"message_id": 10, "chat": {"id": 999}, "text": f"/jupiterkey {key}"}},  # stranger
+        {"update_id": 2, "message": {"message_id": 11, "chat": {"id": 111}, "text": "/jupiterkey bad key!"}},
+        {"update_id": 3, "message": {"message_id": 12, "chat": {"id": 111}, "text": "/jupiterkey"}},
+        {"update_id": 4, "message": {"message_id": 13, "chat": {"id": 111}, "text": f"/jupiterkey {key}"}},
+    ]
+    await bot.poll_once()
+    assert got == [key]  # only the owner's well-formed key reaches the worker
+    assert tg.deleted == [(111, 11), (111, 12), (111, 13)]  # owner's messages removed, stranger's untouched
+    replies = [t for c, t in tg.out if c == 111]
+    assert "non valido" in replies[0] and "Uso:" in replies[1] and replies[2] == "✅ ok"
+    assert all(key not in t for _, t in tg.out)
+    with session_scope() as s:
+        from sqlalchemy import select
+
+        from mci.database.models import Event
+        assert all(key not in (e.message or "") + str(e.data) for e in s.scalars(select(Event)))
+
+
+@pytest.mark.asyncio
+async def test_jupiter_key_is_verified_before_switching():
+    import httpx
+    import respx
+
+    from mci.collectors.jupiter import JupiterCollector
+    from mci.utils.http import SourceUnavailable
+
+    jc = JupiterCollector("https://lite-api.jup.ag", "", 0.5)
+    old = jc.api
+    with respx.mock:
+        respx.get("https://api.jup.ag/price/v3").mock(return_value=httpx.Response(401, json={"error": "bad key"}))
+        with pytest.raises(SourceUnavailable):
+            await jc.use_key("wrong-key-0123456789")
+    assert jc.api is old and not jc.has_key  # nothing changed
+    with respx.mock:
+        route = respx.get("https://api.jup.ag/price/v3").mock(return_value=httpx.Response(200, json={}))
+        await jc.use_key("good-key-0123456789", rps=1.0)
+        assert route.calls.last.request.headers["x-api-key"] == "good-key-0123456789"
+    assert jc.has_key and jc.api.base_url == "https://api.jup.ag" and abs(jc.api.limiter.rate - 1.0) < 1e-9
+    await jc.close()
+    await old.close()
+
+
+def test_stored_key_is_private_and_scrubbed_from_exports(db, tmp_path, monkeypatch):
+    import os
+    import stat
+
+    from mci.config import get_settings
+    from mci.secrets_store import JUPITER_KEY, jupiter_key, read_secret, write_secret
+    from mci.state_io import scrub
+
+    monkeypatch.setenv("MCI_DATA_DIR", str(tmp_path / "data"))
+    reset_settings_cache()
+    s = get_settings()
+    assert jupiter_key(s) == ""
+    write_secret(s, JUPITER_KEY, "stored-key-0123456789")
+    p = tmp_path / "data" / "secrets" / JUPITER_KEY
+    assert stat.S_IMODE(os.stat(p).st_mode) == 0o600
+    assert read_secret(s, JUPITER_KEY) == jupiter_key(s) == "stored-key-0123456789"
+    assert scrub("errore con stored-key-0123456789") == "errore con ***"
+    monkeypatch.setenv("MCI_JUPITER_API_KEY", "env-key-0123456789")  # .env wins over the stored key
+    reset_settings_cache()
+    assert jupiter_key(get_settings()) == "env-key-0123456789"

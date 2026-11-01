@@ -13,6 +13,8 @@ the real route, pool fees and price impact *for the exact amount* we would trade
 
 from __future__ import annotations
 
+import asyncio
+
 from dataclasses import dataclass
 from typing import Any
 
@@ -33,11 +35,27 @@ class Quote:
     raw: dict[str, Any]
 
 
+KEYED_BASE_URL = "https://api.jup.ag"
+
+
 class JupiterCollector:
     def __init__(self, base_url: str, api_key: str = "", rps: float = 0.5, client: ApiClient | None = None):
         headers = {"x-api-key": api_key} if api_key else {}
         self.api = client or ApiClient("jupiter", base_url, rate_per_s=rps, burst=1, headers=headers)
+        self.has_key = bool(api_key)
         self._decimals: dict[str, int] = {SOL_MINT: 9}
+
+    async def use_key(self, api_key: str, rps: float = 1.0, base_url: str = KEYED_BASE_URL) -> None:
+        """Switch to a keyed client after checking the key with one real request; on failure the current
+        client stays in use and ``SourceUnavailable`` is raised (the key itself is never logged)."""
+        new = ApiClient("jupiter", base_url, rate_per_s=rps, burst=1, headers={"x-api-key": api_key}, max_retries=1)
+        try:
+            await new.get("/price/v3", params={"ids": SOL_MINT})
+        except Exception:
+            await new.close()
+            raise
+        old, self.api, self.has_key = self.api, new, True
+        asyncio.get_running_loop().call_later(30, lambda: asyncio.ensure_future(old.close()))
 
     async def close(self) -> None:
         await self.api.close()

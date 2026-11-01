@@ -25,23 +25,16 @@ def _price(loc, gross):
 
 FAKE = {
     "/server_types?per_page=50": {"server_types": [
-        {"id": 1, "name": "cx23", "cores": 2, "memory": 4.0, "disk": 40, "cpu_type": "shared", "architecture": "x86",
+        {"id": 1, "name": "cx23", "locations": [{"id": 1, "name": "fsn1", "deprecation": None, "available": False, "recommended": False}, {"id": 2, "name": "ash", "deprecation": None, "available": True, "recommended": True}], "cores": 2, "memory": 4.0, "disk": 40, "cpu_type": "shared", "architecture": "x86",
          "deprecation": None, "prices": [_price("fsn1", 5.49), _price("ash", 4.0)]},
-        {"id": 2, "name": "cax11", "cores": 2, "memory": 4.0, "disk": 40, "cpu_type": "shared", "architecture": "arm",
+        {"id": 2, "name": "cax11", "locations": [{"id": 1, "name": "fsn1", "deprecation": None, "available": False, "recommended": False}, {"id": 2, "name": "hel1", "deprecation": None, "available": True, "recommended": True}], "cores": 2, "memory": 4.0, "disk": 40, "cpu_type": "shared", "architecture": "arm",
          "deprecation": None, "prices": [_price("fsn1", 5.99), _price("hel1", 5.99)]},
-        {"id": 3, "name": "cx11", "cores": 1, "memory": 2.0, "disk": 20, "cpu_type": "shared", "architecture": "x86",
+        {"id": 3, "name": "cx11", "locations": [{"id": 1, "name": "fsn1", "deprecation": None, "available": True, "recommended": True}], "cores": 1, "memory": 2.0, "disk": 20, "cpu_type": "shared", "architecture": "x86",
          "deprecation": None, "prices": [_price("fsn1", 3.0)]},
-        {"id": 4, "name": "ccx13", "cores": 2, "memory": 8.0, "disk": 80, "cpu_type": "dedicated",
+        {"id": 4, "name": "ccx13", "locations": [{"id": 1, "name": "fsn1", "deprecation": None, "available": True, "recommended": True}], "cores": 2, "memory": 8.0, "disk": 80, "cpu_type": "dedicated",
          "architecture": "x86", "deprecation": None, "prices": [_price("fsn1", 15.0)]},
-        {"id": 5, "name": "cpx22", "cores": 2, "memory": 4.0, "disk": 80, "cpu_type": "shared",
+        {"id": 5, "name": "cpx22", "locations": [{"id": 1, "name": "nbg1", "deprecation": None, "available": True, "recommended": True}], "cores": 2, "memory": 4.0, "disk": 80, "cpu_type": "shared",
          "architecture": "x86", "deprecation": None, "prices": [_price("nbg1", 8.0)]},
-    ]},
-    # cx23 sold out in fsn1 (the 2026 situation), cax11 available in hel1, cpx22 in nbg1
-    "/datacenters?per_page=50": {"datacenters": [
-        {"location": {"name": "fsn1"}, "server_types": {"available": [3, 4]}},
-        {"location": {"name": "hel1"}, "server_types": {"available": [2]}},
-        {"location": {"name": "nbg1"}, "server_types": {"available": [5]}},
-        {"location": {"name": "ash"}, "server_types": {"available": [1]}},
     ]},
     "/pricing": {"pricing": {"primary_ips": [{"type": "ipv4", "prices": [
         {"location": loc, "price_hourly": {"net": "0", "gross": "0"}, "price_monthly": {"net": "0.5", "gross": "0.60"}}
@@ -78,6 +71,11 @@ def test_cheapest_available_eu_server_with_enough_ram(mod):
     assert opts[0]["total_eur"] == pytest.approx(6.59)  # server + IPv4
     assert "6.59 €/mese" in mod.describe(opts[0])
     assert mod.options(max_eur=6, min_ram_gb=4) == []  # price cap respected
+
+
+def test_removed_datacenters_endpoint_is_not_used(mod):
+    mod.options(max_eur=10, min_ram_gb=2)
+    assert not [p for _, p, _ in mod.calls if p.startswith("/datacenters")]
 
 
 def test_user_data_is_valid_cloud_config_with_secrets_filled(mod):

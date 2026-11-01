@@ -57,19 +57,28 @@ def ipv4_monthly_gross() -> dict[str, float]:
     return out
 
 
+def available_locations(t: dict) -> set[str]:
+    """Locations where a server type can be ordered now. Since 2026 the API reports this per server type
+    (server_types[].locations[].available); the old /datacenters endpoint answers 410 Gone."""
+    out = set()
+    for entry in t.get("locations") or []:
+        name = entry.get("name") or (entry.get("location") or {}).get("name")
+        if name and entry.get("available", False) and not entry.get("deprecation"):
+            out.add(name)
+    return out
+
+
 def options(max_eur: float, min_ram_gb: float) -> list[dict]:
     types = call("GET", "/server_types?per_page=50")["server_types"]
-    available: dict[str, set[int]] = {}
-    for dc in call("GET", "/datacenters?per_page=50")["datacenters"]:
-        available.setdefault(dc["location"]["name"], set()).update(dc["server_types"]["available"])
     ipv4 = ipv4_monthly_gross()
     out = []
     for t in types:
         if t.get("deprecation") or t.get("deprecated") or t.get("cpu_type") != "shared" or t["memory"] < min_ram_gb:
             continue
+        where = available_locations(t)
         for p in t["prices"]:
             loc = p["location"]
-            if loc not in EU_LOCATIONS or t["id"] not in available.get(loc, set()):
+            if loc not in EU_LOCATIONS or loc not in where:
                 continue
             server = _eur(p["price_monthly"]["gross"])
             total = server + ipv4.get(loc, 0.0)
@@ -141,6 +150,13 @@ def main() -> None:
         return
     opts = options(a.max_eur, a.min_ram)
     if not opts:
+        print("Disponibilità attuale dei tipi condivisi in Europa (per capire perché nessuno va bene):")
+        for t in call("GET", "/server_types?per_page=50")["server_types"]:
+            if t.get("cpu_type") == "shared":
+                prices = {p["location"]: _eur(p["price_monthly"]["gross"]) for p in t["prices"]}
+                where = sorted(available_locations(t) & set(EU_LOCATIONS))
+                print(f"  {t['name']}: {t['memory']:g} GB, disponibile in {where or 'nessuna location UE'}, "
+                      f"prezzi {prices}")
         sys.exit(f"Nessun server con almeno {a.min_ram:g} GB di RAM disponibile in Europa entro {a.max_eur:.2f} €/mese.")
     print("Opzioni disponibili ora (dalla più economica):")
     for o in opts[:6]:

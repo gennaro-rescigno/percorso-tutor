@@ -123,7 +123,17 @@ def cmd_telegram_test(_: argparse.Namespace) -> int:
         print("Telegram non configurato (MCI_TELEGRAM_BOT_TOKEN / MCI_TELEGRAM_CHAT_IDS)")
         return 1
     ok = asyncio.run(c.send("✅ Test Memecoin Intelligence: il bot è configurato correttamente. 🧪 PAPER TRADING"))
-    print(f"inviato a {len(s.allowed_chat_ids)} chat" if ok else f"invio fallito: {c.last_error}")
+    msg = f"Test Telegram: inviato a {len(s.allowed_chat_ids)} chat" if ok else f"Test Telegram: invio fallito ({c.last_error})"
+    print(msg)
+    try:  # also record the outcome in the published activity log
+        from mci.database import repo
+        from mci.database.session import init_engine, session_scope
+
+        init_engine(s.database_url)
+        with session_scope() as sess:
+            repo.log_event(sess, "system", msg, level="info" if ok else "error")
+    except Exception:
+        pass
     return 0 if ok else 1
 
 

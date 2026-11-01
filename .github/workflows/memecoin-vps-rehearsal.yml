@@ -1,0 +1,128 @@
+name: memecoin VPS rehearsal
+# Prova generale gratuita della VPS: installa il sistema con deploy/vps.sh su una macchina Ubuntu 24.04
+# appena creata (come una VPS nuova), lo lascia girare in continuo e verifica che funzioni davvero:
+# raccolta dati continua, stato importato, auto-riparazione dopo un crash, riavvio, dashboard HTTPS.
+# Nessun segreto: Telegram resta spento in questa prova.
+on:
+  workflow_dispatch:
+    inputs:
+      soak_minutes:
+        description: "minuti di funzionamento continuo da verificare"
+        default: "8"
+  push:
+    paths:
+      - "memecoin-intelligence/deploy/**"
+      - "memecoin-intelligence/docker-compose.yml"
+      - "memecoin-intelligence/Dockerfile"
+      - ".github/workflows/memecoin-vps-rehearsal.yml"
+permissions:
+  contents: read
+concurrency:
+  group: vps-rehearsal-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  rehearsal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      SOAK_MINUTES: ${{ inputs.soak_minutes || '8' }}
+      APP: /opt/mci/repo/memecoin-intelligence
+    steps:
+      - name: Fresh install (the same command the VPS runs at first boot)
+        run: |
+          sudo mkdir -p /etc/mci
+          printf 'MCI_TELEGRAM_BOT_TOKEN=\nMCI_TELEGRAM_CHAT_IDS=\nDOMAIN=\nDUCKDNS_TOKEN=\nMCI_DASHBOARD_PASSWORD=\nMCI_JUPITER_API_KEY=\n' \
+            | sudo tee /etc/mci/config.env >/dev/null
+          curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/memecoin-intelligence/deploy/vps.sh" -o /tmp/vps.sh
+          start=$(date +%s)
+          if ! sudo MCI_REPO="$GITHUB_REPOSITORY" MCI_REF="$GITHUB_SHA" MCI_SKIP_FIREWALL=1 bash /tmp/vps.sh install; then
+            sudo tail -n 200 /var/log/mci-deploy.log; exit 1
+          fi
+          echo "installazione completata in $(( $(date +%s) - start )) s"
+          # the auto-update timer was installed; stop it so it cannot switch this test to another commit
+          systemctl list-timers mci-update.timer --no-pager
+          sudo systemctl stop mci-update.timer
+          sudo stat -c '%a %U %n' /etc/mci/config.env "$APP/.env"
+          test "$(sudo stat -c %a "$APP/.env")" = 600
+          sudo grep -q '^MCI_TRADING_MODE=paper$' "$APP/.env"
+          sudo grep -q '^MCI_LIVE_TRADING_ENABLED=false$' "$APP/.env"
+
+      - name: Imported paper state from the GitHub bot
+        run: |
+          cd "$APP"
+          q() { sudo docker compose exec -T db psql -U mci -d mci -At -c "$1"; }
+          sudo grep "importo lo stato" /var/log/mci-deploy.log || true
+          echo "posizioni importate: $(q 'select count(*) from positions')"
+          echo "equity importata: $(q 'select count(*) from equity_snapshots')"
+          test "$(q 'select count(*) from positions')" -ge 1
+
+      - name: Continuous run (soak) - data must keep growing
+        run: |
+          cd "$APP"
+          q() { sudo docker compose exec -T db psql -U mci -d mci -At -c "$1"; }
+          s0=$(q 'select count(*) from token_snapshots'); t0=$(q 'select count(*) from tokens')
+          for i in $(seq 1 "$SOAK_MINUTES"); do
+            sleep 60
+            echo "minuto $i: token=$(q 'select count(*) from tokens') snapshot=$(q 'select count(*) from token_snapshots') candele=$(q 'select count(*) from candles')"
+          done
+          s1=$(q 'select count(*) from token_snapshots'); t1=$(q 'select count(*) from tokens')
+          echo "snapshot: $s0 -> $s1   token: $t0 -> $t1"
+          test "$s1" -gt "$s0"
+          id=$(sudo docker compose ps -q worker)
+          test "$(sudo docker inspect -f '{{.State.Running}} {{.RestartCount}}' "$id")" = "true 0"
+          sudo docker compose exec -T api python -c "import urllib.request,json; h=json.load(urllib.request.urlopen('http://127.0.0.1:8000/api/health')); print(h); assert h['worker_alive']"
+          echo "--- ultimi eventi"
+          q "select to_char(ts,'HH24:MI:SS'), level, category, left(message,110) from events order by id desc limit 20"
+          echo "--- fonti dati (IP condiviso di GitHub: GeckoTerminal può limitare, su una VPS l'IP è solo tuo)"
+          sudo docker compose exec -T worker mci check-sources || true
+          echo "--- memoria e CPU usate dai servizi"
+          sudo docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
+
+      - name: Self-healing - worker crash
+        run: |
+          cd "$APP"
+          id=$(sudo docker compose ps -q worker)
+          sudo kill -9 "$(sudo docker inspect -f '{{.State.Pid}}' "$id")"
+          sleep 45
+          sudo docker inspect -f 'running={{.State.Running}} restarts={{.RestartCount}}' "$id"
+          test "$(sudo docker inspect -f '{{.State.Running}}' "$id")" = true
+          test "$(sudo docker inspect -f '{{.RestartCount}}' "$id")" -ge 1
+
+      - name: Reboot simulation - Docker restart, data must survive
+        run: |
+          cd "$APP"
+          q() { sudo docker compose exec -T db psql -U mci -d mci -At -c "$1"; }
+          before=$(q 'select count(*) from token_snapshots')
+          sudo systemctl restart docker
+          for i in $(seq 1 30); do sleep 10; sudo docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')" 2>/dev/null && break; done
+          sudo docker compose ps
+          after=$(q 'select count(*) from token_snapshots')
+          echo "snapshot prima del riavvio: $before, dopo: $after"
+          test "$after" -ge "$before"
+          test "$(sudo docker compose ps --status running -q | wc -l)" -ge 4
+
+      - name: Re-install with the HTTPS dashboard (test domain), settings and data kept
+        run: |
+          cd "$APP"
+          pw_before=$(sudo grep '^MCI_DASHBOARD_PASSWORD=' .env)
+          sudo sed -i 's/^DOMAIN=.*/DOMAIN=localhost/' /etc/mci/config.env
+          if ! sudo MCI_REPO="$GITHUB_REPOSITORY" MCI_SKIP_FIREWALL=1 MCI_AUTO_UPDATE=0 bash deploy/vps.sh install; then
+            sudo tail -n 120 /var/log/mci-deploy.log; exit 1
+          fi
+          test "$(sudo grep '^MCI_DASHBOARD_PASSWORD=' .env)" = "$pw_before"
+          sudo docker compose config --services | grep -qx caddy
+          for i in $(seq 1 20); do curl -sk -m 5 https://localhost/api/health && break; sleep 3; done
+          echo
+          test "$(curl -sk -o /dev/null -w '%{http_code}' https://localhost/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost/)" = 308
+          test "$(curl -sk -o /dev/null -w '%{http_code}' https://localhost/api/overview)" = 401
+          curl -skI https://localhost/ | grep -i -E 'strict-transport|x-frame'
+
+      - name: Auto-update logic (dry run against the real GitHub API)
+        run: sudo bash "$APP/deploy/vps.sh" update --dry-run && sudo tail -n 3 /var/log/mci-deploy.log
+
+      - name: Final status
+        if: always()
+        run: |
+          sudo bash "$APP/deploy/vps.sh" status || true
+          sudo docker compose -f "$APP/docker-compose.yml" --project-directory "$APP" logs --tail 40 worker 2>/dev/null || true

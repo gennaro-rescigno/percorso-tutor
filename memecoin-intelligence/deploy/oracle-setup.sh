@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # One-time setup on a fresh Ubuntu 22.04/24.04 VM (Oracle Cloud Always Free, Ampere A1 or AMD micro).
+# For any other VPS the fully automatic installer is deploy/vps.sh (sudo bash deploy/vps.sh install).
 # Run as the default 'ubuntu' user:  bash deploy/oracle-setup.sh
 set -euo pipefail
 

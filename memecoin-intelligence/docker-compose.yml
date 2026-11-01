@@ -1,9 +1,15 @@
-# Single-VM deployment (Oracle Cloud Always Free / any Linux VM).
-# Usage: cp .env.example .env && edit .env && docker compose up -d --build
+# Single-VM deployment (any Linux VPS / Oracle Cloud). Automatic install: deploy/vps.sh install
+# Manual: cp .env.example .env && edit .env && docker compose up -d --build
+# The HTTPS dashboard (caddy) runs only with the "web" profile: COMPOSE_PROFILES=web in .env (needs DOMAIN).
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
 services:
   db:
     image: postgres:16.4-alpine
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_DB: mci
       POSTGRES_USER: mci
@@ -23,6 +29,7 @@ services:
     build: .
     command: ["mci", "worker"]
     restart: unless-stopped
+    logging: *logging
     env_file: .env
     environment:
       MCI_DATABASE_URL: postgresql+psycopg://mci:${POSTGRES_PASSWORD}@db:5432/mci
@@ -43,6 +50,7 @@ services:
     build: .
     command: ["mci", "api"]
     restart: unless-stopped
+    logging: *logging
     env_file: .env
     environment:
       MCI_DATABASE_URL: postgresql+psycopg://mci:${POSTGRES_PASSWORD}@db:5432/mci
@@ -57,10 +65,12 @@ services:
 
   caddy:
     image: caddy:2.8.4-alpine
+    profiles: ["web"]
     restart: unless-stopped
+    logging: *logging
     ports: ["80:80", "443:443"]
     environment:
-      DOMAIN: ${DOMAIN:?set DOMAIN in .env (e.g. mionome.duckdns.org)}
+      DOMAIN: ${DOMAIN:-localhost}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -70,6 +80,7 @@ services:
   backup:
     image: postgres:16.4-alpine
     restart: unless-stopped
+    logging: *logging
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD}
     volumes:

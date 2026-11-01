@@ -3,9 +3,20 @@
 ## ⭐ Soluzione consigliata: GitHub Actions (nessun server, nessun nuovo account, PC spento)
 
 Il bot gira **gratis sui server di GitHub**, nel tuo repository, ogni ~15 minuti. È già tutto
-configurato. Devi fare solo **una cosa** (2 minuti) e **una facoltativa**.
+configurato e verificato dal vivo (5 esecuzioni reali: tutte le fonti OK, 168 token analizzati, primo
+trade paper eseguito con quote reale di Jupiter).
 
-### Obbligatorio: dai al bot il token Telegram (in modo segreto)
+### 1. Revoca il vecchio token del bot (urgente: è stato pubblicato)
+Il token era stato scritto in `.env.example`, che è **pubblico**. Su Telegram apri **@BotFather** →
+`/revoke` → scegli il tuo bot → BotFather ti dà un **nuovo token**. Il vecchio smette di funzionare.
+
+### 2. Attiva l'esecuzione automatica (1 clic)
+Il codice è sul branch `feature/memecoin-intelligence`; GitHub esegue i workflow programmati solo dal
+branch principale `main`. Apri
+**https://github.com/gennaro-rescigno/percorso-tutor/compare/main...feature/memecoin-intelligence**
+→ **Create pull request** → **Create pull request** → **Merge pull request** → **Confirm merge**.
+
+### 3. Dai al bot il NUOVO token Telegram (in modo segreto)
 1. Apri **https://github.com/gennaro-rescigno/percorso-tutor/settings/secrets/actions**
    (oppure: repository → **Settings** → **Secrets and variables** → **Actions**).
 2. **New repository secret** → Name: `MCI_TELEGRAM_BOT_TOKEN` → Secret: il token di BotFather → **Add secret**.
@@ -14,7 +25,7 @@ configurato. Devi fare solo **una cosa** (2 minuti) e **una facoltativa**.
 I segreti di GitHub sono cifrati: nessuno li vede (nemmeno nei log, dove compaiono come `***`).
 Dalla prossima esecuzione (entro ~15 minuti) il bot ti scrive su Telegram.
 
-### Facoltativo: la dashboard web
+### 4. (Facoltativo) la dashboard web
 1. Apri **https://github.com/gennaro-rescigno/percorso-tutor/settings/pages**.
 2. In **Build and deployment → Source** scegli **GitHub Actions**.
 3. Dopo la prossima esecuzione la dashboard è su **https://gennaro-rescigno.github.io/percorso-tutor/**.

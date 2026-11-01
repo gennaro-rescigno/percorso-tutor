@@ -1,7 +1,7 @@
 # Runs the paper-trading bot without any server: every ~15 minutes GitHub starts a short
 # window (scan, positions, Telegram commands, daily report), then saves the state.
 # - database: Actions cache (latest copy) + JSON backup on the "bot-state" branch
-# - dashboard: read-only static site on GitHub Pages (Settings > Pages > Source: GitHub Actions)
+# - dashboard: read-only static site on GitHub Pages, served from the "gh-pages" branch
 # - secrets: Settings > Secrets and variables > Actions (MCI_TELEGRAM_BOT_TOKEN, MCI_TELEGRAM_CHAT_IDS)
 # To stop the bot: Actions tab > memecoin-bot > "..." > Disable workflow.
 name: memecoin-bot
@@ -21,8 +21,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: memecoin-bot
@@ -138,22 +136,11 @@ jobs:
           git add -A
           git commit -q -m "bot state $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" bot-state
-
-      - name: Upload dashboard for GitHub Pages
-        # never publish/save if the bot did not actually run (e.g. failed restore)
-        if: always() && (steps.run.outcome == 'success' || steps.run.outcome == 'failure')
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: /tmp/site
-
-  pages:
-    needs: bot
-    if: always() && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    continue-on-error: true  # Pages may not be enabled yet: the bot keeps working anyway
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - id: deploy
-        uses: actions/deploy-pages@v4
+          # dashboard (site only, no state.json) on gh-pages -> https://<owner>.github.io/<repo>/
+          rm -rf /tmp/ghp && mkdir -p /tmp/ghp && cp -r /tmp/site/. /tmp/ghp/ && cd /tmp/ghp
+          git init -q -b gh-pages
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "dashboard $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

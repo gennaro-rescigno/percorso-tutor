@@ -25,10 +25,9 @@ branch principale `main`. Apri
 I segreti di GitHub sono cifrati: nessuno li vede (nemmeno nei log, dove compaiono come `***`).
 Dalla prossima esecuzione (entro ~15 minuti) il bot ti scrive su Telegram.
 
-### 4. (Facoltativo) la dashboard web
-1. Apri **https://github.com/gennaro-rescigno/percorso-tutor/settings/pages**.
-2. In **Build and deployment → Source** scegli **GitHub Actions**.
-3. Dopo la prossima esecuzione la dashboard è su **https://gennaro-rescigno.github.io/percorso-tutor/**.
+### 4. La dashboard web (già attiva)
+È pubblicata automaticamente su **https://gennaro-rescigno.github.io/percorso-tutor/** (branch
+`gh-pages`, aggiornato a ogni esecuzione del bot).
 
 È in **sola lettura** e **pubblica** (contiene solo dati di paper trading e analisi di token pubblici,
 nessun segreto): i comandi si danno da Telegram (`/status`, `/pause`, `/resume`, `/kill`, ...).

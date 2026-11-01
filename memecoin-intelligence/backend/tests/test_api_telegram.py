@@ -121,13 +121,18 @@ async def test_bot_commands_and_authorization(db):
     tg = FakeTG()
     bot = TelegramBot(tg, get_settings(), "paper", status_provider=lambda: {"sol_eur": 140.0})
     tg._updates = [
-        {"update_id": 1, "message": {"chat": {"id": 999}, "text": "/pause"}},  # not authorized
+        {"update_id": 0, "message": {"chat": {"id": 999}, "text": "/start"}},  # not authorized: gets its chat id
+        {"update_id": 1, "message": {"chat": {"id": 999}, "text": "/pause"}},  # not authorized: ignored
         {"update_id": 2, "message": {"chat": {"id": 111}, "text": "/balance"}},
         {"update_id": 3, "message": {"chat": {"id": 111}, "text": "/pause"}},
         {"update_id": 4, "message": {"chat": {"id": 111}, "text": "/paper"}},
     ]
     await bot.poll_once()
-    assert [c for c, _ in tg.out] == [111, 111, 111]
+    assert [c for c, _ in tg.out] == [999, 111, 111, 111]
+    assert "999" in tg.out[0][1] and "MCI_TELEGRAM_CHAT_IDS" in tg.out[0][1]
+    tg.out.pop(0)
+    with session_scope() as s:
+        assert repo.get_state(s, "control_paused") is True  # set by the AUTHORIZED /pause only
     assert "2,0000 SOL" in tg.out[0][1]
     with session_scope() as s:
         assert repo.get_state(s, "control_paused") is True

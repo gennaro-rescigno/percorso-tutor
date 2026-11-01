@@ -116,6 +116,7 @@ class TelegramBot:
         self.mode = mode
         self.status_provider = status_provider  # callable -> dict with live worker status
         self.offset: int | None = None
+        self._told: set[int] = set()
 
     async def poll_once(self) -> int:
         updates = await self.client.get_updates(self.offset)
@@ -126,10 +127,19 @@ class TelegramBot:
             text = (msg.get("text") or "").strip()
             if not text.startswith("/"):
                 continue
-            if chat not in self.client.chat_ids:
-                log.warning("telegram command from unauthorized chat %s ignored", chat)
-                continue
             cmd = text.split()[0].split("@")[0].lower()
+            if chat not in self.client.chat_ids:
+                log.warning("telegram command from unauthorized chat ignored")
+                if cmd in ("/start", "/help", "/id") and chat is not None and chat not in self._told:
+                    # setup helper: tell people their own chat id (commands stay restricted)
+                    self._told.add(chat)
+                    await self.client.send(
+                        f"👋 Il tuo chat id è <code>{chat}</code>.\nQuesta chat non è ancora autorizzata: inserisci "
+                        "questo numero nel secret <b>MCI_TELEGRAM_CHAT_IDS</b> del repository GitHub "
+                        "(Settings → Secrets and variables → Actions) per ricevere notifiche e usare i comandi.",
+                        chat_id=chat,
+                    )
+                continue
             try:
                 reply = self.handle(cmd)
             except Exception:

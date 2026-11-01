@@ -52,7 +52,9 @@ class Settings(BaseSettings):
     # --- data sources -------------------------------------------------------------
     dexscreener_base_url: str = "https://api.dexscreener.com"
     geckoterminal_base_url: str = "https://api.geckoterminal.com/api/v2"
-    geckoterminal_calls_per_minute: int = 25  # documented public limit is 30/min
+    # the public limit is not published; 25/min with bursts got 429 on a dedicated VPS IP (Nov 2026).
+    # This is the ceiling: the scanner halves it on every 429 and raises it slowly after successes.
+    geckoterminal_calls_per_minute: int = 12
     jupiter_base_url: str = "https://lite-api.jup.ag"
     jupiter_api_key: SecretStr = SecretStr("")
     jupiter_requests_per_second: float = 0.5  # keyless limit documented in 2026

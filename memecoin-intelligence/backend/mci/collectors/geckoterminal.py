@@ -51,9 +51,10 @@ def _strip_prefix(gid: str | None) -> str | None:
 
 
 class GeckoTerminalCollector:
-    def __init__(self, base_url: str, calls_per_minute: int = 25, client: ApiClient | None = None):
+    def __init__(self, base_url: str, calls_per_minute: int = 12, client: ApiClient | None = None):
+        # evenly spaced calls (no bursts): the public API answered 429 to short bursts even from a dedicated IP
         self.api = client or ApiClient(
-            "geckoterminal", base_url, rate_per_s=calls_per_minute / 60.0, burst=3, headers=ACCEPT
+            "geckoterminal", base_url, rate_per_s=calls_per_minute / 60.0, burst=1, headers=ACCEPT
         )
 
     async def close(self) -> None:

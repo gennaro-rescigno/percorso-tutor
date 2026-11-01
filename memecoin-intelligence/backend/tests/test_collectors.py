@@ -182,3 +182,34 @@ def test_token2022_empty_extensions_are_not_dangerous():
     snap2 = TokenSnapshot(chain="solana", token_address="T23", observed_at=utcnow())
     RugCheckCollector.apply_report(snap2, {"token_extensions": real})
     assert snap2.dangerous_extensions == ["transfer_hook"]
+
+
+def test_gecko_429_backs_off_and_recovers_gradually(monkeypatch):
+    """Adaptive GeckoTerminal pacing: each 429 doubles the pause and halves the rate; successes raise it back."""
+    from mci.config import get_settings
+    from mci.scanner.service import Scanner
+    from mci.utils.http import SourceUnavailable
+
+    gecko = GeckoTerminalCollector("https://example.invalid", calls_per_minute=12)
+    sc = Scanner(get_settings(), None, gecko, None, None, None)  # type: ignore[arg-type]
+    lim = gecko.api.limiter
+    assert abs(lim.rate * 60 - 12) < 1e-9 and lim.capacity == 1.0
+    now = [1000.0]
+    monkeypatch.setattr("mci.scanner.service.time.time", lambda: now[0])
+    err = SourceUnavailable("geckoterminal", "rate limited (429)")
+    sc.pause_gecko(err)
+    assert sc.gecko_paused() and sc._gecko_paused_until == 1090.0 and abs(lim.rate * 60 - 6) < 1e-9
+    sc.pause_gecko(err)
+    assert sc._gecko_paused_until == 1180.0 and abs(lim.rate * 60 - 3) < 1e-9
+    for _ in range(6):
+        sc.pause_gecko(err)
+    assert sc._gecko_paused_until == 1900.0  # capped at 15 min
+    assert abs(lim.rate * 60 - 2) < 1e-9  # never below 2 calls/min
+    for _ in range(30):
+        sc._ok("geckoterminal")
+    assert abs(lim.rate * 60 - 5) < 1e-9  # +1/min every 10 successes
+    for _ in range(200):
+        sc._ok("geckoterminal")
+    assert abs(lim.rate * 60 - 12) < 1e-9  # never above the configured ceiling
+    sc.pause_gecko(SourceUnavailable("geckoterminal", "HTTP 500"))  # other errors do not slow down
+    assert abs(lim.rate * 60 - 12) < 1e-9

@@ -86,10 +86,16 @@ class Scanner:
         self.last_cycle_at: datetime | None = None
         self.sol_usd_hist: deque = deque(maxlen=120)
         self._gecko_paused_until = 0.0
+        self._gecko_strikes = 0
+        self._gecko_ok_streak = 0
+        lim = self._gecko_limiter()
+        self._gecko_max_rate = lim.rate if lim else 0.0
 
     # ------------------------------------------------------------------ helpers
     def _ok(self, name: str) -> None:
         self.source_status[name] = {"ok": True, "at": utcnow().isoformat()}
+        if name == "geckoterminal":
+            self._gecko_success()
 
     def _fail(self, name: str, err: Exception) -> None:
         self.source_status[name] = {"ok": False, "at": utcnow().isoformat(), "error": str(err)[:200]}
@@ -119,9 +125,33 @@ class Scanner:
     def gecko_paused(self) -> bool:
         return time.time() < self._gecko_paused_until
 
+    def _gecko_limiter(self):
+        return getattr(getattr(self.gecko, "api", None), "limiter", None)
+
     def pause_gecko(self, err: Exception, seconds: float = 90.0) -> None:
+        """GeckoTerminal does not publish its public limit and enforces it per IP. On every 429: pause with
+        exponential backoff (90 s, 3, 6, ... up to 15 min) and halve our request rate (no bursts), so the rate
+        settles below the real limit; successes then raise it slowly again (see ``_gecko_success``)."""
         if "429" in str(err) or "circuit open" in str(err):
-            self._gecko_paused_until = time.time() + seconds
+            self._gecko_strikes += 1
+            self._gecko_ok_streak = 0
+            pause = min(seconds * 2 ** (self._gecko_strikes - 1), 900.0)
+            self._gecko_paused_until = time.time() + pause
+            lim = self._gecko_limiter()
+            if lim:
+                lim.rate = max(lim.rate / 2, 2 / 60)
+                lim.capacity = 1.0
+                lim._tokens = min(lim._tokens, 1.0)
+            log.info("geckoterminal 429: pausa %.0f s, nuovo ritmo %.1f chiamate/min", pause,
+                     (lim.rate * 60) if lim else 0)
+
+    def _gecko_success(self) -> None:
+        self._gecko_strikes = 0
+        self._gecko_ok_streak += 1
+        lim = self._gecko_limiter()
+        if lim and self._gecko_ok_streak >= 10 and lim.rate < self._gecko_max_rate:
+            lim.rate = min(lim.rate + 1 / 60, self._gecko_max_rate)  # +1 call/min after 10 clean rounds
+            self._gecko_ok_streak = 0
 
     def sol_anomaly(self) -> str | None:
         """Market anomaly: SOL down > 8% within the last hour of samples."""

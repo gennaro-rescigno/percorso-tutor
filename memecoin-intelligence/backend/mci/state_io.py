@@ -33,15 +33,23 @@ from mci.database.models import (
 from mci.database.session import session_scope
 
 # table -> (model, max rows kept, order column)
+# Order matters for import: referenced tables first (signals -> positions -> orders -> fills).
 STATE_TABLES: dict[str, tuple[Any, int | None, Any]] = {
     "system_state": (SystemState, None, None),
+    "signals": (SignalRow, 2000, SignalRow.id),
     "positions": (Position, None, Position.id),
     "orders": (Order, 5000, Order.id),
     "fills": (FillRow, 5000, FillRow.id),
-    "signals": (SignalRow, 2000, SignalRow.id),
     "equity_snapshots": (EquitySnapshot, 5000, EquitySnapshot.id),
     "events": (Event, 1000, Event.id),
     "alert_log": (AlertLog, None, None),
+}
+
+# foreign key column -> table it references (rows outside the exported window are dropped/nulled)
+FOREIGN_KEYS: dict[str, dict[str, str]] = {
+    "positions": {"signal_id": "signals"},
+    "orders": {"signal_id": "signals", "position_id": "positions"},
+    "fills": {"order_id": "orders"},
 }
 
 
@@ -97,9 +105,12 @@ def import_state(path: str | Path, only_if_empty: bool = True) -> dict[str, int]
     with session_scope() as s:
         if only_if_empty and s.scalar(select(SystemState).limit(1)) is not None:
             return {"skipped": 1}
+        imported: dict[str, set] = {}
         for name, (model, _, _) in STATE_TABLES.items():
             rows = data.get(name) or []
             cols = {c.key: c for c in model.__table__.columns}
+            ids: set = set()
+            n = 0
             for r in rows:
                 kw = {}
                 for k, v in r.items():
@@ -108,8 +119,21 @@ def import_state(path: str | Path, only_if_empty: bool = True) -> dict[str, int]
                     if v is not None and isinstance(cols[k].type, DateTime) and isinstance(v, str):
                         v = datetime.fromisoformat(v)
                     kw[k] = v
+                skip = False
+                for fk, target in FOREIGN_KEYS.get(name, {}).items():
+                    if kw.get(fk) is not None and kw[fk] not in imported.get(target, set()):
+                        if cols[fk].nullable:
+                            kw[fk] = None  # referenced row is older than the exported window
+                        else:
+                            skip = True
+                if skip:
+                    continue
                 s.merge(model(**kw))
-            counts[name] = len(rows)
+                if "id" in kw:
+                    ids.add(kw["id"])
+                n += 1
+            imported[name] = ids
+            counts[name] = n
             s.flush()
     return counts
 

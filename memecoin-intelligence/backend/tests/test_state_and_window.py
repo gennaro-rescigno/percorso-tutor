@@ -149,3 +149,40 @@ def test_scanner_resumes_tokens_history_and_candles_from_db(db):
     assert tt.snapshot.symbol == "GOOD" and tt.source == "db"
     assert len(tt.candles["1m"]) == 90 and len(tt.history) == 1
     assert sc.load_from_db() == 0  # idempotent
+
+
+def test_import_full_chain_and_truncated_history(db, tmp_path, monkeypatch):
+    """Regression (live run on main): positions reference signals; import order and FKs."""
+    from mci.database.models import FillRow, Order, SignalRow
+    from mci.domain import Signal
+
+    snap = _seed()
+    with session_scope() as s:
+        sig = repo.record_signal(s, Signal(strategy="B", token_address=snap.token_address, symbol="GOOD",
+                                           created_at=utcnow(), reference_price=1e-5, stop_price=9e-6, score=78,
+                                           reasons=["r"], risks=[]), "paper", snap, None)
+        p = s.scalars(__import__("sqlalchemy").select(Position)).first()
+        p.signal_id = sig.id
+        o = Order(client_order_id="paper-buy-x", mode="paper", side="buy", token_address=snap.token_address,
+                  position_id=p.id, signal_id=sig.id, status="filled", requested_sol=0.08)
+        s.add(o)
+        s.flush()
+        s.add(FillRow(order_id=o.id, side="buy", qty=1000, price=1e-5, sol_amount=0.08, dex_fee_sol=0.001,
+                      network_fee_sol=0.0001, slippage_sol=0.0, price_impact_pct=0.01, quote_source="jupiter"))
+    export_state(tmp_path / "state.json")
+    data = json.loads((tmp_path / "state.json").read_text())
+    data["signals"] = []  # simulate a signal older than the exported window
+    (tmp_path / "state2.json").write_text(json.dumps(data))
+    for name in ("state.json", "state2.json"):
+        url2 = f"sqlite:///{tmp_path}/{name}.db"
+        monkeypatch.setenv("MCI_DATABASE_URL", url2)
+        reset_settings_cache()
+        init_engine(url2)
+        got = import_state(tmp_path / name)
+        assert got["positions"] == 1 and got["orders"] == 1 and got["fills"] == 1
+        with session_scope() as s:
+            from sqlalchemy import select
+
+            pos = s.scalars(select(Position)).one()
+            assert (pos.signal_id is not None) == (name == "state.json")
+            assert s.scalars(select(FillRow)).one().order_id == s.scalars(select(Order)).one().id

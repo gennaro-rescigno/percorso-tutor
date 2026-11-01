@@ -22,7 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 # Only needed to sign real transactions. Never installed by default.
 live = ["solders>=0.21", "base58>=2.1"]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "respx>=0.21", "pyyaml>=6"]
 
 [project.scripts]
 mci = "mci.cli:main"

@@ -1,0 +1,82 @@
+name: memecoin VPS create (Hetzner)
+# ATTENZIONE: con azione "crea" compra una VPS sul TUO account Hetzner (a pagamento, a ore).
+# Va avviato solo con il consenso esplicito del proprietario. "piano" mostra prezzo e disponibilità senza comprare.
+# Segreti usati: HCLOUD_TOKEN (Hetzner, Read & Write), MCI_TELEGRAM_BOT_TOKEN, MCI_TELEGRAM_CHAT_IDS.
+on:
+  workflow_dispatch:
+    inputs:
+      azione:
+        description: "piano = solo prezzo, nessun acquisto; crea = crea la VPS (a pagamento)"
+        type: choice
+        options: [piano, crea]
+        default: piano
+      prezzo_massimo_eur_mese:
+        description: "non creare nulla che costi più di questo (€/mese IVA inclusa, IPv4 compreso)"
+        default: "10"
+permissions:
+  contents: read
+  actions: write   # to switch off the GitHub bot once the VPS takes over (only one bot must answer Telegram)
+concurrency:
+  group: vps-create
+  cancel-in-progress: false
+jobs:
+  vps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      MCI_TELEGRAM_BOT_TOKEN: ${{ secrets.MCI_TELEGRAM_BOT_TOKEN }}
+      MCI_TELEGRAM_CHAT_IDS: ${{ secrets.MCI_TELEGRAM_CHAT_IDS }}
+      MCI_JUPITER_API_KEY: ${{ secrets.MCI_JUPITER_API_KEY }}
+      MAX_EUR: ${{ inputs.prezzo_massimo_eur_mese }}
+      GH_TOKEN: ${{ github.token }}
+      SSH: ssh -i /tmp/mci_key -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o BatchMode=yes
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: memecoin-intelligence/deploy }
+
+      - name: Plan - cheapest available VPS and its price (buys nothing)
+        run: python3 memecoin-intelligence/deploy/hetzner_vps.py plan --max-eur "$MAX_EUR"
+
+      - name: Switch off the GitHub bot (the VPS takes over its state)
+        if: inputs.azione == 'crea'
+        run: |
+          curl -fsS -X PUT -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/memecoin-bot.yml/disable"
+          echo "workflow memecoin-bot disattivato"
+
+      - name: Create the VPS (paid)
+        id: create
+        if: inputs.azione == 'crea'
+        run: |
+          ssh-keygen -q -t ed25519 -N '' -C "mci-deploy-$GITHUB_RUN_ID" -f /tmp/mci_key
+          python3 memecoin-intelligence/deploy/hetzner_vps.py create --max-eur "$MAX_EUR" \
+            --ssh-pub /tmp/mci_key.pub --key-name "mci-deploy-$GITHUB_RUN_ID"
+
+      - name: Wait for the automatic installation and verify it
+        if: inputs.azione == 'crea' && steps.create.outputs.ip != ''
+        env:
+          IP: ${{ steps.create.outputs.ip }}
+        run: |
+          for i in $(seq 1 60); do $SSH root@"$IP" true 2>/dev/null && break; sleep 10; done
+          $SSH root@"$IP" 'cloud-init status --wait >/dev/null 2>&1; cloud-init status --long | head -5' || true
+          $SSH root@"$IP" 'bash /opt/mci/repo/memecoin-intelligence/deploy/vps.sh status' || true
+          $SSH root@"$IP" 'grep -q "installazione completata" /var/log/mci-deploy.log' \
+            || { echo "::error::installazione non completata: vedi lo stato qui sopra"; exit 1; }
+          echo "VPS operativa: IP $IP"
+
+      - name: Remove the temporary verification key
+        if: always() && steps.create.outputs.key_id != ''
+        env:
+          IP: ${{ steps.create.outputs.ip }}
+          KEY_ID: ${{ steps.create.outputs.key_id }}
+        run: |
+          [ -n "$IP" ] && $SSH root@"$IP" "sed -i '/mci-deploy-$GITHUB_RUN_ID/d' /root/.ssh/authorized_keys" || true
+          python3 memecoin-intelligence/deploy/hetzner_vps.py delete-key --key-id "$KEY_ID"
+
+      - name: VPS not created - switch the GitHub bot back on
+        if: failure() && inputs.azione == 'crea' && steps.create.outputs.server_id == '' && steps.create.outputs.exists != '1'
+        run: |
+          curl -fsS -X PUT -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/memecoin-bot.yml/enable"
+          echo "nessuna VPS creata: workflow memecoin-bot riattivato"

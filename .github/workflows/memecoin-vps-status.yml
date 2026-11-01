@@ -1,0 +1,61 @@
+name: memecoin VPS status
+# Sola lettura: legge la dashboard pubblica della VPS (porta 8080, gli stessi dati paper che erano su
+# GitHub Pages) e ne stampa un riepilogo. Non modifica nulla. L'IP viene letto dall'API Hetzner.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  status:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+    steps:
+      - name: Find the VPS
+        id: vps
+        run: |
+          ip=$(curl -fsS -H "Authorization: Bearer $HCLOUD_TOKEN" "https://api.hetzner.cloud/v1/servers?name=memecoin-bot" \
+            | python3 -c "import sys,json; s=json.load(sys.stdin)['servers']; print(s[0]['public_net']['ipv4']['ip'] if s else '')")
+          [ -n "$ip" ] || { echo "::error::nessun server memecoin-bot su Hetzner"; exit 1; }
+          echo "ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - name: Bot status (read-only)
+        env:
+          IP: ${{ steps.vps.outputs.ip }}
+        run: |
+          mkdir -p /tmp/d
+          for f in meta overview positions logs signals; do
+            curl -fsS -m 20 "http://$IP:8080/data/$f.json" -o "/tmp/d/$f.json" || echo "{}" > "/tmp/d/$f.json"
+          done
+          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import json
+          from datetime import datetime, timezone
+          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals")}
+          gen = d["meta"].get("generated_at")
+          age = (datetime.now(timezone.utc) - datetime.fromisoformat(gen.replace("Z", "+00:00"))).total_seconds() if gen else None
+          ov = d["overview"]; s = ov.get("summary", {}); w = ov.get("worker", {})
+          print(f"## Stato VPS ({datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC)\n")
+          print(f"- dati aggiornati {age:.0f} s fa" if age is not None else "- dati: NON DISPONIBILI")
+          print(f"- worker attivo: {w.get('worker_alive')} · ultimo ciclo: {w.get('last_cycle')} · token monitorati: {w.get('tracked')} · registrati: {ov.get('tokens_recorded')}")
+          print(f"- modalità: {s.get('mode')} · pausa: {s.get('paused')} · kill switch: {s.get('kill_switch')} · PumpPortal: {w.get('pumpportal_connected')}")
+          print(f"- Telegram: inviati {w.get('telegram_sent')} · falliti {w.get('telegram_failed')} · ultimo errore: {w.get('telegram_last_error')}")
+          eq = s.get("equity_sol") or 0; eur = s.get("sol_eur") or 0
+          print(f"- capitale: {eq:.4f} SOL (≈ {eq*eur:.2f} €) · liquido {s.get('cash_sol', 0):.4f} · investito {s.get('invested_sol', 0):.4f} · ROI {100*(s.get('roi') or 0):+.2f}%")
+          print(f"- operazioni chiuse: {s.get('total_trades')} · aperte: {s.get('open_positions')} · win rate: {s.get('win_rate')} · drawdown: {100*(s.get('drawdown') or 0):.1f}%\n")
+          print("### Fonti dati")
+          for k, v in (w.get("sources") or {}).items():
+              print(f"- {k}: {'ok' if v.get('ok') else 'KO — ' + str(v.get('error'))} ({v.get('at')})")
+          print("\n### Posizioni")
+          for p in d["positions"].get("positions", [])[:15]:
+              print(f"- {p.get('status')} {p.get('symbol')} [{p.get('strategy')}] puntata {p.get('stake_sol')} SOL · "
+                    f"P&L {p.get('pnl_sol')} SOL ({100*(p.get('return_pct') or 0):+.1f}%) · aperta {p.get('opened_at')} · uscita: {p.get('exit_reason')}")
+          print("\n### Ultimi segnali")
+          for g in d["signals"].get("signals", [])[:10]:
+              print(f"- {g.get('created_at')} {g.get('symbol')} [{g.get('strategy')}] score {g.get('score')} → {g.get('status')} {g.get('rejection') or ''}")
+          print("\n### Ultimi eventi")
+          for e in d["logs"].get("events", [])[:25]:
+              print(f"- {e.get('ts')} {e.get('level')} {e.get('category')}: {e.get('message')}")
+          if age is None or age > 600 or not w.get("worker_alive"):
+              raise SystemExit("ATTENZIONE: dati vecchi o worker non attivo")
+          PY

@@ -92,6 +92,12 @@ jobs:
           q "select to_char(ts,'HH24:MI:SS'), level, category, left(message,110) from events order by id desc limit 20"
           echo "--- fonti dati (IP condiviso di GitHub: GeckoTerminal può limitare, su una VPS l'IP è solo tuo)"
           sudo docker compose exec -T worker mci check-sources || true
+          echo "--- dashboard pubblica in sola lettura (porta 8080)"
+          for i in $(seq 1 12); do curl -fsS -m 5 http://localhost:8080/data/meta.json && break; sleep 10; done
+          echo
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/)" = 200
+          curl -fsS http://localhost:8080/data/overview.json | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['worker']['worker_alive'], d['worker']; print('overview pubblica ok, capitale', d['summary']['equity_sol'])"
+          curl -sI http://localhost:8080/data/overview.json | grep -i -E 'cache-control|x-frame'
           echo "--- memoria e CPU usate dai servizi"
           sudo docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
 

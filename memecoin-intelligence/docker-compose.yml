@@ -77,6 +77,35 @@ services:
       - caddy_config:/config
     depends_on: [api]
 
+  # read-only public dashboard (paper data only, no login, no secrets) on http://<server-ip>:8080
+  publisher:
+    build: .
+    command: ["mci", "publish-static", "--out", "/srv/site", "--every", "60"]
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env
+    environment:
+      MCI_DATABASE_URL: postgresql+psycopg://mci:${POSTGRES_PASSWORD}@db:5432/mci
+    depends_on:
+      db: { condition: service_healthy }
+    healthcheck:
+      disable: true
+    volumes:
+      - public_site:/srv/site
+    deploy:
+      resources:
+        limits: { memory: 512m }
+
+  public:
+    image: caddy:2.8.4-alpine
+    restart: unless-stopped
+    logging: *logging
+    ports: ["8080:80"]
+    volumes:
+      - ./deploy/Caddyfile.public:/etc/caddy/Caddyfile:ro
+      - public_site:/srv/site:ro
+    depends_on: [publisher]
+
   backup:
     image: postgres:16.4-alpine
     restart: unless-stopped
@@ -92,5 +121,6 @@ services:
 
 volumes:
   pgdata:
+  public_site:
   caddy_data:
   caddy_config:

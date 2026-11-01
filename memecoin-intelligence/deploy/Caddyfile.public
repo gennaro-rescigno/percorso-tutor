@@ -1,0 +1,14 @@
+# Read-only public dashboard (static files written by the 'publisher' service). HTTP only: it serves
+# public paper-trading data and no login, so there is nothing secret to protect in transit.
+:80 {
+	root * /srv/site
+	encode gzip
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		-Server
+	}
+	header /data/* Cache-Control "no-store"
+	file_server
+}

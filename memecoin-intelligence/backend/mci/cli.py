@@ -229,6 +229,46 @@ def cmd_export_static(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_publish_static(args: argparse.Namespace) -> int:
+    """Server mode: keep a read-only public copy of the dashboard fresh (same data the GitHub Pages dashboard
+    published: paper trading and public token data, secrets scrubbed). The data folder is swapped atomically."""
+    import shutil
+    import tempfile
+    import time
+
+    from mci.state_io import export_static
+
+    out = Path(args.out)
+    out.mkdir(parents=True, exist_ok=True)
+    site = Path(args.site)
+    if site.is_dir():
+        for item in site.iterdir():
+            if item.is_dir():
+                shutil.copytree(item, out / item.name, dirs_exist_ok=True)
+            else:
+                shutil.copy2(item, out / item.name)
+    while True:
+        try:
+            tmp = Path(tempfile.mkdtemp(dir=out, prefix=".data-"))
+            export_static(tmp)
+            tmp.chmod(0o755)
+            live = out / "data"
+            if live.exists():
+                live.rename(out / f".old-{time.time_ns()}")
+            tmp.rename(live)
+        except Exception:
+            logging.getLogger(__name__).exception("publish-static failed")
+        finally:
+            from mci.database.session import get_engine
+
+            get_engine().dispose()  # export_static builds a fresh app/engine each round: close its connections
+        for stale in list(out.glob(".old-*")) + [d for d in out.glob(".data-*") if d.is_dir()]:
+            shutil.rmtree(stale, ignore_errors=True)
+        if args.once:
+            return 0
+        time.sleep(args.every)
+
+
 def _load_dataset(args: argparse.Namespace):
     from mci.backtesting.data import load_dataset
     from mci.backtesting.datasource import dataset_from_db
@@ -359,6 +399,12 @@ def main(argv: list[str] | None = None) -> int:
     si = sub.add_parser("state-import")
     si.add_argument("--file", required=True)
     si.set_defaults(fn=cmd_state_import)
+    ps = sub.add_parser("publish-static", help="server: aggiorna di continuo la dashboard pubblica in sola lettura")
+    ps.add_argument("--out", required=True)
+    ps.add_argument("--site", default="/app/frontend/static-dist", help="frontend statico già compilato")
+    ps.add_argument("--every", type=int, default=60)
+    ps.add_argument("--once", action="store_true")
+    ps.set_defaults(fn=cmd_publish_static)
     es = sub.add_parser("export-static", help="dati JSON per la dashboard statica in sola lettura")
     es.add_argument("--out", required=True)
     es.set_defaults(fn=cmd_export_static)

@@ -216,3 +216,29 @@ def test_new_rows_after_import_do_not_reuse_imported_ids(db, tmp_path):
     with session_scope() as s:
         assert s.scalar(select(func.max(Event.id))) > last_imported
         assert s.scalar(select(func.count()).select_from(Position)) == 2
+
+
+def test_publish_static_once_writes_site_and_fresh_data(db, tmp_path, monkeypatch):
+    """VPS read-only dashboard: frontend copied, data/ swapped in, no leftovers, secrets scrubbed."""
+    import json as _json
+
+    from mci.cli import main
+
+    _seed()
+    site = tmp_path / "static-dist"
+    (site / "assets").mkdir(parents=True)
+    (site / "index.html").write_text("<html>dashboard</html>")
+    (site / "assets" / "app.js").write_text("x")
+    out = tmp_path / "srv"
+    monkeypatch.setenv("MCI_TELEGRAM_BOT_TOKEN", "123456789:SECRET-SECRET-SECRET-SECRET-SECRET")
+    monkeypatch.setenv("MCI_FRONTEND_DIST_DIR", "/nonexistent")
+    reset_settings_cache()
+    for _ in range(2):  # second round replaces the first atomically
+        assert main(["publish-static", "--out", str(out), "--site", str(site), "--once"]) == 0
+    assert (out / "index.html").read_text() == "<html>dashboard</html>" and (out / "assets" / "app.js").exists()
+    overview = _json.loads((out / "data" / "overview.json").read_text())
+    assert overview["summary"]["initial_capital_sol"] == 2.0
+    assert (out / "data" / "positions.json").exists() and (out / "data" / "meta.json").exists()
+    assert not list(out.glob(".data-*")) and not list(out.glob(".old-*"))
+    blob = "".join(f.read_text() for f in (out / "data").rglob("*.json"))
+    assert "SECRET-SECRET" not in blob

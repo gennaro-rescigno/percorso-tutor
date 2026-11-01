@@ -112,7 +112,8 @@ async def test_jupiter_quote_and_no_route():
 def test_rugcheck_report_parsing_excludes_pools():
     snap = TokenSnapshot(chain="solana", token_address="M", observed_at=utcnow(), pair_address="POOLVAULT")
     rep = {"mintAuthority": None, "freezeAuthority": "Frz111", "creator": "DEV", "rugged": False,
-           "tokenProgram": "TokenzQd", "token_extensions": {"transferHook": {}},
+           "tokenProgram": "TokenzQd",
+           "token_extensions": {"transferHook": {"programId": "Hook1111111111111111111111111111111111111"}},
            "risks": [{"name": "Freeze Authority still enabled", "level": "danger", "score": 7500}],
            "score_normalised": 55, "markets": [{"pubkey": "MKT", "lp": {"lpLockedPct": 100}}],
            "knownAccounts": {"AMMV": {"type": "AMM"}},
@@ -158,3 +159,26 @@ def test_coordinated_selling():
 def test_telegram_members_parser():
     assert parse_telegram_members('<div class="tgme_page_extra">12 345 members, 300 online</div>') == 12345
     assert parse_telegram_members("nothing") is None
+
+
+def test_token2022_empty_extensions_are_not_dangerous():
+    """Live RugCheck data lists every extension key even when unused (bug found on GitHub run)."""
+    from mci.collectors.rugcheck import extension_active
+
+    empty = {"transferFeeConfig": None, "transferHook": None, "permanentDelegate": None,
+             "defaultAccountState": None, "nonTransferable": None, "confidentialTransferMint": None,
+             "pausableConfig": None}
+    snap = TokenSnapshot(chain="solana", token_address="T22", observed_at=utcnow())
+    RugCheckCollector.apply_report(snap, {"token_extensions": empty})
+    assert snap.dangerous_extensions == []
+    assert not extension_active("transferFeeConfig", {"newerTransferFee": {"transferFeeBasisPoints": 0}})
+    assert extension_active("transferFeeConfig", {"newerTransferFee": {"transferFeeBasisPoints": 500}})
+    assert extension_active("transferHook", {"programId": "Hook1111111111111111111111111111111111111"})
+    assert not extension_active("transferHook", {"programId": None, "authority": "11111111111111111111111111111111"})
+    assert not extension_active("defaultAccountState", {"state": "initialized"})
+    assert extension_active("defaultAccountState", {"state": "frozen"})
+    assert extension_active("permanentDelegate", {"delegate": "Dlg1111111111111111111111111111111111111"})
+    real = dict(empty, transferHook={"programId": "Hook1111111111111111111111111111111111111"})
+    snap2 = TokenSnapshot(chain="solana", token_address="T23", observed_at=utcnow())
+    RugCheckCollector.apply_report(snap2, {"token_extensions": real})
+    assert snap2.dangerous_extensions == ["transfer_hook"]

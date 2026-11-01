@@ -73,6 +73,8 @@ def test_lp_unlocked_for_non_launchpad_pool():
     assert "LP_UNLOCKED" in f.codes
 
 
-def test_too_young_token():
-    f = evaluate_filters(good_snapshot(created_at=utcnow() - timedelta(minutes=1)))
-    assert "TOO_YOUNG" in f.codes
+def test_too_young_token_is_pending_not_excluded():
+    young = good_snapshot(created_at=utcnow() - timedelta(minutes=1))
+    f = evaluate_filters(young)
+    assert not f.excluded and "età minima" in f.pending_checks
+    assert "TOO_YOUNG" in evaluate_filters(young, for_trading=True).codes

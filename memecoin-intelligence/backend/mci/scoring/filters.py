@@ -114,7 +114,11 @@ def evaluate_filters(s: TokenSnapshot, cfg: FilterConfig | None = None, for_trad
     if age is None:
         pending.append("age")
     elif age < cfg.min_age_minutes:
-        fail("TOO_YOUNG", f"token troppo giovane ({age:.0f} min)")
+        # temporary condition: not tradable yet, but not a safety failure
+        if for_trading:
+            fail("TOO_YOUNG", f"token troppo giovane ({age:.0f} min)")
+        else:
+            pending.append("età minima")
 
     if for_trading and pending:
         fail("INSUFFICIENT_DATA", "dati insufficienti per operare: " + ", ".join(sorted(set(pending))))

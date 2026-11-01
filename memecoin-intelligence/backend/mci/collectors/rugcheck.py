@@ -28,6 +28,51 @@ DANGEROUS_EXTENSIONS = {
 }
 
 
+NULL_ADDRESSES = {"", "11111111111111111111111111111111", "null", "none"}
+
+
+def _leaves(v):
+    if isinstance(v, dict):
+        for x in v.values():
+            yield from _leaves(x)
+    elif isinstance(v, (list, tuple)):
+        for x in v:
+            yield from _leaves(x)
+    else:
+        yield v
+
+
+def extension_active(name: str, value) -> bool:
+    """RugCheck lists every Token-2022 extension key, often with empty values (observed on live
+    data, Nov 2026): an extension is dangerous only if it is actually configured."""
+    if value in (None, False, {}, [], ""):
+        return False
+    key = name.replace("_", "").lower()
+    if key == "transferfeeconfig":
+        fees = []
+        def walk(v, k=""):
+            if isinstance(v, dict):
+                for kk, vv in v.items():
+                    walk(vv, kk)
+            elif "basispoint" in k.lower() or k.lower() in ("fee", "feebps"):
+                try:
+                    fees.append(float(v))
+                except (TypeError, ValueError):
+                    pass
+        walk(value)
+        return any(f > 0 for f in fees)
+    if key == "defaultaccountstate":
+        states = [str(x).lower() for x in _leaves(value) if x is not None]
+        return any("frozen" in s for s in states) or str(value).lower() == "frozen"
+    for leaf in _leaves(value):
+        if leaf is None or leaf is False or leaf == 0:
+            continue
+        if isinstance(leaf, str) and leaf.strip().lower() in NULL_ADDRESSES:
+            continue
+        return True
+    return False
+
+
 class RugCheckCollector:
     def __init__(self, base_url: str, client: ApiClient | None = None):
         self.api = client or ApiClient("rugcheck", base_url, rate_per_s=1.0, burst=2)
@@ -70,9 +115,9 @@ class RugCheckCollector:
         ext = ((rep.get("token_extensions") or rep.get("tokenExtensions")) or {})
         found = []
         if isinstance(ext, dict):
-            for k in ext:
+            for k, v in ext.items():
                 key = k.replace("_", "").lower()
-                if key in DANGEROUS_EXTENSIONS:
+                if key in DANGEROUS_EXTENSIONS and extension_active(k, v):
                     found.append(DANGEROUS_EXTENSIONS[key])
         if found:
             snap.dangerous_extensions = sorted(set(snap.dangerous_extensions) | set(found))

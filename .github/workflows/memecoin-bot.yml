@@ -39,6 +39,8 @@ jobs:
       # 1-minute "early entry" (A) needs a real-time server; windows every ~15 min suit B-E
       MCI_ENABLED_STRATEGIES: B,C,D,E
       MCI_SCAN_INTERVAL_SECONDS: "60"
+      # shared runner IPs: keep well below GeckoTerminal's public limit
+      MCI_GECKOTERMINAL_CALLS_PER_MINUTE: "12"
       MCI_FRONTEND_DIST_DIR: /nonexistent
       MCI_TELEGRAM_BOT_TOKEN: ${{ secrets.MCI_TELEGRAM_BOT_TOKEN }}
       MCI_TELEGRAM_CHAT_IDS: ${{ secrets.MCI_TELEGRAM_CHAT_IDS }}

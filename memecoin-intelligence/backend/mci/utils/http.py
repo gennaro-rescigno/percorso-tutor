@@ -135,11 +135,15 @@ class ApiClient:
                     self.breaker.record_success()
                     return None
                 if resp.status_code == 429:
+                    # at most one short retry: a rate-limited source is skipped, not hammered
                     self.stats["rate_limited"] += 1
-                    retry_after = resp.headers.get("retry-after")
-                    wait = float(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt * 2
                     last_err = "rate limited (429)"
-                    await asyncio.sleep(min(wait, 30))
+                    retry_after = resp.headers.get("retry-after")
+                    wait = float(retry_after) if retry_after and retry_after.isdigit() else 3.0
+                    if attempt >= 1 or wait > 10:
+                        self.breaker.record_failure()
+                        raise SourceUnavailable(self.source, last_err)
+                    await asyncio.sleep(wait)
                     continue
                 if 500 <= resp.status_code < 600:
                     last_err = f"server error {resp.status_code}"

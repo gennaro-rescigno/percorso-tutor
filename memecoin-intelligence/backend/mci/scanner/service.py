@@ -85,6 +85,7 @@ class Scanner:
         self.cycle = 0
         self.last_cycle_at: datetime | None = None
         self.sol_usd_hist: deque = deque(maxlen=120)
+        self._gecko_paused_until = 0.0
 
     # ------------------------------------------------------------------ helpers
     def _ok(self, name: str) -> None:
@@ -115,6 +116,13 @@ class Scanner:
         except asyncio.QueueFull:
             pass
 
+    def gecko_paused(self) -> bool:
+        return time.time() < self._gecko_paused_until
+
+    def pause_gecko(self, err: Exception, seconds: float = 90.0) -> None:
+        if "429" in str(err) or "circuit open" in str(err):
+            self._gecko_paused_until = time.time() + seconds
+
     def sol_anomaly(self) -> str | None:
         """Market anomaly: SOL down > 8% within the last hour of samples."""
         if len(self.sol_usd_hist) < 2:
@@ -143,7 +151,7 @@ class Scanner:
             self._ok("dexscreener_discovery")
         except SourceUnavailable as e:
             self._fail("dexscreener_discovery", e)
-        if self.cycle % 2 == 0:
+        if self.cycle % 2 == 0 and not self.gecko_paused():
             try:
                 for pool in await self.gecko.new_pools(chain):
                     snap = GeckoTerminalCollector.pool_to_snapshot(pool)
@@ -156,6 +164,7 @@ class Scanner:
                 self._ok("geckoterminal")
             except SourceUnavailable as e:
                 self._fail("geckoterminal", e)
+                self.pause_gecko(e)
         while not self.realtime_queue.empty():
             snap = self.realtime_queue.get_nowait()
             found.setdefault(snap.token_address, (snap, "pumpportal"))
@@ -287,10 +296,25 @@ class Scanner:
                         c.mark("sell_probe")
                     except SourceUnavailable as e:
                         self._fail("jupiter_quote", e)
-            # GeckoTerminal rotation: pool windows (unique buyers, m15), trades (wash), candles
-            if gecko_budget > 0 and snap.pair_address and c.due("gecko", 300):
+            # GeckoTerminal rotation. Candles first (strategies need them), then pool windows
+            # (unique buyers, m15) and trades (wash metrics). The public API is rate limited per IP
+            # (shared IPs on GitHub runners): on the first 429 we stop calling it for a while.
+            if gecko_budget > 0 and snap.pair_address and c.due("gecko", 300) and not self.gecko_paused():
                 try:
+                    candles = await self.gecko.ohlcv(snap.pair_address, "1m", limit=300, currency="token")
+                    gecko_budget -= 1
+                    if candles:
+                        c.candles["1m"] = candles
+                    age = snap.age_minutes or 0
+                    if age > 7 * 1440 and c.due("gecko_1h", 1800):
+                        # old tokens (Revival strategy) need hourly history
+                        hourly = await self.gecko.ohlcv(snap.pair_address, "1h", limit=500, currency="token")
+                        gecko_budget -= 1
+                        if hourly:
+                            c.candles["1h"] = hourly
+                        c.mark("gecko_1h")
                     pool = await self.gecko.pool(snap.pair_address)
+                    gecko_budget -= 1
                     if pool:
                         g = GeckoTerminalCollector.pool_to_snapshot(pool)
                         snap.buyers.update({k: v for k, v in g.buyers.items() if v is not None})
@@ -298,26 +322,18 @@ class Scanner:
                         if g.volume_usd.get("m15") is not None:
                             snap.volume_usd["m15"] = g.volume_usd["m15"]
                     trades = GeckoTerminalCollector.parse_trades(await self.gecko.trades(snap.pair_address))
+                    gecko_budget -= 1
                     wm = wash_metrics(trades)
                     if wm.sufficient:
                         snap.wash_score = wm.wash_score
                         snap.trades_per_trader = wm.trades_per_trader
                         snap.social_metrics["wash"] = wm.to_dict()
-                    age = snap.age_minutes or 0
-                    if age > 7 * 1440 and c.due("gecko_1h", 1800):
-                        # old tokens (Revival strategy) need hourly history
-                        hourly = await self.gecko.ohlcv(snap.pair_address, "1h", limit=500, currency="token")
-                        if hourly:
-                            c.candles["1h"] = hourly
-                        c.mark("gecko_1h")
-                    candles = await self.gecko.ohlcv(snap.pair_address, "1m", limit=300, currency="token")
-                    if candles:
-                        c.candles["1m"] = candles
                     c.mark("gecko")
-                    gecko_budget -= 3
                     self._ok("geckoterminal")
                 except SourceUnavailable as e:
                     self._fail("geckoterminal", e)
+                    self.pause_gecko(e)
+                    gecko_budget = 0
             # optional Reddit mentions (30 min cache)
             if self.reddit and self.reddit.available and snap.symbol and c.due("reddit", 1800):
                 try:

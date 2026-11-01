@@ -32,6 +32,9 @@ export default function Scanner() {
     { key: "risk", label: "Rischio", render: (r) => <RiskBadge risk={r.risk} /> },
     { key: "dex", label: "DEX", render: (r) => r.dex ?? "n/d" },
     { key: "status", label: "Stato", render: (r) => r.status },
+    { key: "coverage", label: "Copertura dati", num: true, render: (r) => (r.coverage == null ? "n/d" : `${Math.round(r.coverage * 100)}%`) },
+    { key: "exclusion", label: "Motivo esclusione", sortable: false,
+      render: (r) => <span className="muted" style={{ whiteSpace: "normal", display: "inline-block", minWidth: 220 }}>{r.exclusion ?? ""}</span> },
   ];
   return (
     <>

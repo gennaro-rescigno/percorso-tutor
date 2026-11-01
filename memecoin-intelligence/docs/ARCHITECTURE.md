@@ -27,6 +27,21 @@ Due processi Python separati condividono il database:
 * **api** – REST per la dashboard + file statici del frontend. Comandi (pausa/ripresa/kill) passano dal DB
   (`system_state`), quindi la dashboard non può bloccare il worker.
 
+## Modalità senza server: GitHub Actions
+
+```
+ cron ~15 min ─► job "memecoin-bot" (runner GitHub, rete aperta)
+                  1. ripristina data/mci.db dalla cache di Actions (se assente: state.json dal branch bot-state)
+                  2. mci run-once --window 180  → scanner, strategie B–E, posizioni, comandi Telegram, report giornaliero
+                  3. state-export + export-static (segreti rimossi dai file)
+                  4. salva il DB nella cache, pubblica state.json + dashboard statica sul branch bot-state
+                  5. (se Pages è attivo) deploy della dashboard in sola lettura su GitHub Pages
+```
+
+Compromessi rispetto al server: reattività di ~15–30 minuti invece di 20 secondi, strategia A disattivata,
+dashboard pubblica senza comandi (i comandi passano da Telegram). Lo stesso codice gira in entrambe le
+modalità (`MCI_RUN_MODE=server|github`).
+
 ## Struttura del codice
 
 ```

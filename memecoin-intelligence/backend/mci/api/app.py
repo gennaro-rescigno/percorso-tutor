@@ -184,6 +184,8 @@ def create_app() -> FastAPI:
                     "age_hours": (utcnow() - created).total_seconds() / 3600 if created else None,
                     "social_growth": (snap.get("social_metrics") or {}).get("reddit"),
                     "signal": t.last_signal, "status": t.status, "first_seen_at": _iso(t.first_seen_at),
+                    "exclusion": "; ".join(((t.last_score_detail or {}).get("exclusion_reasons") or [])[:2]) or None,
+                    "coverage": (t.last_score_detail or {}).get("coverage"),
                 })
         return {"tokens": out}
 

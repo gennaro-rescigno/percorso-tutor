@@ -28,11 +28,28 @@ jobs:
       SOAK_MINUTES: ${{ inputs.soak_minutes || '8' }}
       APP: /opt/mci/repo/memecoin-intelligence
     steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: memecoin-intelligence/deploy }
+
+      - name: Cloud-config template is valid and writes the personal config file
+        run: |
+          f=memecoin-intelligence/deploy/cloud-config.yaml
+          if command -v cloud-init >/dev/null; then sudo cloud-init schema -c "$f" --annotate; else echo "cloud-init non presente: salto la validazione dello schema"; fi
+          # what cloud-init does at first boot: write_files -> /etc/mci/config.env (placeholders untouched,
+          # so this also checks that unreplaced placeholders are treated as "Telegram not configured")
+          python3 - "$f" <<'PY'
+          import os, sys, yaml
+          cfg = yaml.safe_load(open(sys.argv[1]))
+          wf = cfg["write_files"][0]
+          assert wf["path"] == "/etc/mci/config.env" and wf["permissions"] == "0600"
+          assert any("vps.sh install" in c for c in cfg["runcmd"])
+          open("/tmp/config.env", "w").write(wf["content"])
+          PY
+          sudo install -D -m 600 /tmp/config.env /etc/mci/config.env
+          sudo cat /etc/mci/config.env
+
       - name: Fresh install (the same command the VPS runs at first boot)
         run: |
-          sudo mkdir -p /etc/mci
-          printf 'MCI_TELEGRAM_BOT_TOKEN=\nMCI_TELEGRAM_CHAT_IDS=\nDOMAIN=\nDUCKDNS_TOKEN=\nMCI_DASHBOARD_PASSWORD=\nMCI_JUPITER_API_KEY=\n' \
-            | sudo tee /etc/mci/config.env >/dev/null
           curl -fsSL "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}/memecoin-intelligence/deploy/vps.sh" -o /tmp/vps.sh
           start=$(date +%s)
           if ! sudo MCI_REPO="$GITHUB_REPOSITORY" MCI_REF="$GITHUB_SHA" MCI_SKIP_FIREWALL=1 bash /tmp/vps.sh install; then

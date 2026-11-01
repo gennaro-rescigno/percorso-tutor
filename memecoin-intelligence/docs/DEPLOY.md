@@ -1,4 +1,25 @@
-# Deploy (Oracle Cloud Always Free, 0 €)
+# Deploy
+
+## VPS qualsiasi (consigliato): installazione automatica
+
+`deploy/vps.sh` porta una VPS Ubuntu 22.04/24.04 appena creata al sistema completo, senza interventi:
+
+| Cosa | Dettaglio |
+|---|---|
+| Avvio | `deploy/cloud-config.yaml` nel campo *cloud-init/user data* del provider, oppure `curl -fsSL .../deploy/vps.sh \| sudo bash -s install` |
+| Segreti | solo in `/etc/mci/config.env` (600) → copiati in `.env` (600); mai nel repository né nei log; il token Telegram passa a `curl` via stdin |
+| Sistema | Docker (get.docker.com), swap 2 GB se RAM < 3,5 GB, `ufw` (22/80/443), `fail2ban`, rotazione log Docker (5×10 MB per servizio) |
+| Dati | stato paper importato dal branch `bot-state` solo se il database è vuoto; PostgreSQL su volume; `pg_dump` giornaliero (14 giorni) |
+| Sicurezza trading | `MCI_TRADING_MODE=paper` e `MCI_LIVE_TRADING_ENABLED=false` riscritti a ogni installazione |
+| Auto-aggiornamento | timer systemd ogni 10 min: passa all'ultimo commit di `main` con **CI verde** e successivo a quello attuale; se API o worker non risultano sani entro 8 min torna al commit precedente; notifica su Telegram |
+| Dashboard | con `DOMAIN` (es. DuckDNS + `DUCKDNS_TOKEN`) attiva il profilo compose `web` (Caddy + Let's Encrypt) |
+| Verifica | workflow `memecoin-vps-rehearsal`: installazione su Ubuntu 24.04 pulito, funzionamento continuo, crash del worker, riavvio di Docker, reinstallazione idempotente con HTTPS, logica di aggiornamento |
+
+Comandi: `sudo bash /opt/mci/repo/memecoin-intelligence/deploy/vps.sh status|update|install`.
+
+---
+
+## Oracle Cloud Always Free, 0 € (manuale)
 
 > La guida completa e verificata per principianti è **[GUIDA_PASSO_PASSO.md](../GUIDA_PASSO_PASSO.md)**
 > (bot Telegram, account Oracle, VM, porte, DuckDNS, installazione, Dune). Qui sotto il riassunto tecnico.

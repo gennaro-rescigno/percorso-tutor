@@ -186,3 +186,33 @@ def test_import_full_chain_and_truncated_history(db, tmp_path, monkeypatch):
             pos = s.scalars(select(Position)).one()
             assert (pos.signal_id is not None) == (name == "state.json")
             assert s.scalars(select(FillRow)).one().order_id == s.scalars(select(Order)).one().id
+
+
+def test_new_rows_after_import_do_not_reuse_imported_ids(db, tmp_path):
+    """Moving the bot to a server: import into an empty PostgreSQL database, then keep working.
+    Regression: sequences were not advanced past imported ids -> 'duplicate key events_pkey' at startup."""
+    from sqlalchemy import create_engine, func, select
+
+    from mci.database.models import Base, Event
+
+    _seed()
+    with session_scope() as s:
+        for i in range(5):
+            repo.log_event(s, "system", f"evento storico {i}")
+    export_state(tmp_path / "state.json")
+    eng = create_engine(db)
+    Base.metadata.drop_all(eng)  # brand new empty database of the same kind (SQLite or PostgreSQL)
+    eng.dispose()
+    init_engine(db)
+    got = import_state(tmp_path / "state.json")
+    assert got["events"] >= 6 and got["positions"] == 1
+    with session_scope() as s:
+        last_imported = s.scalar(select(func.max(Event.id)))
+    with session_scope() as s:
+        repo.log_event(s, "system", "worker avviato in modalità paper")
+        s.add(Position(mode="paper", token_address="NewMint", symbol="NEW", strategy="C", status="open",
+                       opened_at=utcnow(), entry_price=1e-5, qty_initial=1, qty=1, stake_sol=0.01, cost_sol=0.011,
+                       stop_price=8e-6, initial_stop=8e-6, take_profits=[], last_price=1e-5, state={}))
+    with session_scope() as s:
+        assert s.scalar(select(func.max(Event.id))) > last_imported
+        assert s.scalar(select(func.count()).select_from(Position)) == 2

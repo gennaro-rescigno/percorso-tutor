@@ -14,6 +14,25 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install -e ".[dev]"
       - run: pytest -q
+  backend-postgres:
+    # same suite against PostgreSQL, the database used on the VPS
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: memecoin-intelligence/backend } }
+    services:
+      postgres:
+        image: postgres:16.4-alpine
+        env: { POSTGRES_USER: mci, POSTGRES_PASSWORD: testpw, POSTGRES_DB: mci_test }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U mci -d mci_test" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      MCI_TEST_DATABASE_URL: postgresql+psycopg://mci:testpw@localhost:5432/mci_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
   frontend:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: memecoin-intelligence/frontend } }

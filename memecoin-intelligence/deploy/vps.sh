@@ -66,11 +66,18 @@ open(path, "w", encoding="utf-8").write("\n".join(out) + "\n")
 PY
 }
 
+conf() { # KEY -> value from the personal config; template placeholders count as empty
+  local v
+  v=$(kv_get "$CONF" "$1")
+  [[ "$v" == INCOLLA_QUI* ]] && v=""
+  printf '%s\n' "$v"
+}
+
 # --- Telegram: the token goes through curl's config on stdin, never on the command line or in logs ---
 tg() {
   local token chats c
-  token=$(kv_get "$CONF" MCI_TELEGRAM_BOT_TOKEN)
-  chats=$(kv_get "$CONF" MCI_TELEGRAM_CHAT_IDS)
+  token=$(conf MCI_TELEGRAM_BOT_TOKEN)
+  chats=$(conf MCI_TELEGRAM_CHAT_IDS)
   [ -n "$token" ] && [ -n "$chats" ] || return 0
   for c in ${chats//,/ }; do
     printf 'url = "https://api.telegram.org/bot%s/sendMessage"\n' "$token" |
@@ -111,8 +118,8 @@ wait_healthy() { # api answers, worker heartbeat fresh, worker not crash-looping
 
 duckdns_update() {
   local domain token sub
-  domain=$(kv_get "$CONF" DOMAIN)
-  token=$(kv_get "$CONF" DUCKDNS_TOKEN)
+  domain=$(conf DOMAIN)
+  token=$(conf DUCKDNS_TOKEN)
   [[ -n "$token" && "$domain" == *.duckdns.org ]] || return 0
   sub=${domain%.duckdns.org}
   if printf 'url = "https://www.duckdns.org/update?domains=%s&token=%s&ip="\n' "$sub" "$token" |
@@ -195,7 +202,7 @@ cmd_install() {
   kv_set .env MCI_LIVE_TRADING_ENABLED false
   local k v
   for k in MCI_TELEGRAM_BOT_TOKEN MCI_TELEGRAM_CHAT_IDS DOMAIN MCI_JUPITER_API_KEY; do
-    kv_set .env "$k" "$(kv_get "$CONF" "$k")"
+    kv_set .env "$k" "$(conf "$k")"
   done
   if [ -n "$(kv_get .env MCI_JUPITER_API_KEY)" ]; then
     kv_set .env MCI_JUPITER_BASE_URL https://api.jup.ag
@@ -203,7 +210,7 @@ cmd_install() {
   else
     kv_set .env MCI_JUPITER_BASE_URL https://lite-api.jup.ag
   fi
-  v=$(kv_get "$CONF" MCI_DASHBOARD_PASSWORD)
+  v=$(conf MCI_DASHBOARD_PASSWORD)
   if [ -n "$v" ]; then
     kv_set .env MCI_DASHBOARD_PASSWORD "$v"
   elif [ -z "$(kv_get .env MCI_DASHBOARD_PASSWORD)" ]; then
@@ -211,7 +218,9 @@ cmd_install() {
     kv_set .env MCI_DASHBOARD_PASSWORD "$new_password"
   fi
   if [ -n "$(kv_get .env DOMAIN)" ]; then kv_set .env COMPOSE_PROFILES web; else kv_set .env COMPOSE_PROFILES ""; fi
-  [ -n "$(kv_get "$CONF" MCI_TELEGRAM_BOT_TOKEN)" ] || log "ATTENZIONE: Telegram non configurato in $CONF (il bot gira lo stesso, senza notifiche)"
+  if [ -z "$(conf MCI_TELEGRAM_BOT_TOKEN)" ] || [ -z "$(conf MCI_TELEGRAM_CHAT_IDS)" ]; then
+    log "ATTENZIONE: token o chat id Telegram mancanti in $CONF (il bot gira lo stesso, senza notifiche)"
+  fi
 
   duckdns_update
 

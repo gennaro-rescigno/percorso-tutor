@@ -1,6 +1,105 @@
-# Guida passo-passo (tutto gratuito)
+# Guida passo-passo
 
-## ⭐ Soluzione consigliata: GitHub Actions (nessun server, nessun nuovo account, PC spento)
+Due modi per far girare il bot senza tenere acceso il PC:
+
+| | **VPS (consigliata)** | GitHub Actions (gratis, già attivo) |
+|---|---|---|
+| Costo | ~6–8 €/mese IVA inclusa (pagamento a ore: se cancelli la VPS smetti di pagare) | 0 € |
+| Frequenza | scanner ogni 60 s, posizioni ogni 20 s, Pump.fun in tempo reale | finestre di 3 min ogni 15 min (o più: GitHub le ritarda) |
+| Comandi Telegram | risposta immediata | alla finestra successiva |
+| Strategie | A, B, C, D, E | B, C, D, E |
+| Dashboard | privata con password (facoltativa) | pubblica in sola lettura |
+
+## ⭐ VPS: bot attivo 24/7 (circa 20 minuti, quasi tutto automatico)
+
+**Cosa fai tu:** crei l'account e la VPS e incolli un testo. **Cosa fa il server da solo:** installa tutto,
+importa il portafoglio paper attuale da GitHub, si protegge (firewall), riparte da solo dopo crash o
+riavvii, e si aggiorna da solo quando io miglioro il codice — solo con versioni che hanno superato i test,
+e se una versione non parte torna automaticamente a quella precedente. Resta **sempre in paper trading**.
+
+Prima di proportela, l'installazione è stata provata da cima a fondo su una macchina Ubuntu 24.04 pulita
+(workflow **memecoin VPS rehearsal** nel tab Actions): raccolta dati continua, stato importato,
+crash del bot con ripartenza automatica, riavvio con dati conservati, dashboard HTTPS.
+
+### V1. Prepara il testo da incollare
+Copia il contenuto del file
+[`deploy/cloud-config.yaml`](deploy/cloud-config.yaml) (qui sotto c'è uguale) in un editor di testo e
+sostituisci le due righe `INCOLLA_QUI_...` con **il token del bot** (BotFather → `/mybots` → il tuo bot →
+**API Token**) e **il tuo chat id**. Non mandarmeli in chat.
+
+```yaml
+#cloud-config
+write_files:
+  - path: /etc/mci/config.env
+    permissions: "0600"
+    content: |
+      MCI_TELEGRAM_BOT_TOKEN=INCOLLA_QUI_IL_TOKEN_DI_BOTFATHER
+      MCI_TELEGRAM_CHAT_IDS=INCOLLA_QUI_IL_TUO_CHAT_ID
+      DOMAIN=
+      DUCKDNS_TOKEN=
+      MCI_DASHBOARD_PASSWORD=
+      MCI_JUPITER_API_KEY=
+runcmd:
+  - curl -fsSL https://raw.githubusercontent.com/gennaro-rescigno/percorso-tutor/main/memecoin-intelligence/deploy/vps.sh -o /root/vps.sh
+  - bash /root/vps.sh install
+```
+
+*(Facoltativo, per la dashboard web con password)* su **https://www.duckdns.org** entra con GitHub,
+scrivi un nome (es. `memogenn`) → **add domain**, copia il **token** in alto e compila
+`DOMAIN=memogenn.duckdns.org` e `DUCKDNS_TOKEN=...`. L'indirizzo IP lo imposta il server da solo.
+
+### V2. Crea l'account (esempio: Hetzner Cloud, Germania/Finlandia, fatturazione a ore)
+1. **https://www.hetzner.com/cloud** → **Sign up** → conferma l'email → inserisci i dati e un metodo di
+   pagamento (carta o PayPal). Per gli account nuovi Hetzner può chiedere una verifica d'identità.
+2. Nella console crea un progetto (es. `memecoin`).
+
+### V3. Crea la VPS
+**Add Server** / **Create Server** e scegli:
+* **Location**: una qualsiasi in Europa (Falkenstein, Norimberga, Helsinki).
+* **Image**: **Ubuntu 24.04**.
+* **Type**: la più economica con **almeno 4 GB di RAM** (es. **CX23** x86 o **CAX11** Arm: il sistema
+  funziona su entrambe). Se compare *non disponibile*, prova un'altra location o il tipo successivo.
+* **Networking**: lascia attivo **IPv4 pubblico** (serve: GitHub e alcune API non hanno IPv6).
+* **SSH keys**: puoi saltare (ti arriva via email una password di emergenza). **Firewall**: nessuno (lo
+  configura lo script). **Backups**: non necessari (il server fa un backup giornaliero del database).
+* **Cloud config** (o *User data*): incolla il testo del punto V1.
+* **Name**: `memecoin-bot` → controlla il prezzo mostrato → **Create & Buy now**.
+
+### V4. Aspetta il messaggio su Telegram (10–15 minuti)
+Il bot ti scrive **«✅ VPS pronta: il bot gira 24/7 in modalità PAPER»** (con indirizzo e password della
+dashboard se hai compilato DuckDNS). Poi scrivimi «fatto»: io spengo il bot su GitHub, così non ci sono due
+bot che rispondono agli stessi comandi.
+
+**Se dopo 20 minuti non arriva nulla:** console Hetzner → server → **Console** (icona `>_`), accedi come
+`root` con la password ricevuta via email e scrivi `bash /opt/mci/repo/memecoin-intelligence/deploy/vps.sh status`:
+mandami la parte finale *senza* righe che contengono token o password (lo script non le stampa mai).
+
+### Altri provider (OVH, Netcup, Contabo, IONOS...)
+Funziona su qualsiasi VPS **Ubuntu 22.04/24.04** con ≥ 4 GB di RAM (2 GB funzionano: lo script aggiunge la
+swap). Se il provider ha il campo *cloud-init / user data*, incolla lo stesso testo. Altrimenti, dalla
+console web del provider:
+```bash
+mkdir -p /etc/mci && nano /etc/mci/config.env      # incolla le righe MCI_... / DOMAIN=... e salva
+curl -fsSL https://raw.githubusercontent.com/gennaro-rescigno/percorso-tutor/main/memecoin-intelligence/deploy/vps.sh | bash -s install
+```
+
+### Gestione
+* **Stato:** `bash /opt/mci/repo/memecoin-intelligence/deploy/vps.sh status` (dalla console del provider).
+* **Cambiare token/chat id/dominio:** modifica `/etc/mci/config.env` e rilancia `... vps.sh install`
+  (dati e password esistenti vengono mantenuti).
+* **Spegnere e smettere di pagare:** console Hetzner → server → **Delete**. Spegnere (*Power off*) non basta:
+  una VPS spenta si paga lo stesso. Prima di cancellarla puoi tornare al bot su GitHub (il portafoglio paper
+  ripartirebbe dall'ultimo stato salvato su GitHub).
+
+**Onestamente, cosa può ancora andare storto:** nessun sistema funziona al 100%. Le API gratuite
+(DexScreener, GeckoTerminal, Jupiter, RugCheck, PumpPortal) possono rallentare o fermarsi per qualche minuto:
+il bot lo segnala, salta quel dato e non lo trasforma mai in un segnale positivo. Il provider garantisce in
+genere ~99,9% di disponibilità (circa 40 minuti di fermo al mese nel caso peggiore); dopo un riavvio il bot
+riparte da solo. Il rischio di trading non c'entra: si resta in paper trading.
+
+---
+
+## Gratis: GitHub Actions (nessun server, nessun nuovo account, PC spento)
 
 Il bot gira **gratis sui server di GitHub**, nel tuo repository, ogni ~15 minuti. È già tutto
 configurato e verificato dal vivo (5 esecuzioni reali: tutte le fonti OK, 168 token analizzati, primo
@@ -331,10 +430,11 @@ strategie (il report lo indica). Il backtest completo arriva dai dati che il ser
 
 | Voce | Costo |
 |---|---|
+| VPS (solo se scegli questa opzione, es. Hetzner con IPv4) | ~6–8 €/mese IVA inclusa, a ore |
 | Telegram bot | 0 € |
 | Oracle VM Always Free (1 OCPU Ampere, 4 GB, disco incluso) | 0 € |
 | DuckDNS + certificato HTTPS Let's Encrypt | 0 € |
 | API di mercato usate dal sistema | 0 € |
 | Dune piano Free | 0 € |
 | Rete della sessione Claude | 0 € |
-| **Totale** | **0 €/mese** |
+| **Totale** | **0 €/mese** con GitHub Actions o Oracle · **~6–8 €/mese** con una VPS |

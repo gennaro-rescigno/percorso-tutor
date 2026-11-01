@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import DateTime, desc, select
+from sqlalchemy import DateTime, desc, select, text
 
 from mci.database.models import (
     AlertLog,
@@ -135,7 +135,22 @@ def import_state(path: str | Path, only_if_empty: bool = True) -> dict[str, int]
             imported[name] = ids
             counts[name] = n
             s.flush()
+        if s.get_bind().dialect.name == "postgresql":
+            _advance_id_sequences(s)
     return counts
+
+
+def _advance_id_sequences(s) -> None:
+    """Imported rows keep their original ids, but PostgreSQL's id sequences do not see explicit ids:
+    without this the next normal insert reuses an imported id (duplicate key) and the worker crashes."""
+    for model, _, _ in STATE_TABLES.values():
+        table = model.__table__
+        if "id" not in table.c:
+            continue
+        s.execute(text(
+            f"SELECT setval(pg_get_serial_sequence('{table.name}', 'id'), "
+            f"COALESCE((SELECT MAX(id) FROM {table.name}), 0) + 1, false)"
+        ))
 
 
 def export_static(out_dir: str | Path, max_tokens: int = 30, candle_points: int = 360) -> int:

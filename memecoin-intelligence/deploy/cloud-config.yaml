@@ -1,0 +1,19 @@
+#cloud-config
+# Incolla questo testo nel campo "Cloud config" / "User data" quando crei la VPS (Ubuntu 22.04 o 24.04).
+# Sostituisci SOLO le due righe INCOLLA_QUI_...: i valori restano sulla tua VPS (file con permessi 600),
+# non finiscono su GitHub e non vanno scritti in chat.
+# Righe facoltative: DOMAIN + DUCKDNS_TOKEN per la dashboard HTTPS (nome gratuito su duckdns.org),
+# MCI_DASHBOARD_PASSWORD (se vuota viene generata e ti arriva su Telegram), MCI_JUPITER_API_KEY.
+write_files:
+  - path: /etc/mci/config.env
+    permissions: "0600"
+    content: |
+      MCI_TELEGRAM_BOT_TOKEN=INCOLLA_QUI_IL_TOKEN_DI_BOTFATHER
+      MCI_TELEGRAM_CHAT_IDS=INCOLLA_QUI_IL_TUO_CHAT_ID
+      DOMAIN=
+      DUCKDNS_TOKEN=
+      MCI_DASHBOARD_PASSWORD=
+      MCI_JUPITER_API_KEY=
+runcmd:
+  - curl -fsSL https://raw.githubusercontent.com/gennaro-rescigno/percorso-tutor/main/memecoin-intelligence/deploy/vps.sh -o /root/vps.sh
+  - bash /root/vps.sh install

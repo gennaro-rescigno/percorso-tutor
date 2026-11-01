@@ -25,13 +25,16 @@ jobs:
           IP: ${{ steps.vps.outputs.ip }}
         run: |
           mkdir -p /tmp/d
-          for f in meta overview positions logs signals; do
+          for f in meta overview positions logs signals scanner; do
             curl -fsS -m 20 "http://$IP:8080/data/$f.json" -o "/tmp/d/$f.json" || echo "{}" > "/tmp/d/$f.json"
           done
+          # details of the highest-scoring tokens (why they were or were not bought)
+          python3 -c "import json; [print(t['address']) for t in sorted(json.load(open('/tmp/d/scanner.json')).get('tokens', []), key=lambda t: -(t.get('score') or 0))[:8]]" \
+            | while read -r a; do mkdir -p /tmp/d/tokens; curl -fsS -m 20 "http://$IP:8080/data/tokens/$a.json" -o "/tmp/d/tokens/$a.json" || true; done
           python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import json
           from datetime import datetime, timezone
-          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals")}
+          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner")}
           gen = d["meta"].get("generated_at")
           age = (datetime.now(timezone.utc) - datetime.fromisoformat(gen.replace("Z", "+00:00"))).total_seconds() if gen else None
           ov = d["overview"]; s = ov.get("summary", {}); w = ov.get("worker", {})
@@ -54,6 +57,21 @@ jobs:
           print("\n### Ultimi segnali")
           for g in d["signals"].get("signals", [])[:10]:
               print(f"- {g.get('created_at')} {g.get('symbol')} [{g.get('strategy')}] score {g.get('score')} → {g.get('status')} {g.get('rejection') or ''}")
+          import os
+          print("\n### Token con il punteggio più alto")
+          for t in sorted(d["scanner"].get("tokens", []), key=lambda t: -(t.get("score") or 0))[:8]:
+              age = t.get("age_hours")
+              print(f"- **{t.get('symbol')}** score {t.get('score')} ({t.get('label')}) · rischio {t.get('risk')} · stato {t.get('status')} · "
+                    f"età {age:.1f} h · liquidità {t.get('liquidity_usd')} $ · 1h {t.get('change_h1')}% · copertura dati {t.get('coverage')} · "
+                    f"ultimo segnale: {t.get('signal')} · esclusione: {t.get('exclusion')}" if age is not None else f"- {t.get('symbol')} score {t.get('score')} stato {t.get('status')} esclusione {t.get('exclusion')}")
+              fp = f"/tmp/d/tokens/{t['address']}.json"
+              if os.path.exists(fp):
+                  td = json.load(open(fp)); sc = td.get("score") or {}
+                  print(f"    - candele 1m disponibili: {len(td.get('candles') or [])} · controlli in attesa: {sc.get('pending_checks')} · "
+                        f"esclusioni per il trading: {sc.get('exclusion_reasons')}")
+                  print(f"    - rischi: {(sc.get('risks') or [])[:3]}")
+                  for g in (td.get("signals") or [])[:3]:
+                      print(f"    - segnale {g.get('created_at')} [{g.get('strategy')}] {g.get('status')} {g.get('rejection') or ''}")
           print("\n### Ultimi eventi")
           for e in d["logs"].get("events", [])[:25]:
               print(f"- {e.get('ts')} {e.get('level')} {e.get('category')}: {e.get('message')}")

@@ -192,7 +192,9 @@ class TelegramBot:
             if cmd == "/status":
                 st = self.status_provider() if self.status_provider else {}
                 srcs = st.get("sources") or {}
-                src_txt = ", ".join(f"{k}:{'ok' if v.get('ok') else 'KO'}" for k, v in srcs.items()) or "n/d"
+                src_txt = ", ".join(
+                    f"{k}:ok" if v.get("ok") else f"{k}:KO ({fm._e((v.get('error') or 'errore')[:80])})"
+                    for k, v in srcs.items()) or "n/d"
                 return (f"📟 <b>STATO – {tag}</b>\nUltimo ciclo scanner: {st.get('last_cycle') or 'n/d'}\n"
                         f"Token monitorati: {st.get('tracked', 'n/d')}\nFonti: {src_txt}\n"
                         f"In pausa: {'sì' if summ['paused'] else 'no'} — kill switch: {'ATTIVO' if summ['kill_switch'] else 'no'}\n"

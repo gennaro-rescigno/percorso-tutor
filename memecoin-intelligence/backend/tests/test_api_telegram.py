@@ -184,3 +184,13 @@ async def test_only_buys_and_sells_are_notified_by_default(db, monkeypatch, sett
         if len(tg.out) > before:
             sent.append(kind)
     assert sent == expected
+
+
+def test_status_shows_why_a_source_is_down(db):
+    from mci.config import get_settings
+
+    bot = TelegramBot(FakeTG(), get_settings(), "paper", status_provider=lambda: {
+        "sol_eur": 140.0, "sources": {"dexscreener": {"ok": True},
+                                      "geckoterminal": {"ok": False, "error": "geckoterminal: rate limited (429)"}}})
+    out = bot.handle("/status")
+    assert "dexscreener:ok" in out and "geckoterminal:KO (geckoterminal: rate limited (429))" in out

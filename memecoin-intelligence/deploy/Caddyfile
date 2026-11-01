@@ -1,0 +1,10 @@
+# Automatic HTTPS (Let's Encrypt). DOMAIN must resolve to this VM's public IP.
+{$DOMAIN} {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		-Server
+	}
+	reverse_proxy api:8000
+}

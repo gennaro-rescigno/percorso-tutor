@@ -1,0 +1,25 @@
+name: memecoin-intelligence CI
+on:
+  push:
+    paths: ["memecoin-intelligence/**", ".github/workflows/memecoin-ci.yml"]
+  pull_request:
+    paths: ["memecoin-intelligence/**"]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: memecoin-intelligence/backend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+  frontend:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: memecoin-intelligence/frontend } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build

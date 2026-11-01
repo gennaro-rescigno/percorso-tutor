@@ -1,0 +1,234 @@
+"""24/7 worker process: scanner + trading engine + position monitor + Telegram.
+
+State lives in the database, so a restart (crash, deploy, VM reboot) resumes with the
+same capital, positions and kill-switch status. Each loop is isolated: an exception in
+one loop is logged and the loop continues after a pause.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+import signal
+import time
+from collections.abc import Awaitable, Callable
+from datetime import timedelta
+from typing import Any
+
+from sqlalchemy import delete, func, select
+
+from mci.collectors.dexscreener import DexScreenerCollector
+from mci.collectors.fx import SolPriceFeed
+from mci.collectors.geckoterminal import GeckoTerminalCollector
+from mci.collectors.jupiter import JupiterCollector
+from mci.collectors.pumpportal import PumpPortalListener
+from mci.collectors.rugcheck import RugCheckCollector
+from mci.collectors.social import RedditCollector
+from mci.collectors.solana_rpc import SolanaRpc
+from mci.config import Settings, get_settings
+from mci.database import repo
+from mci.database.models import TokenSnapshotRow
+from mci.database.session import init_engine, session_scope
+from mci.domain import utcnow
+from mci.execution.costs import CostModel
+from mci.execution.paper import PaperExecutor
+from mci.paper_trading.engine import TradingEngine
+from mci.risk_management.profiles import get_profile
+from mci.scanner.service import Scanner
+from mci.telegram.bot import TelegramBot, TelegramNotifier, build_daily_report, next_daily_report_time
+from mci.telegram.client import TelegramClient
+
+log = logging.getLogger("mci.worker")
+
+
+class Worker:
+    def __init__(self, settings: Settings | None = None):
+        self.s = settings or get_settings()
+        init_engine(self.s.database_url)
+        s = self.s
+        self.dex = DexScreenerCollector(s.dexscreener_base_url)
+        self.gecko = GeckoTerminalCollector(s.geckoterminal_base_url, s.geckoterminal_calls_per_minute)
+        self.rug = RugCheckCollector(s.rugcheck_base_url)
+        self.jup = JupiterCollector(s.jupiter_base_url, s.jupiter_api_key.get_secret_value(), s.jupiter_requests_per_second)
+        self.rpc = SolanaRpc(s.solana_rpc_url)
+        self.fx = SolPriceFeed(s.coingecko_base_url, s.kraken_base_url)
+        reddit = RedditCollector(s.reddit_client_id, s.reddit_client_secret.get_secret_value(), s.reddit_user_agent)
+        self.scanner = Scanner(s, self.dex, self.gecko, self.rug, self.jup, self.fx, reddit if reddit.available else None)
+        self.costs = CostModel(priority_fee_sol=s.priority_fee_sol, jito_tip_sol=s.jito_tip_sol)
+        self.executor = self._build_executor()
+        self.mode = self.executor.mode
+        self.tg = TelegramClient(s.telegram_bot_token.get_secret_value(), s.allowed_chat_ids)
+        self.notifier = TelegramNotifier(self.tg, s, self.mode)
+        self.engine = TradingEngine(s, self.scanner, self.executor, get_profile(s.risk_profile), self.costs, self.notifier)
+        self.bot = TelegramBot(self.tg, s, self.mode, status_provider=self.status)
+        self.pump = PumpPortalListener(s.pumpportal_ws_url, self.scanner.on_pumpportal_event) if s.pumpportal_enabled else None
+        self._stop = asyncio.Event()
+        self.started_at = utcnow()
+
+    def _build_executor(self):
+        if self.s.trading_mode == "live":
+            failures = self.s.live_gate_failures()
+            if failures:
+                log.error("LIVE richiesto ma bloccato: %s -> uso PAPER", "; ".join(failures))
+            else:
+                from mci.execution.live import LiveExecutor
+
+                log.warning("TRADING REALE ATTIVO con wallet dedicato")
+                return LiveExecutor(self.s, self.costs, self.jup, self.rpc)
+        return PaperExecutor(self.costs, self.jup, self.rpc)
+
+    # ------------------------------------------------------------------ status
+    def status(self) -> dict[str, Any]:
+        fxp = self.fx.last
+        anomaly = self.scanner.sol_anomaly() or self.scanner.data_outage()
+        return {
+            "mode": self.mode,
+            "started_at": self.started_at.isoformat(),
+            "last_cycle": self.scanner.last_cycle_at.isoformat() if self.scanner.last_cycle_at else None,
+            "cycle": self.scanner.cycle,
+            "tracked": len(self.scanner.tokens),
+            "sources": self.scanner.source_status,
+            "sol_eur": fxp.eur if fxp else None,
+            "sol_usd": fxp.usd if fxp else None,
+            "pumpportal_connected": bool(self.pump and self.pump.connected),
+            "telegram_enabled": self.tg.enabled,
+            "market_state": anomaly or "nessuna anomalia rilevata",
+        }
+
+    # ------------------------------------------------------------------ loops
+    async def _loop(self, name: str, interval: float, fn: Callable[[], Awaitable[None]]) -> None:
+        while not self._stop.is_set():
+            t0 = time.monotonic()
+            try:
+                await fn()
+            except Exception as e:
+                log.exception("loop %s failed", name)
+                try:
+                    with session_scope() as s:
+                        repo.log_event(s, "error", f"errore nel ciclo {name}: {type(e).__name__}: {e}", level="error")
+                except Exception:
+                    pass
+            elapsed = time.monotonic() - t0
+            try:
+                await asyncio.wait_for(self._stop.wait(), timeout=max(1.0, interval - elapsed))
+            except asyncio.TimeoutError:
+                pass
+
+    async def scan_once(self) -> None:
+        candidates = await self.scanner.run_cycle()
+        if self.pump:
+            curve = [c.address for c in candidates if c.snapshot.bonding_curve]
+            await self.pump.subscribe_trades(curve[:20])
+        await self.engine.on_scan(candidates)
+        await self.engine.flush_alerts()
+        self._heartbeat()
+
+    async def monitor_once(self) -> None:
+        await self.engine.monitor_positions()
+        await self.engine.flush_alerts()
+
+    async def equity_once(self) -> None:
+        fxp = await self.fx.get()
+        eq = self.engine.mark_to_market(fxp.eur if fxp else None, fxp.usd if fxp else None, record=True)
+        prev = self.engine.last_equity_notified
+        if prev and abs(eq / prev - 1) >= 0.03:
+            await self.notifier.notify("capital", {"equity": eq, "prev": prev, "sol_eur": fxp.eur if fxp else None})
+            self.engine.last_equity_notified = eq
+        await self.engine.flush_alerts()
+
+    async def outcomes_once(self) -> None:
+        self.engine.track_signal_outcomes()
+
+    async def daily_loop(self) -> None:
+        while not self._stop.is_set():
+            nxt = next_daily_report_time(utcnow(), self.s.daily_report_hour_utc)
+            try:
+                await asyncio.wait_for(self._stop.wait(), timeout=(nxt - utcnow()).total_seconds())
+                return
+            except asyncio.TimeoutError:
+                pass
+            try:
+                fxp = await self.fx.get()
+                p = build_daily_report(self.s, self.mode, fxp.eur if fxp else None, self.status()["market_state"])
+                await self.notifier.notify("daily", p)
+                self.retention()
+            except Exception:
+                log.exception("daily report failed")
+
+    async def telegram_loop(self) -> None:
+        if not self.tg.enabled:
+            log.info("telegram non configurato: comandi disattivati")
+            return
+        from mci.telegram.formatters import MODE_TAG
+
+        await self.notifier.notify("text", {"text": f"🤖 Worker avviato – {MODE_TAG[self.mode]}"})
+        while not self._stop.is_set():
+            try:
+                await self.bot.poll_once()
+            except Exception:
+                log.exception("telegram polling error")
+                await asyncio.sleep(5)
+
+    def _heartbeat(self) -> None:
+        with session_scope() as s:
+            repo.set_state(s, "worker_status", {**self.status(), "heartbeat": utcnow().isoformat()})
+
+    def retention(self, keep_days: int = 14) -> int:
+        """Thin out old snapshots to one per token per hour (database stays small on free tiers)."""
+        cutoff = utcnow() - timedelta(days=keep_days)
+        with session_scope() as s:
+            rows = s.execute(
+                select(TokenSnapshotRow.id, TokenSnapshotRow.token_id, TokenSnapshotRow.observed_at)
+                .where(TokenSnapshotRow.observed_at < cutoff)
+            ).all()
+            keep: set[tuple[int, str]] = set()
+            drop: list[int] = []
+            for rid, tid, ts in rows:
+                key = (tid, ts.strftime("%Y%m%d%H"))
+                if key in keep:
+                    drop.append(rid)
+                else:
+                    keep.add(key)
+            for i in range(0, len(drop), 500):
+                s.execute(delete(TokenSnapshotRow).where(TokenSnapshotRow.id.in_(drop[i:i + 500])))
+            repo.log_event(s, "system", f"retention: rimossi {len(drop)} snapshot oltre {keep_days} giorni")
+            return len(drop)
+
+    def stop(self) -> None:
+        self._stop.set()
+        if self.pump:
+            self.pump.stop()
+
+    async def run(self) -> None:
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            try:
+                loop.add_signal_handler(sig, self.stop)
+            except NotImplementedError:  # pragma: no cover - windows
+                pass
+        with session_scope() as s:
+            repo.log_event(s, "system", f"worker avviato in modalità {self.mode}",
+                           data={"profile": self.s.risk_profile, "strategies": self.s.strategies})
+            n_open = len(repo.open_positions(s, self.mode))
+            n_tok = s.scalar(select(func.count()).select_from(TokenSnapshotRow)) or 0
+        log.info("worker started: mode=%s open_positions=%s snapshots=%s", self.mode, n_open, n_tok)
+        tasks = [
+            asyncio.create_task(self._loop("scanner", self.s.scan_interval_seconds, self.scan_once)),
+            asyncio.create_task(self._loop("monitor", self.s.position_monitor_interval_seconds, self.monitor_once)),
+            asyncio.create_task(self._loop("equity", 300, self.equity_once)),
+            asyncio.create_task(self._loop("outcomes", 600, self.outcomes_once)),
+            asyncio.create_task(self.daily_loop()),
+            asyncio.create_task(self.telegram_loop()),
+        ]
+        if self.pump:
+            tasks.append(asyncio.create_task(self.pump.run()))
+        await self._stop.wait()
+        for t in tasks:
+            t.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg):
+            try:
+                await c.close()
+            except Exception:
+                pass
+        log.info("worker stopped")

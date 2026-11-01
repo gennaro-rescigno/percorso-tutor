@@ -14,6 +14,10 @@ on:
       window_seconds:
         description: "Durata della finestra di lavoro (secondi)"
         default: "180"
+      telegram_test:
+        description: "Invia un messaggio di prova su Telegram"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -72,6 +76,10 @@ jobs:
           else
             echo "Nessun backup: primo avvio con capitale iniziale."
           fi
+
+      - name: Telegram test message
+        if: github.event_name == 'workflow_dispatch' && inputs.telegram_test
+        run: mci telegram-test || true
 
       - name: Check data sources
         if: github.event_name != 'schedule'

@@ -123,7 +123,7 @@ def cmd_telegram_test(_: argparse.Namespace) -> int:
         print("Telegram non configurato (MCI_TELEGRAM_BOT_TOKEN / MCI_TELEGRAM_CHAT_IDS)")
         return 1
     ok = asyncio.run(c.send("✅ Test Memecoin Intelligence: il bot è configurato correttamente. 🧪 PAPER TRADING"))
-    print("inviato" if ok else "invio fallito")
+    print(f"inviato a {len(s.allowed_chat_ids)} chat" if ok else f"invio fallito: {c.last_error}")
     return 0 if ok else 1
 
 

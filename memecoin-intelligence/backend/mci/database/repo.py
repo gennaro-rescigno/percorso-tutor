@@ -125,6 +125,7 @@ def upsert_candles(s: Session, token: str, pool: str, timeframe: str, candles: l
                    currency: str = "token", source: str = "geckoterminal") -> int:
     if not candles:
         return 0
+    candles = sorted({c.ts: c for c in candles}.values(), key=lambda c: c.ts)  # API answers may repeat a ts
     existing = set(
         s.scalars(
             select(CandleRow.ts).where(
@@ -137,6 +138,7 @@ def upsert_candles(s: Session, token: str, pool: str, timeframe: str, candles: l
     for c in candles:
         if c.ts in existing:
             continue
+        existing.add(c.ts)
         s.add(CandleRow(token_address=token, pool=pool, timeframe=timeframe, currency=currency, ts=c.ts,
                         open=c.open, high=c.high, low=c.low, close=c.close, volume=c.volume, source=source))
         n += 1

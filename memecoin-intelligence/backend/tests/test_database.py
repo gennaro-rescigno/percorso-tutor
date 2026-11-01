@@ -27,3 +27,39 @@ def test_non_finite_numbers_are_not_stored_in_json(db):
     with session_scope() as s:
         tok = repo.upsert_token(s, snap, "test", None)
         repo.add_snapshot(s, tok, snap, None)
+
+
+def test_duplicate_candle_timestamps_are_ignored(db):
+    from mci.domain import Candle
+
+    c = [Candle(60, 1, 1, 1, 1, 1), Candle(60, 1, 1, 1, 1, 2), Candle(120, 1, 1, 1, 1, 1)]
+    with session_scope() as s:
+        assert repo.upsert_candles(s, "T", "P", "1m", c) == 2
+        assert repo.upsert_candles(s, "T", "P", "1m", c) == 0
+
+
+def test_one_bad_token_does_not_block_recording_of_others(db, monkeypatch):
+    from mci.config import get_settings
+    from mci.scanner.service import Scanner, TrackedToken
+
+    sc = Scanner(get_settings(), None, None, None, None, None)  # type: ignore[arg-type]
+    good = good_snapshot(token_address="GoodOne")
+    bad = good_snapshot(token_address="BadOne")
+    sc.tokens = {"GoodOne": TrackedToken("GoodOne", good, utcnow(), "t"), "BadOne": TrackedToken("BadOne", bad, utcnow(), "t")}
+    real = repo.upsert_token
+
+    def flaky(s, snap, source, score=None):
+        if snap.token_address == "BadOne":
+            raise ValueError("boom")
+        return real(s, snap, source, score)
+
+    monkeypatch.setattr(repo, "upsert_token", flaky)
+    sc._record([])
+    with session_scope() as s:
+        assert repo.count_tokens(s) == 1
+        from sqlalchemy import select
+
+        from mci.database.models import Event
+
+        ev = s.scalars(select(Event).where(Event.category == "error")).all()
+        assert ev and "BadOne"[:8] in ev[0].message or "boom" in ev[0].message

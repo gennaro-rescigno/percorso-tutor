@@ -138,8 +138,7 @@ class GeckoTerminalCollector:
             c = Candle(int(r[0]), *(fnum(x) or 0.0 for x in r[1:6]))
             if c.is_valid():
                 candles.append(c)
-        candles.sort(key=lambda c: c.ts)
-        return candles
+        return sorted({c.ts: c for c in candles}.values(), key=lambda c: c.ts)  # dedupe repeated timestamps
 
     async def ohlcv_history(
         self, pool_address: str, timeframe: str, since_ts: int, *, network: str = "solana",

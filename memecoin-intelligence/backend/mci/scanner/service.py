@@ -352,28 +352,48 @@ class Scanner:
 
     # ------------------------------------------------------------------ persistence
     def _record(self, candidates: list[TrackedToken]) -> None:
+        """Persist every tracked token. Each token is written in its own savepoint, so one bad
+        record cannot roll back the whole cycle; failures are logged as events (published)."""
         cand_ids = {c.address for c in candidates}
         now = time.time()
+        failures: list[str] = []
         try:
             with session_scope() as s:
                 for tt in self.tokens.values():
-                    every = SNAPSHOT_EVERY_CANDIDATE_S if tt.address in cand_ids else SNAPSHOT_EVERY_OTHER_S
-                    tok = repo.upsert_token(s, tt.snapshot, tt.source, tt.score)
-                    if now - tt.last_recorded >= every:
-                        repo.add_snapshot(s, tok, tt.snapshot, tt.score)
-                        tt.history.append(TokenSnapshot.from_dict(tt.snapshot.to_dict()))
-                        tt.last_recorded = now
-                    for tf, cs in tt.candles.items():
-                        if tt.snapshot.pair_address and cs:
-                            repo.upsert_candles(s, tt.address, tt.snapshot.pair_address, tf, cs)
-                    if tt.snapshot.liquidity_usd is not None and tt.snapshot.liquidity_usd < DEAD_LIQUIDITY_USD:
-                        tt.low_liq_since = tt.low_liq_since or now
-                        if now - tt.low_liq_since > 6 * 3600:
-                            tok.status = "dead"
-                    else:
-                        tt.low_liq_since = None
-        except Exception:
+                    try:
+                        with s.begin_nested():
+                            self._record_one(s, tt, cand_ids, now)
+                    except Exception as e:  # isolate the faulty token
+                        failures.append(f"{tt.snapshot.symbol or tt.address[:8]}: {type(e).__name__}: {str(e)[:160]}")
+        except Exception as e:
+            failures.append(f"sessione: {type(e).__name__}: {str(e)[:200]}")
             log.exception("failed to record scan results")
+        if failures:
+            log.warning("recording failed for %s tokens: %s", len(failures), failures[:3])
+            try:
+                with session_scope() as s:
+                    repo.log_event(s, "error", f"salvataggio fallito per {len(failures)} token: " + " | ".join(failures[:3]),
+                                   level="error")
+            except Exception:
+                log.exception("could not log recording failure")
+
+    def _record_one(self, s, tt: TrackedToken, cand_ids: set[str], now: float) -> None:
+        every = SNAPSHOT_EVERY_CANDIDATE_S if tt.address in cand_ids else SNAPSHOT_EVERY_OTHER_S
+        tok = repo.upsert_token(s, tt.snapshot, tt.source, tt.score)
+        if now - tt.last_recorded >= every:
+            repo.add_snapshot(s, tok, tt.snapshot, tt.score)
+            tt.history.append(TokenSnapshot.from_dict(tt.snapshot.to_dict()))
+            tt.last_recorded = now
+        for tf, cs in tt.candles.items():
+            if tt.snapshot.pair_address and cs:
+                repo.upsert_candles(s, tt.address, tt.snapshot.pair_address, tf, cs)
+        if tt.snapshot.liquidity_usd is not None and tt.snapshot.liquidity_usd < DEAD_LIQUIDITY_USD:
+            tt.low_liq_since = tt.low_liq_since or now
+            if now - tt.low_liq_since > 6 * 3600:
+                tok.status = "dead"
+        else:
+            tt.low_liq_since = None
+        s.flush()
 
     def load_from_db(self, max_tokens: int | None = None, history: int = 24, candle_hours: int = 18) -> int:
         """Resume tracking after a restart (or between GitHub Actions windows): reload recently seen

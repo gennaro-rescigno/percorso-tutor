@@ -21,6 +21,7 @@ Telegram e mostra tutto in una dashboard web. Architettura pronta per il trading
 
 | Documento | Contenuto |
 |---|---|
+| **[GUIDA_PASSO_PASSO.md](GUIDA_PASSO_PASSO.md)** | **come mettere tutto online gratis: Telegram, Oracle, DuckDNS, Dune** |
 | [RESEARCH_REPORT.md](RESEARCH_REPORT.md) | ricerca: tassi base, casi studio, pattern testabili, fonti con affidabilità e limiti |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | API utilizzate, limiti, cosa succede quando non rispondono |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | architettura, struttura del codice, scelte tecniche |
@@ -35,10 +36,10 @@ Telegram e mostra tutto in una dashboard web. Architettura pronta per il trading
 ## Avvio rapido
 
 ```bash
-# server (vedi docs/DEPLOY.md)
+# server (guida completa: GUIDA_PASSO_PASSO.md)
 cp .env.example .env    # imposta password dashboard e Telegram
-docker compose up -d --build
-docker compose exec worker mci check-sources
+sudo docker compose up -d --build
+sudo docker compose exec worker mci check-sources
 
 # sviluppo locale
 cd backend && python -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv/bin/pytest -q
@@ -55,6 +56,7 @@ cd backend && python -m venv .venv && .venv/bin/pip install -e ".[dev]" && .venv
 | `mci fetch-history` | scarica le candele di tutti i token registrati (inclusi quelli morti) |
 | `mci backtest` / `compare-profiles` / `walkforward` | backtest su dati registrati o file di dataset |
 | `mci stress-test` | stress test del risk management su rug sintetici |
+| `mci import-universe` | storico senza survivorship bias: campione casuale di lanci da Dune + prezzi GeckoTerminal |
 
 ## Telegram
 
@@ -76,7 +78,8 @@ esposizione) · Log e attività. Tema dark, responsive, aggiornamento automatico
 
 ## Test
 
-79 test automatici (`backend/tests`): costi e AMM, sizing anti-martingala e limite di perdita in caso di rug,
+86 test automatici (`backend/tests`), eseguiti sia su SQLite sia su PostgreSQL
+(`MCI_TEST_DATABASE_URL=postgresql+psycopg://... pytest`): costi e AMM, sizing anti-martingala e limite di perdita in caso di rug,
 filtri (honeypot, authority, token illiquidi, slippage, concentrazione, wash trading, prezzi anomali),
 uscite (gap, ordine pessimistico stop/TP, trailing, break-even), risk manager (limiti, cooldown, perdite
 consecutive, kill switch), backtest (costi, determinismo, assenza di look-ahead, token morti, rug durante

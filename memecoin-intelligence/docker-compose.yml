@@ -32,6 +32,7 @@ services:
       disable: true
     volumes:
       - ./reports:/app/reports
+      - ./data:/app/backend/data
     # Live trading keypair (ONLY if you ever enable live mode): mount read-only from outside the repo
     # (add under volumes:) - /home/ubuntu/secrets/trading-wallet.json:/run/secrets/wallet.json:ro
     deploy:
@@ -47,6 +48,8 @@ services:
       MCI_DATABASE_URL: postgresql+psycopg://mci:${POSTGRES_PASSWORD}@db:5432/mci
     depends_on:
       db: { condition: service_healthy }
+    volumes:
+      - ./data:/app/backend/data
     expose: ["8000"]
     deploy:
       resources:
@@ -57,7 +60,7 @@ services:
     restart: unless-stopped
     ports: ["80:80", "443:443"]
     environment:
-      DOMAIN: ${DOMAIN:?set DOMAIN in .env (e.g. 1-2-3-4.sslip.io or a DuckDNS name)}
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env (e.g. mionome.duckdns.org)}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

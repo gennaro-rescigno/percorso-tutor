@@ -277,8 +277,8 @@ class TradingEngine:
                 )
                 tps = [{"price": f.price * (1 + g), "fraction": fr, "gain": g} for g, fr in self.policy.take_profits]
                 pos = Position(
-                    mode=self.mode, token_address=sig.token_address, symbol=sig.symbol, pair_address=snap.pair_address,
-                    dex_id=snap.dex_id, strategy=sig.strategy, signal_id=signal_id, entry_price=f.price,
+                    mode=self.mode, token_address=sig.token_address, symbol=(sig.symbol or "")[:64] or None,
+                    pair_address=snap.pair_address, dex_id=(snap.dex_id or "")[:32] or None, strategy=sig.strategy, signal_id=signal_id, entry_price=f.price,
                     qty_initial=f.qty, qty=f.qty, token_decimals=res.extra.get("decimals"), stake_sol=f.sol_amount,
                     cost_sol=total_cost, stop_price=stop, initial_stop=stop, take_profits=tps, last_price=f.price,
                     fees_sol=ps.fees_sol, slippage_sol=ps.slippage_sol, state=_pos_state_to_json(ps), score=sig.score,

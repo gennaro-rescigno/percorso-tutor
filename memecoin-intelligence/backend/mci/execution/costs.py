@@ -20,6 +20,8 @@ ATA_RENT_SOL = 0.00203928
 
 def dex_fee(dex_id: str | None, market_cap_usd: float | None = None) -> float:
     dex = (dex_id or "default").lower()
+    if dex not in VENUE_FEES and dex.replace("-", "").replace("_", "") in VENUE_FEES:
+        dex = dex.replace("-", "").replace("_", "")
     if dex == "pumpswap" and market_cap_usd:
         # Tiered schedule (reported: 1.25% right after graduation down to 0.30% floor).
         # Approximated log-linearly between $100k and $20M market cap.

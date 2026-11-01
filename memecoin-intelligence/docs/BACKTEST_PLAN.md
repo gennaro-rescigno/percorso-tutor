@@ -4,7 +4,7 @@
 
 Motivo: la rete dell'ambiente di sviluppo blocca tutte le API di dati crypto (vedi DATA_SOURCES.md).
 Non sono stati simulati risultati al posto dei dati mancanti. Il motore di backtest è completo e testato
-(79 test, inclusi rug, token morti, assenza di look-ahead, costi), ma **nessuna strategia è oggi validata**
+(86 test, eseguiti sia su SQLite sia su PostgreSQL, inclusi rug, token morti, assenza di look-ahead, costi), ma **nessuna strategia è oggi validata**
 e il trading reale resta bloccato.
 
 ## Limiti dei dati storici (dichiarati)
@@ -29,17 +29,22 @@ segnale. Dopo alcune settimane:
 
 ```bash
 # scarica/completa le candele di tutti i token registrati (anche quelli morti)
-docker compose exec worker mci fetch-history --start 2026-11-01 --timeframe 1m
+sudo docker compose exec worker mci fetch-history --start 2026-11-01 --timeframe 1m
 # backtest su dati registrati (point-in-time, universo completo)
-docker compose exec worker mci backtest --strategies B --profile moderate --exit ladder_trailing --out /app/reports/b.md
+sudo docker compose exec worker mci backtest --strategies B --profile moderate --exit ladder_trailing --out /app/reports/b.md
 # confronto dei tre profili
-docker compose exec worker mci compare-profiles --strategies A,B,C,D,E
+sudo docker compose exec worker mci compare-profiles --strategies A,B,C,D,E
 # walk-forward con selezione robusta dei parametri
-docker compose exec worker mci walkforward --strategy B --grid '{"vol_mult":[1.5,2.0,2.5],"max_extension":[0.2,0.3]}'
+sudo docker compose exec worker mci walkforward --strategy B --grid '{"vol_mult":[1.5,2.0,2.5],"max_extension":[0.2,0.3]}'
 ```
 
-Opzione più rapida (richiede un account gratuito Dune o Bitquery – da approvare): esportare l'elenco
-completo dei lanci Pump.fun di un periodo e usare `dataset_from_pool_list(..., complete_universe=True)`.
+Opzione più rapida, gratuita con un account Dune (piano Free): `mci import-universe` legge da Dune un
+**campione casuale di tutti i lanci Pump.fun** di un periodo (tabella `pumpdotfun_solana.pump_call_create`,
+SQL nella GUIDA_PASSO_PASSO §4), scarica da GeckoTerminal le candele a 1 minuto delle prime 24 ore di ogni
+token e misura la **copertura**: il dataset è dichiarato privo di survivorship bias solo se almeno il 90%
+dei token estratti ha dati (se GeckoTerminal non avesse i token rimasti in bonding curve, il report lo
+segnala). La liquidità dei token Pump.fun è ricostruita dalla bonding curve (k = 30 SOL × 1,073e9 token).
+Questo storico contiene solo prezzi/volumi: misura la parte prezzo/volume delle strategie.
 
 ## Esecuzione simulata (in ogni backtest)
 

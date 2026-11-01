@@ -27,6 +27,11 @@ from mci.domain import Candle, Fill, ScoreResult, Signal, TokenSnapshot, to_utc,
 log = logging.getLogger(__name__)
 
 
+def _cut(v: str | None, n: int) -> str | None:
+    """Fit free-text values from external sources into fixed-size columns."""
+    return v[:n] if isinstance(v, str) else v
+
+
 # ----------------------------------------------------------------------------- state
 def get_state(s: Session, key: str, default: Any = None) -> Any:
     row = s.get(SystemState, key)
@@ -55,13 +60,14 @@ def upsert_token(s: Session, snap: TokenSnapshot, source: str, score: ScoreResul
     tok = s.scalar(select(Token).where(Token.chain == snap.chain, Token.address == snap.token_address))
     now = to_utc(snap.observed_at) or utcnow()
     if tok is None:
-        tok = Token(chain=snap.chain, address=snap.token_address, first_seen_at=now, first_seen_source=source)
+        tok = Token(chain=_cut(snap.chain, 16), address=_cut(snap.token_address, 64), first_seen_at=now,
+                    first_seen_source=_cut(source, 32))
         s.add(tok)
-    tok.symbol = snap.symbol or tok.symbol
-    tok.name = snap.name or tok.name
-    tok.pair_address = snap.pair_address or tok.pair_address
-    tok.dex_id = snap.dex_id or tok.dex_id
-    tok.deployer = snap.deployer or tok.deployer
+    tok.symbol = _cut(snap.symbol, 64) or tok.symbol
+    tok.name = _cut(snap.name, 128) or tok.name
+    tok.pair_address = _cut(snap.pair_address, 64) or tok.pair_address
+    tok.dex_id = _cut(snap.dex_id, 32) or tok.dex_id
+    tok.deployer = _cut(snap.deployer, 64) or tok.deployer
     tok.created_at = snap.created_at or tok.created_at
     tok.last_seen_at = now
     tok.last_price_usd = snap.price_usd if snap.price_usd is not None else tok.last_price_usd
@@ -150,7 +156,7 @@ def load_candles(s: Session, pool: str, timeframe: str, currency: str = "token",
 # ----------------------------------------------------------------------------- signals / orders
 def record_signal(s: Session, sig: Signal, mode: str, snap: TokenSnapshot | None, score: ScoreResult | None) -> SignalRow:
     row = SignalRow(
-        created_at=sig.created_at, token_address=sig.token_address, symbol=sig.symbol, strategy=sig.strategy,
+        created_at=sig.created_at, token_address=sig.token_address, symbol=_cut(sig.symbol, 64), strategy=sig.strategy,
         mode=mode, score=sig.score, reference_price=sig.reference_price, stop_price=sig.stop_price,
         reasons=sig.reasons, risks=sig.risks, features=_jsonable(sig.features),
         snapshot=snap.to_dict() if snap else None, score_detail=score.to_dict() if score else None,

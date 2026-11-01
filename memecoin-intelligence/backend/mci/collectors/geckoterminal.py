@@ -75,6 +75,31 @@ class GeckoTerminalCollector:
         data = await self.api.get(f"/networks/{network}/pools/{pool_address}", allow_404=True)
         return (data or {}).get("data") if data else None
 
+    async def token_pools(self, token_address: str, network: str = "solana") -> list[dict[str, Any]]:
+        """Pools trading a token (``GET /networks/{network}/tokens/{address}/pools``)."""
+        data = await self.api.get(f"/networks/{network}/tokens/{token_address}/pools",
+                                  params={"include": "dex"}, allow_404=True)
+        return (data or {}).get("data") or [] if data else []
+
+    async def ohlcv_window(self, pool_address: str, timeframe: str, start_ts: int, end_ts: int, *,
+                           network: str = "solana", currency: str = "token", max_pages: int = 10) -> list[Candle]:
+        """Candles in [start_ts, end_ts], paging backwards from end_ts."""
+        out: dict[int, Candle] = {}
+        before = int(end_ts)
+        for _ in range(max_pages):
+            batch = await self.ohlcv(pool_address, timeframe, network=network, before_timestamp=before,
+                                     currency=currency)
+            if not batch:
+                break
+            for c in batch:
+                if start_ts <= c.ts <= end_ts:
+                    out[c.ts] = c
+            oldest = batch[0].ts
+            if oldest <= start_ts or oldest >= before:
+                break
+            before = oldest
+        return [out[k] for k in sorted(out)]
+
     async def token_info(self, token_address: str, network: str = "solana") -> dict[str, Any] | None:
         data = await self.api.get(f"/networks/{network}/tokens/{token_address}/info", allow_404=True)
         return (data or {}).get("data") if data else None

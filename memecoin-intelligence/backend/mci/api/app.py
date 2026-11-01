@@ -44,7 +44,7 @@ class BacktestBody(BaseModel):
     start: str | None = None
     end: str | None = None
     timeframe: str = "1m"
-    dataset: str = "recorded"  # recorded | synthetic
+    dataset: str = "recorded"  # recorded | imported | synthetic
     strategy_params: dict[str, dict[str, Any]] = Field(default_factory=dict)
     exit_overrides: dict[str, Any] = Field(default_factory=dict)
     profile_overrides: dict[str, Any] = Field(default_factory=dict)
@@ -79,6 +79,13 @@ def _run_backtest_job(run_id: int, body: BacktestBody) -> None:
         now = datetime.now(timezone.utc)
         if body.dataset == "synthetic":
             ds = scenario_dataset(["rug", "pnd", "grind", "dead", "noise", "grind", "rug", "pnd"])
+        elif body.dataset == "imported":
+            from mci.backtesting.data import load_dataset
+
+            files = sorted(Path(get_settings().data_dir).glob("universe_*.json"))
+            if not files:
+                raise ValueError("nessun dataset importato: esegui prima 'mci import-universe'")
+            ds = load_dataset(files[-1])
         else:
             start = datetime.fromisoformat(body.start) if body.start else now - timedelta(days=90)
             end = datetime.fromisoformat(body.end) if body.end else now

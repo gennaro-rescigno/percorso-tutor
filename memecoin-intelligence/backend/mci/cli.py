@@ -10,6 +10,7 @@
   compare-profiles  same strategy with conservative / moderate / aggressive risk
   walkforward       walk-forward optimisation of one strategy
   stress-test       risk-management stress test on SYNTHETIC rug scenarios
+  import-universe   historical survivorship-free dataset from Dune (free) + GeckoTerminal
 """
 
 from __future__ import annotations
@@ -142,6 +143,46 @@ def cmd_fetch_history(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_import_universe(args: argparse.Namespace) -> int:
+    """Survivorship-free historical dataset: Dune launches (CSV or API) + GeckoTerminal OHLCV."""
+    from mci.backtesting.data import save_dataset
+    from mci.backtesting.universe import build_universe_dataset, launches_from_csv, launches_from_dune
+    from mci.collectors.geckoterminal import GeckoTerminalCollector
+
+    s = get_settings()
+    if args.csv:
+        launches = launches_from_csv(args.csv)
+        origin = f"CSV {Path(args.csv).name}"
+    elif args.dune_query_id:
+        launches = asyncio.run(launches_from_dune(args.dune_query_id, s.dune_api_key.get_secret_value()))
+        origin = f"query Dune {args.dune_query_id}"
+    else:
+        print("specifica --csv FILE oppure --dune-query-id ID")
+        return 2
+    if not launches:
+        print("nessun lancio letto: controlla che il risultato abbia le colonne 'mint' e 'created_at'")
+        return 1
+    first = min(x.created_at for x in launches)
+    last = max(x.created_at for x in launches)
+    print(f"{len(launches)} lanci letti da {origin} ({first:%Y-%m-%d} -> {last:%Y-%m-%d}); "
+          f"campione {min(args.sample, len(launches))}. Rate limit gratuito: può richiedere alcune ore.")
+    gecko = GeckoTerminalCollector(s.geckoterminal_base_url, s.geckoterminal_calls_per_minute)
+
+    def progress(i, n, ok):
+        print(f"  {i}/{n} token elaborati, {ok} con dati", flush=True)
+
+    ds = asyncio.run(build_universe_dataset(
+        launches, gecko, sample=args.sample, seed=args.seed, timeframe=args.timeframe, hours=args.hours,
+        description=f"campione casuale di lanci Pump.fun ({origin}, {first:%Y-%m-%d} -> {last:%Y-%m-%d})",
+        progress=progress))
+    out = args.out or str(Path(s.data_dir) / f"universe_{datetime.now(timezone.utc):%Y%m%d_%H%M}.json")
+    save_dataset(ds, out)
+    print("\n".join(["", f"dataset salvato: {out}", *ds.info.notes,
+                     f"privo di survivorship bias: {'sì' if ds.info.survivorship_free else 'NO'}",
+                     f"prossimo passo: mci compare-profiles --dataset {out} --strategies A,B,C"]))
+    return 0 if ds.series else 1
+
+
 def _load_dataset(args: argparse.Namespace):
     from mci.backtesting.data import load_dataset
     from mci.backtesting.datasource import dataset_from_db
@@ -262,6 +303,16 @@ def main(argv: list[str] | None = None) -> int:
     f.add_argument("--timeframe", default="1m")
     f.add_argument("--max-tokens", type=int, default=2000)
     f.set_defaults(fn=cmd_fetch_history)
+
+    iu = sub.add_parser("import-universe", help="dataset storico senza survivorship bias da Dune + GeckoTerminal")
+    iu.add_argument("--csv", help="file CSV esportato da Dune (colonne mint, created_at)")
+    iu.add_argument("--dune-query-id", type=int, help="ID della query Dune (richiede MCI_DUNE_API_KEY)")
+    iu.add_argument("--sample", type=int, default=500)
+    iu.add_argument("--hours", type=int, default=24, help="ore di storico dopo il lancio per ogni token")
+    iu.add_argument("--timeframe", default="1m")
+    iu.add_argument("--seed", type=int, default=7)
+    iu.add_argument("--out")
+    iu.set_defaults(fn=cmd_import_universe)
 
     def common(sp):
         sp.add_argument("--dataset", help="file JSON del dataset (altrimenti dati registrati nel DB)")

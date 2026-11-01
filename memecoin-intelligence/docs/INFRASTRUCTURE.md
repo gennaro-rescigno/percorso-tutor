@@ -31,11 +31,12 @@ spesso: **verificare sulla pagina ufficiale prima di registrarsi.**
 **Una sola VM Oracle Cloud Always Free** con `docker compose`: PostgreSQL + worker + API/dashboard + Caddy
 (HTTPS automatico) + backup giornaliero. Costo: **0 €** restando nelle risorse Always Free.
 
-Dimensionamento: una VM Ampere A1 con 1 OCPU / 6 GB è più che sufficiente (resta metà della quota per
+Dimensionamento: una VM Ampere A1 con 1 OCPU / 4 GB è più che sufficiente (resta metà della quota per
 altro). In alternativa, se l'A1 non è disponibile nella regione, una VM AMD E2.1.Micro (1 GB) funziona
 con lo swap da 2 GB creato da `deploy/oracle-setup.sh`.
 
-Dominio gratuito: `<ip-con-trattini>.sslip.io` (nessuna registrazione) oppure un sottodominio DuckDNS.
+Dominio gratuito: un sottodominio **DuckDNS** (`<nome>.duckdns.org`, login con GitHub/Google), puntato
+all'IP della VM; Caddy ottiene da solo il certificato HTTPS Let's Encrypt.
 
 ## Compromessi da conoscere (onestamente)
 
@@ -55,7 +56,7 @@ Dominio gratuito: `<ip-con-trattini>.sslip.io` (nessuna registrazione) oppure un
 | Voce | Costo |
 |---|---|
 | VM + disco + traffico (Always Free) | 0 € |
-| Dominio sslip.io / DuckDNS + certificato Let's Encrypt | 0 € |
+| Dominio DuckDNS + certificato Let's Encrypt | 0 € |
 | API dati (DexScreener, GeckoTerminal, Jupiter keyless, RugCheck, PumpPortal, RPC pubblico) | 0 € |
 | Telegram Bot | 0 € |
 | Chiavi gratuite opzionali (Helius, Jupiter, Reddit) | 0 € (richiedono registrazione) |

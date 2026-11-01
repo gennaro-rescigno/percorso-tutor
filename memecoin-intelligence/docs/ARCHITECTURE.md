@@ -53,7 +53,7 @@ memecoin-intelligence/
 │   ├── api/                     FastAPI + autenticazione
 │   ├── worker.py                orchestrazione 24/7
 │   └── cli.py                   comandi `mci ...`
-├── backend/tests/               79 test (pytest)
+├── backend/tests/               86 test (pytest, SQLite e PostgreSQL)
 ├── frontend/                    React + Vite + Recharts (tema dark, responsive)
 ├── deploy/                      Caddyfile, backup, setup VM Oracle
 ├── reports/                     report generati (backtest, stress test)

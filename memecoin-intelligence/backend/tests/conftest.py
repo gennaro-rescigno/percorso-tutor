@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from datetime import timedelta
 
 import pytest
@@ -11,10 +13,20 @@ from mci.domain import TokenSnapshot, utcnow
 
 @pytest.fixture()
 def db(tmp_path, monkeypatch):
-    url = f"sqlite:///{tmp_path}/test.db"
+    """SQLite by default; set MCI_TEST_DATABASE_URL to run the suite against PostgreSQL
+    (as in production): ``MCI_TEST_DATABASE_URL=postgresql+psycopg://user:pw@localhost/mci_test``."""
+    url = os.environ.get("MCI_TEST_DATABASE_URL") or f"sqlite:///{tmp_path}/test.db"
     monkeypatch.setenv("MCI_DATABASE_URL", url)
     monkeypatch.setenv("MCI_ENV", "test")
     reset_settings_cache()
+    if not url.startswith("sqlite"):
+        from sqlalchemy import create_engine
+
+        from mci.database.models import Base
+
+        eng = create_engine(url)
+        Base.metadata.drop_all(eng)
+        eng.dispose()
     init_engine(url)
     yield url
     reset_settings_cache()

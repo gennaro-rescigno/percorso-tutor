@@ -116,6 +116,7 @@ export default function BacktestLab() {
           <label>Dati
             <select value={dataset} onChange={(e) => setDataset(e.target.value)}>
               <option value="recorded">registrati dallo scanner (reali)</option>
+              <option value="imported">storico importato da Dune (reali)</option>
               <option value="synthetic">sintetici (solo test del motore)</option>
             </select></label>
         </div>

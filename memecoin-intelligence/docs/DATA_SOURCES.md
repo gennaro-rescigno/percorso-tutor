@@ -25,6 +25,8 @@
 | CoinGecko / Kraken | `simple/price`, `0/public/Ticker` | no | 1 req/2 min | SOL in EUR/USD (dinamico) | importi in EUR "n/d" |
 | Telegram Bot API | `sendMessage`, `getUpdates` | token BotFather | — | notifiche e comandi | solo log |
 | Reddit (opzionale) | OAuth app-only `search` | app gratuita | 1 req/30 min per token | menzioni e autori unici | categoria social "n/d" |
+| Dune (opzionale) | `GET /api/v1/query/{id}/results` (header `X-Dune-API-Key`) | account Free | 1 lettura per import | elenco casuale di tutti i lanci Pump.fun di un periodo (universo storico senza survivorship bias) | si usa solo il dataset registrato in avanti |
+| GeckoTerminal (import storico) | `/networks/solana/tokens/{mint}/pools`, OHLCV a finestra | no | ≤25 req/min | pool e candele delle prime 24 h dei token estratti | token conteggiato come "senza dati" nella copertura |
 
 ## Non usate (e perché)
 
@@ -33,7 +35,7 @@
 | X / Twitter API | dal 6 feb 2026 solo pay-per-use (~0,005 $ per post letto): contraddice il requisito "gratuito" |
 | Birdeye | free tier di 30.000 CU/mese a 1 RPS: insufficiente per uno scanner continuo; utile in futuro per OHLCV |
 | Pump.fun frontend API | non documentata, protetta da Cloudflare; PumpPortal offre gli stessi eventi in modo stabile |
-| Dune / Bitquery | richiedono un account (anche se gratuito): proposti come opzione per l'universo storico del backtest |
+| Bitquery | non necessario: Dune copre l'universo storico |
 
 ## Dati raccolti per ogni token e copertura
 

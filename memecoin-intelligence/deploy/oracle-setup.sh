@@ -22,7 +22,7 @@ if ! swapon --show | grep -q swapfile; then
 fi
 
 echo "==> Data folders (container user uid 10001 writes reports)"
-mkdir -p reports backups && sudo chown 10001 reports
+mkdir -p reports backups data && sudo chown 10001 reports data
 
 echo "==> .env"
 if [ ! -f .env ]; then
@@ -30,9 +30,9 @@ if [ ! -f .env ]; then
   sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$(openssl rand -hex 24)|" .env
   sed -i "s|^MCI_API_SECRET_KEY=.*|MCI_API_SECRET_KEY=$(openssl rand -hex 32)|" .env
   IP=$(curl -fsS https://api.ipify.org || echo "")
-  [ -n "$IP" ] && sed -i "s|^DOMAIN=.*|DOMAIN=${IP//./-}.sslip.io|" .env
+  [ -n "$IP" ] && echo "    IP pubblico di questa VM: $IP  -> inseriscilo su duckdns.org"
   chmod 600 .env
-  echo "    .env created: set MCI_DASHBOARD_PASSWORD, MCI_TELEGRAM_BOT_TOKEN, MCI_TELEGRAM_CHAT_IDS"
+  echo "    .env creato: imposta DOMAIN, MCI_DASHBOARD_PASSWORD, MCI_TELEGRAM_BOT_TOKEN, MCI_TELEGRAM_CHAT_IDS"
 fi
 
-echo "==> Done. Next: edit .env, then: newgrp docker; docker compose up -d --build"
+echo "==> Fatto. Ora: nano .env  (poi)  sudo docker compose up -d --build"

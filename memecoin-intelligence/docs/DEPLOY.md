@@ -1,12 +1,13 @@
-# Deploy passo-passo (Oracle Cloud Always Free, 0 €)
+# Deploy (Oracle Cloud Always Free, 0 €)
 
-Tempo stimato: 30–45 minuti. I passi 1–2 richiedono il tuo accesso agli account.
+> La guida completa e verificata per principianti è **[GUIDA_PASSO_PASSO.md](../GUIDA_PASSO_PASSO.md)**
+> (bot Telegram, account Oracle, VM, porte, DuckDNS, installazione, Dune). Qui sotto il riassunto tecnico.
 
 ## 1. Bot Telegram (2 minuti)
 
 1. Su Telegram apri **@BotFather** → `/newbot` → scegli nome e username → copia il **token**.
-2. Apri **@userinfobot** → copia il tuo **chat id** numerico.
-3. Scrivi un messaggio qualsiasi al tuo nuovo bot (altrimenti non può scriverti).
+2. Scrivi un messaggio al tuo nuovo bot (altrimenti non può scriverti).
+3. Apri `https://api.telegram.org/bot<TOKEN>/getUpdates` nel browser → il numero dopo `"chat":{"id":` è il tuo **chat id**.
 
 ## 2. VM Oracle Cloud
 
@@ -27,18 +28,17 @@ nano .env                                     # imposta:
 #   MCI_DASHBOARD_PASSWORD=<password lunga>
 #   MCI_TELEGRAM_BOT_TOKEN=<token BotFather>
 #   MCI_TELEGRAM_CHAT_IDS=<tuo chat id>
-#   (DOMAIN è già impostato a <ip>.sslip.io)
-newgrp docker
-docker compose up -d --build
+#   DOMAIN=<nome>.duckdns.org   (DuckDNS gratuito, puntato all'IP della VM)
+sudo docker compose up -d --build
 ```
 
 ## 4. Verifica
 
 ```bash
-docker compose ps                              # tutti i servizi "running"
-docker compose exec worker mci check-sources   # tutte le fonti OK
-docker compose exec worker mci telegram-test   # ricevi il messaggio di prova
-docker compose logs -f worker                  # cicli dello scanner
+sudo docker compose ps                              # tutti i servizi "running"
+sudo docker compose exec worker mci check-sources   # tutte le fonti OK
+sudo docker compose exec worker mci telegram-test   # ricevi il messaggio di prova
+sudo docker compose logs -f worker                  # cicli dello scanner
 ```
 
 Apri `https://<DOMAIN>` e accedi con `admin` / la password scelta. Su Telegram invia `/status`.
@@ -47,11 +47,11 @@ Apri `https://<DOMAIN>` e accedi con `admin` / la password scelta. Su Telegram i
 
 | Operazione | Comando |
 |---|---|
-| Aggiornare il codice | `git pull && docker compose up -d --build` |
-| Riavviare | `docker compose restart worker api` |
-| Backup manuale | `docker compose exec backup sh -c 'pg_dump -h db -U mci mci | gzip > /backups/manual.sql.gz'` |
-| Ripristino | `gunzip -c backups/<file>.sql.gz \| docker compose exec -T db psql -U mci mci` |
-| Cambiare profilo di rischio | `MCI_RISK_PROFILE=` in `.env`, poi `docker compose up -d` |
+| Aggiornare il codice | `git pull && sudo docker compose up -d --build` |
+| Riavviare | `sudo docker compose restart worker api` |
+| Backup manuale | `sudo docker compose exec backup sh -c 'pg_dump -h db -U mci mci | gzip > /backups/manual.sql.gz'` |
+| Ripristino | `gunzip -c backups/<file>.sql.gz \| sudo docker compose exec -T db psql -U mci mci` |
+| Cambiare profilo di rischio | `MCI_RISK_PROFILE=` in `.env`, poi `sudo docker compose up -d` |
 | Fermare i nuovi ingressi | `/pause` su Telegram o pulsante in Risk Management |
 
 Riavvio automatico: tutti i servizi hanno `restart: unless-stopped` (ripartono dopo crash e reboot della VM);

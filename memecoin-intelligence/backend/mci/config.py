@@ -68,6 +68,10 @@ class Settings(BaseSettings):
     reddit_user_agent: str = "mci/0.1 (personal research bot)"
     telegram_public_scrape_enabled: bool = False
 
+    # Optional: Dune (free account) to import a survivorship-free historical universe of launches
+    dune_api_key: SecretStr = SecretStr("")
+    data_dir: str = "data"
+
     # --- scanner ------------------------------------------------------------------
     scan_interval_seconds: int = 60
     position_monitor_interval_seconds: int = 20

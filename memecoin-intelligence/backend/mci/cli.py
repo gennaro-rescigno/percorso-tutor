@@ -183,6 +183,42 @@ def cmd_import_universe(args: argparse.Namespace) -> int:
     return 0 if ds.series else 1
 
 
+def cmd_run_once(args: argparse.Namespace) -> int:
+    """Windowed run (scheduled hosts such as GitHub Actions): run all loops for N seconds, then exit."""
+    from mci.worker import Worker
+
+    asyncio.run(Worker().run_window(args.window))
+    return 0
+
+
+def cmd_state_export(args: argparse.Namespace) -> int:
+    from mci.database.session import init_engine
+    from mci.state_io import export_state
+
+    init_engine(get_settings().database_url)
+    print(json.dumps(export_state(args.out)))
+    return 0
+
+
+def cmd_state_import(args: argparse.Namespace) -> int:
+    from mci.database.session import init_engine
+    from mci.state_io import import_state
+
+    init_engine(get_settings().database_url)
+    if not Path(args.file).exists():
+        print("nessun file di stato da importare")
+        return 0
+    print(json.dumps(import_state(args.file)))
+    return 0
+
+
+def cmd_export_static(args: argparse.Namespace) -> int:
+    from mci.state_io import export_static
+
+    print(f"{export_static(args.out)} file JSON scritti in {args.out}")
+    return 0
+
+
 def _load_dataset(args: argparse.Namespace):
     from mci.backtesting.data import load_dataset
     from mci.backtesting.datasource import dataset_from_db
@@ -303,6 +339,19 @@ def main(argv: list[str] | None = None) -> int:
     f.add_argument("--timeframe", default="1m")
     f.add_argument("--max-tokens", type=int, default=2000)
     f.set_defaults(fn=cmd_fetch_history)
+
+    ro = sub.add_parser("run-once", help="esegue tutti i cicli per N secondi e termina (GitHub Actions)")
+    ro.add_argument("--window", type=int, default=240)
+    ro.set_defaults(fn=cmd_run_once)
+    se = sub.add_parser("state-export")
+    se.add_argument("--out", required=True)
+    se.set_defaults(fn=cmd_state_export)
+    si = sub.add_parser("state-import")
+    si.add_argument("--file", required=True)
+    si.set_defaults(fn=cmd_state_import)
+    es = sub.add_parser("export-static", help="dati JSON per la dashboard statica in sola lettura")
+    es.add_argument("--out", required=True)
+    es.set_defaults(fn=cmd_export_static)
 
     iu = sub.add_parser("import-universe", help="dataset storico senza survivorship bias da Dune + GeckoTerminal")
     iu.add_argument("--csv", help="file CSV esportato da Dune (colonne mint, created_at)")

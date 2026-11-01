@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
-import { getToken, setToken, usePoll } from "./api";
+import { BrowserRouter, HashRouter, NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { STATIC, getToken, setToken, usePoll } from "./api";
 import { ModeBadge, Status } from "./components/ui";
 import "./theme.css";
 import BacktestLab from "./pages/BacktestLab";
@@ -21,6 +21,7 @@ const NAV = [
 
 function Shell({ onLogout }: { onLogout: () => void }) {
   const { data } = usePoll<any>("/overview", 30000);
+  const { data: meta } = usePoll<any>(STATIC ? "/meta" : null, 60000);
   const w = data?.worker ?? {};
   return (
     <div className="app">
@@ -32,16 +33,24 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           ))}
         </nav>
         <div className="spacer" />
-        <button onClick={onLogout}>Esci</button>
+        {!STATIC && <button onClick={onLogout}>Esci</button>}
       </aside>
       <main className="main">
         <div className="topbar">
           <ModeBadge mode={w.mode} />
-          {w.worker_alive ? <Status level="good" label="worker attivo" /> : <Status level="critical" label="worker non raggiungibile" />}
+          {STATIC ? null : w.worker_alive ? <Status level="good" label="worker attivo" /> : <Status level="critical" label="worker non raggiungibile" />}
           {data?.summary?.kill_switch && <Status level="critical" label="KILL SWITCH" />}
           {data?.summary?.paused && <Status level="warning" label="in pausa" />}
           {w.sol_eur && <span className="badge">1 SOL = {w.sol_eur.toFixed(2).replace(".", ",")} €</span>}
+          {STATIC && meta?.generated_at && (
+            <span className="badge">ultima esecuzione del bot: {new Date(meta.generated_at).toLocaleString("it-IT")}</span>
+          )}
         </div>
+        {STATIC && (
+          <div className="note" style={{ marginTop: -8, marginBottom: 12 }}>
+            Dashboard pubblica in sola lettura, aggiornata a ogni esecuzione del bot (~15 min). Comandi: Telegram.
+          </div>
+        )}
         <Routes>
           <Route path="/" element={<Overview />} />
           <Route path="/scanner" element={<Scanner />} />
@@ -59,7 +68,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
 }
 
 function App() {
-  const [authed, setAuthed] = useState(!!getToken());
+  const [authed, setAuthed] = useState(STATIC || !!getToken());
   useEffect(() => {
     const h = () => setAuthed(false);
     window.addEventListener("mci-logout", h);
@@ -71,8 +80,14 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    {STATIC ? (
+      <HashRouter>
+        <App />
+      </HashRouter>
+    ) : (
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    )}
   </React.StrictMode>,
 );

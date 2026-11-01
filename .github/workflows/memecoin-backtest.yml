@@ -1,0 +1,65 @@
+# Manual backtest (Actions tab > memecoin-backtest > Run workflow).
+# Uses the data recorded by memecoin-bot, or - if a Dune query id is given and the secret
+# MCI_DUNE_API_KEY exists - imports a random sample of historical Pump.fun launches first.
+name: memecoin-backtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      strategies:
+        description: "Strategie (A,B,C,D,E)"
+        default: "B,C,D,E"
+      exit_policy:
+        description: "Gestione uscita (ladder_trailing, fixed_simple, trailing_only, momentum_exit, ladder_no_be, ladder_be_1r)"
+        default: "ladder_trailing"
+      dune_query_id:
+        description: "ID query Dune (vuoto = usa i dati registrati dal bot)"
+        default: ""
+      sample:
+        description: "Token da campionare dall'import Dune"
+        default: "300"
+
+permissions:
+  contents: read
+
+jobs:
+  backtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      MCI_DATABASE_URL: sqlite:///./data/mci.db
+      MCI_DUNE_API_KEY: ${{ secrets.MCI_DUNE_API_KEY }}
+    defaults:
+      run:
+        working-directory: memecoin-intelligence/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: memecoin-intelligence/backend/pyproject.toml
+      - run: pip install .
+      - name: Restore recorded data (read only)
+        uses: actions/cache/restore@v4
+        with:
+          path: memecoin-intelligence/backend/data/mci.db
+          key: mci-db-none
+          restore-keys: mci-db-
+      - name: Import historical universe from Dune
+        if: inputs.dune_query_id != ''
+        run: mci import-universe --dune-query-id "${{ inputs.dune_query_id }}" --sample "${{ inputs.sample }}" --out data/universe.json
+      - name: Compare risk profiles
+        run: |
+          DATASET=""
+          if [ -f data/universe.json ]; then DATASET="--dataset data/universe.json"; fi
+          mci compare-profiles $DATASET --strategies "${{ inputs.strategies }}" --exit "${{ inputs.exit_policy }}" --out /tmp/report/backtest.md
+          cat /tmp/report/backtest.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backtest-report
+          path: |
+            /tmp/report/
+            memecoin-intelligence/backend/data/universe.json
+          if-no-files-found: ignore

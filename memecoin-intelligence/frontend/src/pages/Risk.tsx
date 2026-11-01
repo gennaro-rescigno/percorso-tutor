@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api, usePoll } from "../api";
+import { READ_ONLY_MSG, STATIC, api, usePoll } from "../api";
 import { HBars } from "../components/charts";
 import { ErrorBox, Kpi, Status } from "../components/ui";
 import { fmtPct, fmtPctPlain, fmtSol, fmtTime } from "../format";
@@ -38,10 +38,11 @@ export default function Risk() {
           <p>{data?.kill_switch ? <Status level="critical" label={`ATTIVO – ${data.kill_reason}`} /> : <Status level="good" label="non attivo" />}{" "}
             {data?.paused && <Status level="warning" label="nuovi ingressi in pausa" />}</p>
           <p className="muted">Perdite consecutive: {data?.consecutive_losses ?? 0} (pausa dopo {p.max_consecutive_losses}) · pausa fino a: {fmtTime(data?.paused_until)}</p>
+          {STATIC && <div className="note">{READ_ONLY_MSG}</div>}
           <div className="filters">
-            <button onClick={() => act("pause", "Sospendere i nuovi ingressi?")}>⏸ Pausa</button>
-            <button onClick={() => act("resume", "Riprendere il trading? Il kill switch verrà disattivato e il riferimento del drawdown azzerato.")}>▶️ Riprendi</button>
-            <button className="danger" onClick={() => act("kill", "Attivare il KILL SWITCH? Nessun nuovo ingresso finché non riprendi.")}>🛑 Kill switch</button>
+            <button disabled={STATIC} onClick={() => act("pause", "Sospendere i nuovi ingressi?")}>⏸ Pausa</button>
+            <button disabled={STATIC} onClick={() => act("resume", "Riprendere il trading? Il kill switch verrà disattivato e il riferimento del drawdown azzerato.")}>▶️ Riprendi</button>
+            <button className="danger" disabled={STATIC} onClick={() => act("kill", "Attivare il KILL SWITCH? Nessun nuovo ingresso finché non riprendi.")}>🛑 Kill switch</button>
           </div>
           <h3>Trading reale</h3>
           {data?.live_gates?.length ? (

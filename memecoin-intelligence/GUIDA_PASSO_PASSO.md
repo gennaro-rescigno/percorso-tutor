@@ -1,5 +1,54 @@
 # Guida passo-passo (tutto gratuito)
 
+## ⭐ Soluzione consigliata: GitHub Actions (nessun server, nessun nuovo account, PC spento)
+
+Il bot gira **gratis sui server di GitHub**, nel tuo repository, ogni ~15 minuti. È già tutto
+configurato. Devi fare solo **una cosa** (2 minuti) e **una facoltativa**.
+
+### Obbligatorio: dai al bot il token Telegram (in modo segreto)
+1. Apri **https://github.com/gennaro-rescigno/percorso-tutor/settings/secrets/actions**
+   (oppure: repository → **Settings** → **Secrets and variables** → **Actions**).
+2. **New repository secret** → Name: `MCI_TELEGRAM_BOT_TOKEN` → Secret: il token di BotFather → **Add secret**.
+3. **New repository secret** → Name: `MCI_TELEGRAM_CHAT_IDS` → Secret: il tuo chat id → **Add secret**.
+
+I segreti di GitHub sono cifrati: nessuno li vede (nemmeno nei log, dove compaiono come `***`).
+Dalla prossima esecuzione (entro ~15 minuti) il bot ti scrive su Telegram.
+
+### Facoltativo: la dashboard web
+1. Apri **https://github.com/gennaro-rescigno/percorso-tutor/settings/pages**.
+2. In **Build and deployment → Source** scegli **GitHub Actions**.
+3. Dopo la prossima esecuzione la dashboard è su **https://gennaro-rescigno.github.io/percorso-tutor/**.
+
+È in **sola lettura** e **pubblica** (contiene solo dati di paper trading e analisi di token pubblici,
+nessun segreto): i comandi si danno da Telegram (`/status`, `/pause`, `/resume`, `/kill`, ...).
+
+### Cosa cambia rispetto a un server sempre acceso (onestamente)
+| | Server 24/7 (Oracle) | GitHub Actions |
+|---|---|---|
+| Costo / account | 0 € / account Oracle + carta | 0 € / nessun nuovo account |
+| Frequenza | scansione ogni 60 s, posizioni ogni 20 s | finestre di ~3 min ogni ~15 min (GitHub può ritardarle di 10–30 min) |
+| Risposta ai comandi Telegram | immediata | alla finestra successiva |
+| Strategie attive | A, B, C, D, E | B, C, D, E (la A richiede reattività al minuto) |
+| Stop loss | controllati ogni 20 s | controllati a ogni finestra: in un crollo il prezzo di uscita può essere molto peggiore dello stop (il paper trading lo registra fedelmente) |
+| Dashboard | privata con password | pubblica in sola lettura |
+
+**Regole di GitHub:** i termini di GitHub Actions vietano usi "non collegati" al progetto software del
+repository. Qui il workflow esegue, testa e pubblica i dati del progetto stesso, con esecuzioni brevi e
+programmate; è comunque un uso al limite: GitHub può sospendere i workflow se li ritiene eccessivi. In quel
+caso basta passare alla soluzione con server (punti 2 sotto), senza perdere nulla: lo stato è salvato nel
+branch `bot-state`.
+
+**Spegnere il bot:** tab **Actions** → **memecoin-bot** → **⋯** → **Disable workflow**.
+**Inattività:** GitHub disattiva i workflow programmati dopo 60 giorni senza attività sul repository: se
+ricevi l'email, riattivalo dallo stesso menu.
+
+**Backtest dal browser:** tab **Actions** → **memecoin-backtest** → **Run workflow** (eventualmente con l'ID
+della query Dune del punto 4 e il secret `MCI_DUNE_API_KEY`). Il report compare nella pagina dell'esecuzione.
+
+---
+
+## Alternativa: server sempre acceso
+
 Ordine consigliato: **1 → 2 → 4**. Il punto 3 è facoltativo.
 
 | # | Cosa | Costo | Serve un account? | Tempo |

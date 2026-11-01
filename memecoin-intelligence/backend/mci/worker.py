@@ -83,6 +83,7 @@ class Worker:
         anomaly = self.scanner.sol_anomaly() or self.scanner.data_outage()
         return {
             "mode": self.mode,
+            "run_mode": self.s.run_mode,
             "started_at": self.started_at.isoformat(),
             "last_cycle": self.scanner.last_cycle_at.isoformat() if self.scanner.last_cycle_at else None,
             "cycle": self.scanner.cycle,
@@ -155,13 +156,14 @@ class Worker:
             except Exception:
                 log.exception("daily report failed")
 
-    async def telegram_loop(self) -> None:
+    async def telegram_loop(self, announce: bool = True) -> None:
         if not self.tg.enabled:
             log.info("telegram non configurato: comandi disattivati")
             return
         from mci.telegram.formatters import MODE_TAG
 
-        await self.notifier.notify("text", {"text": f"🤖 Worker avviato – {MODE_TAG[self.mode]}"})
+        if announce:
+            await self.notifier.notify("text", {"text": f"🤖 Worker avviato – {MODE_TAG[self.mode]}"})
         while not self._stop.is_set():
             try:
                 await self.bot.poll_once()
@@ -193,6 +195,67 @@ class Worker:
                 s.execute(delete(TokenSnapshotRow).where(TokenSnapshotRow.id.in_(drop[i:i + 500])))
             repo.log_event(s, "system", f"retention: rimossi {len(drop)} snapshot oltre {keep_days} giorni")
             return len(drop)
+
+    async def maybe_daily_report(self) -> bool:
+        """Send the daily report once per day after the configured hour (used by windowed runs)."""
+        now = utcnow()
+        today = now.date().isoformat()
+        with session_scope() as s:
+            last = repo.get_state(s, "last_daily_report")
+        if now.hour < self.s.daily_report_hour_utc or last == today:
+            return False
+        fxp = await self.fx.get()
+        p = build_daily_report(self.s, self.mode, fxp.eur if fxp else None, self.status()["market_state"])
+        await self.notifier.notify("daily", p)
+        with session_scope() as s:
+            repo.set_state(s, "last_daily_report", today)
+        self.retention(keep_days=7)
+        return True
+
+    async def run_window(self, window_s: int) -> None:
+        """Run every loop for ``window_s`` seconds, then persist and exit.
+
+        Used where no always-on server is available (e.g. a scheduled GitHub Actions job every
+        ~15 minutes): state lives in the database between windows, Telegram commands received in
+        the meantime are processed at the start of the next window.
+        """
+        with session_scope() as s:
+            self.bot.offset = repo.get_state(s, "telegram_offset")
+            self.engine.last_equity_notified = repo.get_state(s, "last_equity_notified") or self.engine.port.equity
+            repo.log_event(s, "system", f"esecuzione a finestra di {window_s}s in modalità {self.mode}")
+        tasks = [
+            asyncio.create_task(self._loop("scanner", self.s.scan_interval_seconds, self.scan_once)),
+            asyncio.create_task(self._loop("monitor", self.s.position_monitor_interval_seconds, self.monitor_once)),
+            asyncio.create_task(self.telegram_loop(announce=False)),
+        ]
+        if self.pump:
+            tasks.append(asyncio.create_task(self.pump.run()))
+        try:
+            await asyncio.wait_for(self._stop.wait(), timeout=window_s)
+        except asyncio.TimeoutError:
+            pass
+        self.stop()
+        for t in tasks:
+            t.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        self._stop.clear()
+        for name, fn in (("equity", self.equity_once), ("outcomes", self.outcomes_once),
+                         ("daily", self.maybe_daily_report)):
+            try:
+                await fn()
+            except Exception:
+                log.exception("final step %s failed", name)
+        if self.tg.enabled and self.bot.offset is not None:
+            await self.tg.get_updates(self.bot.offset, timeout=0)  # confirm processed commands
+        with session_scope() as s:
+            repo.set_state(s, "telegram_offset", self.bot.offset)
+            repo.set_state(s, "last_equity_notified", self.engine.last_equity_notified)
+        self._heartbeat()
+        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg):
+            try:
+                await c.close()
+            except Exception:
+                pass
 
     def stop(self) -> None:
         self._stop.set()

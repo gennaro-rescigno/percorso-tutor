@@ -1,0 +1,147 @@
+# Runs the paper-trading bot without any server: every ~15 minutes GitHub starts a short
+# window (scan, positions, Telegram commands, daily report), then saves the state.
+# - database: Actions cache (latest copy) + JSON backup on the "bot-state" branch
+# - dashboard: read-only static site on GitHub Pages (Settings > Pages > Source: GitHub Actions)
+# - secrets: Settings > Secrets and variables > Actions (MCI_TELEGRAM_BOT_TOKEN, MCI_TELEGRAM_CHAT_IDS)
+# To stop the bot: Actions tab > memecoin-bot > "..." > Disable workflow.
+name: memecoin-bot
+
+on:
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+  workflow_dispatch:
+    inputs:
+      window_seconds:
+        description: "Durata della finestra di lavoro (secondi)"
+        default: "180"
+  push:
+    branches: [feature/memecoin-intelligence]
+    paths: [".github/workflows/memecoin-bot.yml"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: memecoin-bot
+  cancel-in-progress: false
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MCI_DATABASE_URL: sqlite:///./data/mci.db
+      MCI_RUN_MODE: github
+      MCI_TRADING_MODE: paper
+      MCI_RISK_PROFILE: moderate
+      # 1-minute "early entry" (A) needs a real-time server; windows every ~15 min suit B-E
+      MCI_ENABLED_STRATEGIES: B,C,D,E
+      MCI_SCAN_INTERVAL_SECONDS: "60"
+      MCI_FRONTEND_DIST_DIR: /nonexistent
+      MCI_TELEGRAM_BOT_TOKEN: ${{ secrets.MCI_TELEGRAM_BOT_TOKEN }}
+      MCI_TELEGRAM_CHAT_IDS: ${{ secrets.MCI_TELEGRAM_CHAT_IDS }}
+      MCI_JUPITER_API_KEY: ${{ secrets.MCI_JUPITER_API_KEY }}
+    defaults:
+      run:
+        working-directory: memecoin-intelligence/backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: memecoin-intelligence/backend/pyproject.toml
+
+      - name: Install
+        run: pip install .
+
+      - name: Restore database
+        id: db
+        uses: actions/cache/restore@v4
+        with:
+          path: memecoin-intelligence/backend/data/mci.db
+          key: mci-db-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: mci-db-
+
+      - name: Restore state backup (only if the cache was lost)
+        if: steps.db.outputs.cache-matched-key == ''
+        run: |
+          if git fetch --depth=1 origin bot-state 2>/dev/null && git show origin/bot-state:state.json > /tmp/state.json; then
+            mci state-import --file /tmp/state.json
+          else
+            echo "Nessun backup: primo avvio con capitale iniziale."
+          fi
+
+      - name: Check data sources
+        if: github.event_name != 'schedule'
+        run: mci check-sources || true
+
+      - name: Run bot window
+        run: mci run-once --window "${{ inputs.window_seconds || '180' }}"
+
+      - name: Export state and dashboard data
+        if: always()
+        run: |
+          mci state-export --out /tmp/publish/state.json
+          mci export-static --out /tmp/publish/data
+
+      - name: Save database
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: memecoin-intelligence/backend/data/mci.db
+          key: mci-db-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: actions/setup-node@v4
+        if: always()
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: memecoin-intelligence/frontend/package-lock.json
+
+      - name: Build read-only dashboard
+        if: always()
+        working-directory: memecoin-intelligence/frontend
+        run: |
+          npm ci --no-audit --no-fund
+          VITE_STATIC=1 VITE_BASE=./ npx vite build --outDir /tmp/site --emptyOutDir
+          cp -r /tmp/publish/data /tmp/site/data
+          touch /tmp/site/.nojekyll
+
+      - name: Publish state backup to the bot-state branch
+        if: always()
+        working-directory: /tmp
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf /tmp/pub && mkdir -p /tmp/pub && cp -r /tmp/site/. /tmp/pub/
+          cp /tmp/publish/state.json /tmp/pub/state.json
+          printf '# bot-state\n\nStato e dati pubblicati automaticamente dal workflow memecoin-bot (paper trading). Non modificare.\n' > /tmp/pub/README.md
+          cd /tmp/pub
+          git init -q -b bot-state
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "bot state $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" bot-state
+
+      - name: Upload dashboard for GitHub Pages
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: /tmp/site
+
+  pages:
+    needs: bot
+    if: always() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    continue-on-error: true  # Pages may not be enabled yet: the bot keeps working anyway
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

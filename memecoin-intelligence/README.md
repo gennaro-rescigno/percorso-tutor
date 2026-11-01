@@ -33,7 +33,14 @@ Telegram e mostra tutto in una dashboard web. Architettura pronta per il trading
 | [docs/SECURITY.md](docs/SECURITY.md) | segreti, wallet dedicato, cancelli del trading reale |
 | [reports/STRESS_TEST_SYNTHETIC.md](reports/STRESS_TEST_SYNTHETIC.md) | stress test del risk management su scenari sintetici di rug |
 
-## Avvio rapido
+## Avvio rapido senza server (GitHub Actions)
+
+Il workflow `.github/workflows/memecoin-bot.yml` esegue il bot ogni ~15 minuti sui server gratuiti di
+GitHub: basta aggiungere i secret `MCI_TELEGRAM_BOT_TOKEN` e `MCI_TELEGRAM_CHAT_IDS` (vedi
+[GUIDA_PASSO_PASSO.md](GUIDA_PASSO_PASSO.md)). Stato nel cache di Actions + backup nel branch `bot-state`,
+dashboard in sola lettura su GitHub Pages.
+
+## Avvio rapido con server
 
 ```bash
 # server (guida completa: GUIDA_PASSO_PASSO.md)

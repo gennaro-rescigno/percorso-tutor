@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 
     # --- general -----------------------------------------------------------------
     env: Literal["dev", "prod", "test"] = "dev"
+    run_mode: Literal["server", "github"] = "server"  # github = scheduled windows on GitHub Actions
     log_level: str = "INFO"
     database_url: str = "sqlite:///./data/mci.db"
     chain: str = "solana"

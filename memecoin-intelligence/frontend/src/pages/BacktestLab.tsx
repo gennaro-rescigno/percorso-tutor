@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, usePoll } from "../api";
+import { STATIC, api, usePoll } from "../api";
 import { MultiLine } from "../components/charts";
 import { ErrorBox } from "../components/ui";
 import { fmtNum, fmtPct, fmtPctPlain, fmtSol, fmtTime } from "../format";
@@ -129,7 +129,8 @@ export default function BacktestLab() {
               <textarea style={{ minHeight: 70 }} value={profileOv} onChange={(e) => setProfileOv(e.target.value)} /></label>
           </div>
         </div>
-        <button className="primary" onClick={run} disabled={!strategies.length}>Lancia backtest</button>
+        <button className="primary" onClick={run} disabled={STATIC || !strategies.length}>Lancia backtest</button>
+        {STATIC && <div className="note">Nella dashboard pubblica i backtest non si lanciano: si eseguono dal workflow GitHub "memecoin-backtest".</div>}
         <div className="note">Seleziona fino a due run nella tabella sotto per confrontarli.</div>
       </div>
 

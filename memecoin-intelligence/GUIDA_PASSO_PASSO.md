@@ -2,7 +2,7 @@
 
 Due modi per far girare il bot senza tenere acceso il PC:
 
-| | **VPS (consigliata)** | GitHub Actions (gratis, già attivo) |
+| | **VPS (attiva dal 1° novembre 2026)** | GitHub Actions (gratis, ora spento: il bot gira sulla VPS) |
 |---|---|---|
 | Costo | ~8–10 €/mese IVA inclusa (Hetzner, novembre 2026: da 7,92 €; pagamento a ore: se cancelli la VPS smetti di pagare) | 0 € |
 | Frequenza | scanner ogni 60 s, posizioni ogni 20 s, Pump.fun in tempo reale | finestre di 3 min ogni 15 min (o più: GitHub le ritarda) |
@@ -11,6 +11,10 @@ Due modi per far girare il bot senza tenere acceso il PC:
 | Dashboard | privata con password (facoltativa) | pubblica in sola lettura |
 
 ## ⭐ VPS: bot attivo 24/7 (circa 20 minuti, quasi tutto automatico)
+
+> **Stato attuale:** VPS Hetzner **CX23** (2 vCPU, 4 GB) a Falkenstein, **7,31 €/mese** IVA e IPv4 inclusi,
+> creata il 1° novembre 2026 dal workflow **memecoin VPS create (Hetzner)**; portafoglio paper importato dal
+> bot su GitHub (2,0021 SOL), bot su GitHub disattivato. La dashboard su GitHub Pages non si aggiorna più.
 
 **Cosa fai tu:** crei l'account e la VPS e incolli un testo. **Cosa fa il server da solo:** installa tutto,
 importa il portafoglio paper attuale da GitHub, si protegge (firewall), riparte da solo dopo crash o

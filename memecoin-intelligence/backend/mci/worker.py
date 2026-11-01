@@ -219,6 +219,7 @@ class Worker:
         ~15 minutes): state lives in the database between windows, Telegram commands received in
         the meantime are processed at the start of the next window.
         """
+        log.info("ripresi %s token dal database", self.scanner.load_from_db())
         with session_scope() as s:
             self.bot.offset = repo.get_state(s, "telegram_offset")
             self.engine.last_equity_notified = repo.get_state(s, "last_equity_notified") or self.engine.port.equity
@@ -274,7 +275,8 @@ class Worker:
                            data={"profile": self.s.risk_profile, "strategies": self.s.strategies})
             n_open = len(repo.open_positions(s, self.mode))
             n_tok = s.scalar(select(func.count()).select_from(TokenSnapshotRow)) or 0
-        log.info("worker started: mode=%s open_positions=%s snapshots=%s", self.mode, n_open, n_tok)
+        log.info("worker started: mode=%s open_positions=%s snapshots=%s resumed_tokens=%s",
+                 self.mode, n_open, n_tok, self.scanner.load_from_db())
         tasks = [
             asyncio.create_task(self._loop("scanner", self.s.scan_interval_seconds, self.scan_once)),
             asyncio.create_task(self._loop("monitor", self.s.position_monitor_interval_seconds, self.monitor_once)),

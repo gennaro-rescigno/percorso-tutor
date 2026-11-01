@@ -31,7 +31,7 @@ from mci.collectors.social import RedditCollector
 from mci.config import Settings
 from mci.database import repo
 from mci.database.session import session_scope
-from mci.domain import Candle, ScoreResult, TokenSnapshot, utcnow
+from mci.domain import Candle, ScoreResult, TokenSnapshot, to_utc, utcnow
 from mci.onchain.wash import wash_metrics
 from mci.scoring.scorer import score_token
 from mci.utils.http import SourceUnavailable
@@ -301,7 +301,7 @@ class Scanner:
             # (shared IPs on GitHub runners): on the first 429 we stop calling it for a while.
             if gecko_budget > 0 and snap.pair_address and c.due("gecko", 300) and not self.gecko_paused():
                 try:
-                    candles = await self.gecko.ohlcv(snap.pair_address, "1m", limit=300, currency="token")
+                    candles = await self.gecko.ohlcv(snap.pair_address, "1m", limit=1000, currency="token")
                     gecko_budget -= 1
                     if candles:
                         c.candles["1m"] = candles
@@ -365,7 +365,7 @@ class Scanner:
                         tt.last_recorded = now
                     for tf, cs in tt.candles.items():
                         if tt.snapshot.pair_address and cs:
-                            repo.upsert_candles(s, tt.address, tt.snapshot.pair_address, tf, cs[-60:])
+                            repo.upsert_candles(s, tt.address, tt.snapshot.pair_address, tf, cs)
                     if tt.snapshot.liquidity_usd is not None and tt.snapshot.liquidity_usd < DEAD_LIQUIDITY_USD:
                         tt.low_liq_since = tt.low_liq_since or now
                         if now - tt.low_liq_since > 6 * 3600:
@@ -374,6 +374,52 @@ class Scanner:
                         tt.low_liq_since = None
         except Exception:
             log.exception("failed to record scan results")
+
+    def load_from_db(self, max_tokens: int | None = None, history: int = 24, candle_hours: int = 18) -> int:
+        """Resume tracking after a restart (or between GitHub Actions windows): reload recently seen
+        tokens with their last snapshot, recent point-in-time history and recorded candles, so that
+        tokens are re-evaluated and candles survive a window in which GeckoTerminal is rate limited."""
+        from sqlalchemy import or_, select
+
+        from mci.database.models import Position, Token, TokenSnapshotRow
+
+        limit = max_tokens or max(50, self.s.max_tracked_tokens // 2)
+        since = utcnow() - timedelta(hours=24)
+        loaded = 0
+        with session_scope() as s:
+            held = set(s.scalars(select(Position.token_address).where(Position.status == "open")).all())
+            rows = s.scalars(
+                select(Token)
+                .where(or_(Token.address.in_(held), (Token.last_seen_at >= since) & (Token.status != "dead")))
+                .order_by(Token.last_score.desc().nulls_last(), Token.last_liquidity_usd.desc().nulls_last())
+                .limit(limit + len(held))
+            ).all()
+            for i, tok in enumerate(rows):
+                if tok.address in self.tokens or not tok.last_snapshot:
+                    continue
+                try:
+                    snap = TokenSnapshot.from_dict(tok.last_snapshot)
+                except Exception:
+                    continue
+                tt = TrackedToken(tok.address, snap, to_utc(tok.first_seen_at) or utcnow(), "db")
+                tt.last_recorded = time.time()  # avoid re-recording an identical snapshot immediately
+                if i < self.s.candidate_pool_size * 2 or tok.address in held:
+                    hist = s.scalars(select(TokenSnapshotRow).where(TokenSnapshotRow.token_id == tok.id)
+                                     .order_by(TokenSnapshotRow.observed_at.desc()).limit(history)).all()
+                    for h in reversed(hist):
+                        try:
+                            tt.history.append(TokenSnapshot.from_dict(h.data))
+                        except Exception:
+                            pass
+                    if tok.pair_address:
+                        since_ts = int((utcnow() - timedelta(hours=candle_hours)).timestamp())
+                        for tf in ("1m", "1h"):
+                            cs = repo.load_candles(s, tok.pair_address, tf, since_ts=since_ts if tf == "1m" else 0)
+                            if cs:
+                                tt.candles[tf] = cs[-1000:]
+                self.tokens[tok.address] = tt
+                loaded += 1
+        return loaded
 
     def _prune(self) -> None:
         """Stop tracking tokens that are dead or stale (they remain in the database)."""

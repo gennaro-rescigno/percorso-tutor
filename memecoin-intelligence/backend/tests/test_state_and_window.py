@@ -128,3 +128,24 @@ def test_secrets_never_published(db, tmp_path, monkeypatch):
     export_static(tmp_path / "site")
     blob = (tmp_path / "state.json").read_text() + "".join(p.read_text() for p in (tmp_path / "site").rglob("*.json"))
     assert token not in blob and "***" in blob
+
+
+def test_scanner_resumes_tokens_history_and_candles_from_db(db):
+    from mci.config import get_settings
+    from mci.domain import Candle
+    from mci.scanner.service import Scanner
+
+    snap = _seed()
+    t0 = int((utcnow() - timedelta(hours=2)).timestamp()) // 60 * 60
+    with session_scope() as s:
+        repo.upsert_candles(s, snap.token_address, snap.pair_address, "1m",
+                            [Candle(t0 + 60 * i, 1.0, 1.1, 0.9, 1.05, 100.0) for i in range(90)])
+        old = good_snapshot(token_address="OldDeadMint", symbol="OLD")
+        tok = repo.upsert_token(s, old, "test", None)
+        tok.status = "dead"
+    sc = Scanner(get_settings(), None, None, None, None, None)  # type: ignore[arg-type]
+    assert sc.load_from_db() == 1  # the dead token is not resumed
+    tt = sc.tokens[snap.token_address]
+    assert tt.snapshot.symbol == "GOOD" and tt.source == "db"
+    assert len(tt.candles["1m"]) == 90 and len(tt.history) == 1
+    assert sc.load_from_db() == 0  # idempotent

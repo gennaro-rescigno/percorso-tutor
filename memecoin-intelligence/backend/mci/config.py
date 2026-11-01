@@ -90,6 +90,9 @@ class Settings(BaseSettings):
     telegram_bot_token: SecretStr = SecretStr("")
     telegram_chat_ids: str = ""  # comma separated list of allowed chat ids
     telegram_min_score_alert: float = 75.0
+    # trades = only buys and sells (full or partial); all = also signals, token alerts, daily report, notices.
+    # Command replies (/status, /daily, ...) are always sent.
+    telegram_notify: Literal["trades", "all"] = "trades"
     telegram_alert_cooldown_minutes: int = 240
 
     # --- dashboard / api ----------------------------------------------------------

@@ -34,8 +34,14 @@ HELP = (
 )
 
 
+TRADE_KINDS = frozenset({"buy", "partial", "close"})
+
+
 class TelegramNotifier:
-    """Implements the engine's ``Notifier`` protocol."""
+    """Implements the engine's ``Notifier`` protocol.
+
+    With ``telegram_notify=trades`` (default) only buys and sells reach Telegram; everything else stays in the
+    activity log and is available on demand (/signals, /daily, /status, /risk)."""
 
     def __init__(self, client: TelegramClient, settings: Settings, mode: str):
         self.client = client
@@ -43,6 +49,8 @@ class TelegramNotifier:
         self.mode = mode
 
     async def notify(self, kind: str, payload: dict[str, Any]) -> None:
+        if self.s.telegram_notify == "trades" and kind not in TRADE_KINDS:
+            return
         try:
             text = self._render(kind, payload)
         except Exception:

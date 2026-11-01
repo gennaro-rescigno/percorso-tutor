@@ -317,7 +317,10 @@ cmd_update() {
     docker image prune -f >/dev/null 2>&1 || true
     docker builder prune -f --filter until=168h >/dev/null 2>&1 || true
     log "update: ok ${target:0:7}"
-    tg "🔄 Bot aggiornato alla versione ${target:0:7} (modalità PAPER)."
+    # successful updates are silent by default (MCI_TELEGRAM_NOTIFY=trades: only buys and sells); failures always notify
+    if [ "$(kv_get "$APP/.env" MCI_TELEGRAM_NOTIFY)" = all ]; then
+      tg "🔄 Bot aggiornato alla versione ${target:0:7} (modalità PAPER)."
+    fi
   else
     log "update: la nuova versione non è sana, torno a ${cur:0:7}"
     git -c advice.detachedHead=false checkout -q -f --detach "$cur"

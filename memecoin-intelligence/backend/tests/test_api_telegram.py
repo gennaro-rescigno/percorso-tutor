@@ -155,3 +155,32 @@ async def test_telegram_send_failure_reason_is_recorded_without_token():
         assert await c.send("ciao") is False
         await c.close()
     assert c.failed == 1 and c.last_error == "HTTP 401 Unauthorized" and token not in c.last_error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("setting,expected", [
+    ("trades", ["buy", "partial", "close"]),
+    ("all", ["buy", "partial", "close", "signal", "token_alert", "anomaly", "text", "stop_hit"]),
+])
+async def test_only_buys_and_sells_are_notified_by_default(db, monkeypatch, setting, expected):
+    from mci.config import get_settings
+    from mci.telegram.bot import TelegramNotifier
+
+    monkeypatch.setenv("MCI_TELEGRAM_NOTIFY", setting)
+    reset_settings_cache()
+    tg = FakeTG()
+    n = TelegramNotifier(tg, get_settings(), "paper")
+    trade = {"symbol": "PEPE", "token": "M", "entry_price": 1e-7, "score": 87, "stake_sol": 0.15, "reasons": [],
+             "risks": [], "sol_eur": 140.0, "return_pct": 0.1, "net_pnl_sol": 0.01, "title": "TAKE PROFIT",
+             "fraction": 0.5, "price": 2e-7, "proceeds_sol": 0.08, "new_stop": 1e-7, "reason": "tp"}
+    sent = []
+    for kind in ("buy", "partial", "close", "signal", "token_alert", "anomaly", "text", "stop_hit"):
+        before = len(tg.out)
+        payload = dict(trade, text="avviso", strategy="B", name="Pepe", address="M", liquidity_usd=1e5)
+        try:
+            await n.notify(kind, payload)
+        except Exception:
+            pass
+        if len(tg.out) > before:
+            sent.append(kind)
+    assert sent == expected

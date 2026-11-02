@@ -71,6 +71,10 @@ jobs:
               st = lab.get("stats") or {}
               print(f"  - ultimo controllo: {lab.get('last_scan_at')} · segnali ricevuti: {st.get('signals', 0)} "
                     f"{st.get('by_strategy', {})} · ultimo segnale: {st.get('last_signal')} {st.get('last_signal_at')}")
+              for p in (lab.get("positions") or [])[:20]:
+                  print(f"    · {p.get('status')} {p.get('symbol')} [{p.get('strategy')}] {p.get('opened_at')} → {p.get('closed_at')} · "
+                        f"ingresso {p.get('entry_price')} · puntata {p.get('stake_sol')} · costo {p.get('cost_sol')} · "
+                        f"P/L {p.get('pnl_sol')} ({p.get('return_pct')}) · durata {p.get('duration_min')} · uscita: {p.get('exit_reason')}")
               if lab.get("skipped"):
                   print(f"  - segnali non simulabili: {lab['skipped']}")
           else:

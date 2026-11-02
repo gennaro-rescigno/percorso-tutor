@@ -300,6 +300,8 @@ def create_app() -> FastAPI:
                 "main_by_strategy": perf.strategy_stats(s, _mode(s)),
                 "positions": [perf.position_dict(p, sol_eur) for p in rows],
                 "skipped": repo.get_state(s, "lab_skipped") or {},
+                "stats": repo.get_state(s, "lab_stats") or {"signals": 0, "by_strategy": {}},
+                "last_scan_at": repo.get_state(s, "lab_last_scan_at"),
             }
 
     # ------------------------------------------------------------------ risk

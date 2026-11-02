@@ -99,6 +99,7 @@ async def test_lab_counts_signals_it_cannot_simulate(db):
     await lab.on_scan([tt])
     with session_scope() as s:
         assert repo.get_state(s, "lab_skipped") == {"capitale non disponibile": 1}
+        assert repo.get_state(s, "lab_stats")["signals"] == 1  # a received-but-skipped signal still counts
     assert _count(Position, mode="lab") == 0
 
 
@@ -134,6 +135,8 @@ async def test_lab_page_data_and_static_export(db, tmp_path, monkeypatch):
     assert a["trades"] == 1 and a["losses"] == 1 and a["win_rate"] == 0.0 and a["avg_return"] < 0
     assert len(d["positions"]) == 1 and d["positions"][0]["status"] == "closed"
     assert d["equity_curve"] and d["main_by_strategy"] == []
+    assert d["stats"]["signals"] == 1 and d["stats"]["by_strategy"] == {"A": 1} and d["last_scan_at"]
+    assert d["stats"]["last_signal"].startswith("A su ")
     assert c.get("/api/lab").status_code == 401  # login required on the private API
 
     export_static(tmp_path / "site")

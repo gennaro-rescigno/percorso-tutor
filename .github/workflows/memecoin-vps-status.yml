@@ -68,6 +68,9 @@ jobs:
               for r in lab.get("by_strategy", []):
                   print(f"  - {r['strategy']}: chiuse {r['trades']} (vinte {r['wins']}, perse {r['losses']}) · aperte {r['open']} · "
                         f"win rate {r['win_rate']} · P/L {r['pnl_sol']:+.4f} SOL · media {r['avg_return']}")
+              st = lab.get("stats") or {}
+              print(f"  - ultimo controllo: {lab.get('last_scan_at')} · segnali ricevuti: {st.get('signals', 0)} "
+                    f"{st.get('by_strategy', {})} · ultimo segnale: {st.get('last_signal')} {st.get('last_signal_at')}")
               if lab.get("skipped"):
                   print(f"  - segnali non simulabili: {lab['skipped']}")
           else:

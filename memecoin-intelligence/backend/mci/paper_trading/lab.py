@@ -70,19 +70,32 @@ class LabEngine(TradingEngine):
     def track_signal_outcomes(self) -> int:
         return 0
 
+    async def on_scan(self, candidates: list[TrackedToken]) -> None:
+        await super().on_scan(candidates)
+        with session_scope() as s:  # heartbeat shown on the dashboard page
+            repo.set_state(s, "lab_last_scan_at", utcnow().isoformat())
+
     async def _handle_signal(self, tt: TrackedToken, strat: Strategy, sig: Signal, anomaly: str | None,
                              sol_eur: float | None, killed: bool) -> None:
         snap = tt.snapshot
         fee = dex_fee(snap.dex_id, snap.market_cap_usd)
-        rd = self.risk.check_entry(self.port, sig, now=utcnow(), reserve_sol=snap.liquidity_quote, fee_pct=fee)
-        if not rd.allowed:
-            # only physical constraints are left (no capital, unknown liquidity, too much price impact):
-            # count them so the dashboard can show how many signals could not be simulated and why
-            with session_scope() as s:
+        now = utcnow()
+        rd = self.risk.check_entry(self.port, sig, now=now, reserve_sol=snap.liquidity_quote, fee_pct=fee)
+        with session_scope() as s:
+            stats = repo.get_state(s, "lab_stats") or {"signals": 0, "by_strategy": {}}
+            stats["signals"] += 1
+            stats["by_strategy"][sig.strategy] = stats["by_strategy"].get(sig.strategy, 0) + 1
+            stats["last_signal_at"] = now.isoformat()
+            stats["last_signal"] = f"{sig.strategy} su {sig.symbol or sig.token_address[:8]}"
+            repo.set_state(s, "lab_stats", stats)
+            if not rd.allowed:
+                # only physical constraints are left (no capital, unknown liquidity, too much price impact):
+                # count them so the dashboard can show how many signals could not be simulated and why
                 skipped = repo.get_state(s, "lab_skipped") or {}
                 key = (rd.reasons[-1] if rd.reasons else "non simulabile")[:120]
                 skipped[key] = skipped.get(key, 0) + 1
                 repo.set_state(s, "lab_skipped", skipped)
+        if not rd.allowed:
             return
         await self._open_position(tt, strat, sig, None, rd.size_sol, rd.sizing.risk_sol if rd.sizing else 0.0,
                                   sol_eur)

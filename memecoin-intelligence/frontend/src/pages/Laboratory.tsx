@@ -59,6 +59,15 @@ export default function Laboratory() {
         slittamento). Non invia messaggi Telegram e non usa soldi veri. Serve a capire come si comporta ogni strategia da sola.
         {data?.started_at && <> Attivo dal {fmtTime(data.started_at)}.</>}
       </div>
+      <div className="card section">
+        <b>Stato del Laboratorio:</b>{" "}
+        {data?.last_scan_at ? <>ultimo controllo dei segnali {fmtTime(data.last_scan_at)}</> : "in avvio"}
+        {" · "}
+        {data?.stats?.signals
+          ? <>segnali ricevuti finora: <b>{fmtNum(data.stats.signals)}</b> (ultimo: {data.stats.last_signal}, {fmtTime(data.stats.last_signal_at)}){" · "}
+              per strategia: {Object.entries(data.stats.by_strategy ?? {}).map(([k, v]) => `${k} ${v}`).join(", ")}</>
+          : "nessun segnale ancora: da quando il Laboratorio è partito nessuna strategia ha visto un punto d'ingresso"}
+      </div>
       {s && s.total_trades < 30 && (
         <div className="warn-box">
           Operazioni chiuse finora: {s.total_trades}. Sotto le 30 operazioni win rate e medie non sono ancora affidabili.

@@ -213,3 +213,24 @@ def test_gecko_429_backs_off_and_recovers_gradually(monkeypatch):
     assert abs(lim.rate * 60 - 12) < 1e-9  # never above the configured ceiling
     sc.pause_gecko(SourceUnavailable("geckoterminal", "HTTP 500"))  # other errors do not slow down
     assert abs(lim.rate * 60 - 12) < 1e-9
+
+
+def test_gecko_pace_is_reported_and_can_be_restored(monkeypatch):
+    from mci.config import get_settings
+    from mci.scanner.service import Scanner
+    from mci.utils.http import SourceUnavailable
+
+    gecko = GeckoTerminalCollector("https://example.invalid", calls_per_minute=12)
+    sc = Scanner(get_settings(), None, gecko, None, None, None)  # type: ignore[arg-type]
+    seen = []
+    sc.on_gecko_rate_change = seen.append
+    monkeypatch.setattr("mci.scanner.service.time.time", lambda: 1000.0)
+    sc.pause_gecko(SourceUnavailable("geckoterminal", "rate limited (429)"))
+    assert seen == [pytest.approx(6.0)]
+    for _ in range(10):
+        sc._ok("geckoterminal")
+    assert seen[-1] == pytest.approx(7.0)
+    sc.set_gecko_rate(3.0)  # restored after a restart
+    assert abs(gecko.api.limiter.rate * 60 - 3.0) < 1e-9
+    sc.set_gecko_rate(50.0)  # never above the configured ceiling
+    assert abs(gecko.api.limiter.rate * 60 - 12.0) < 1e-9

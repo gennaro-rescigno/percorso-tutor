@@ -59,6 +59,12 @@ class Worker:
         self.fx = SolPriceFeed(s.coingecko_base_url, s.kraken_base_url)
         reddit = RedditCollector(s.reddit_client_id, s.reddit_client_secret.get_secret_value(), s.reddit_user_agent)
         self.scanner = Scanner(s, self.dex, self.gecko, self.rug, self.jup, self.fx, reddit if reddit.available else None)
+        # GeckoTerminal pace learned before a restart (otherwise every update starts too fast and gets 429s)
+        with session_scope() as db:
+            saved_pace = repo.get_state(db, "gecko_calls_per_minute")
+        if saved_pace:
+            self.scanner.set_gecko_rate(float(saved_pace))
+        self.scanner.on_gecko_rate_change = self._save_gecko_pace
         self.costs = CostModel(priority_fee_sol=s.priority_fee_sol, jito_tip_sol=s.jito_tip_sol)
         self.executor = self._build_executor()
         self.mode = self.executor.mode
@@ -197,6 +203,11 @@ class Worker:
             except Exception:
                 log.exception("telegram polling error")
                 await asyncio.sleep(5)
+
+    @staticmethod
+    def _save_gecko_pace(calls_per_minute: float) -> None:
+        with session_scope() as s:
+            repo.set_state(s, "gecko_calls_per_minute", round(calls_per_minute, 3))
 
     async def set_jupiter_key(self, key: str) -> str:
         """/jupiterkey from the owner's chat: verify with Jupiter, switch at once, keep it only on this server."""

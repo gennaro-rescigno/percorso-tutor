@@ -20,6 +20,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
+from collections.abc import Callable
 
 from mci.collectors.dexscreener import DexScreenerCollector
 from mci.collectors.fx import SolPriceFeed
@@ -90,6 +91,7 @@ class Scanner:
         self._gecko_ok_streak = 0
         lim = self._gecko_limiter()
         self._gecko_max_rate = lim.rate if lim else 0.0
+        self.on_gecko_rate_change: Callable[[float], None] | None = None  # worker persists the learned pace
 
     # ------------------------------------------------------------------ helpers
     def _ok(self, name: str) -> None:
@@ -128,6 +130,21 @@ class Scanner:
     def _gecko_limiter(self):
         return getattr(getattr(self.gecko, "api", None), "limiter", None)
 
+    def set_gecko_rate(self, calls_per_minute: float) -> None:
+        """Restore the pace learned before a restart (never above the configured ceiling)."""
+        lim = self._gecko_limiter()
+        if lim and calls_per_minute > 0:
+            lim.rate = min(max(calls_per_minute, 2.0) / 60, self._gecko_max_rate)
+            lim.capacity = 1.0
+            lim._tokens = min(lim._tokens, 1.0)
+
+    def _gecko_rate_changed(self, lim) -> None:
+        if self.on_gecko_rate_change:
+            try:
+                self.on_gecko_rate_change(lim.rate * 60)
+            except Exception:
+                log.exception("could not persist the GeckoTerminal pace")
+
     def pause_gecko(self, err: Exception, seconds: float = 90.0) -> None:
         """GeckoTerminal does not publish its public limit and enforces it per IP. On every 429: pause with
         exponential backoff (90 s, 3, 6, ... up to 15 min) and halve our request rate (no bursts), so the rate
@@ -142,6 +159,7 @@ class Scanner:
                 lim.rate = max(lim.rate / 2, 2 / 60)
                 lim.capacity = 1.0
                 lim._tokens = min(lim._tokens, 1.0)
+                self._gecko_rate_changed(lim)
             log.info("geckoterminal 429: pausa %.0f s, nuovo ritmo %.1f chiamate/min", pause,
                      (lim.rate * 60) if lim else 0)
 
@@ -152,6 +170,7 @@ class Scanner:
         if lim and self._gecko_ok_streak >= 10 and lim.rate < self._gecko_max_rate:
             lim.rate = min(lim.rate + 1 / 60, self._gecko_max_rate)  # +1 call/min after 10 clean rounds
             self._gecko_ok_streak = 0
+            self._gecko_rate_changed(lim)
 
     def sol_anomaly(self) -> str | None:
         """Market anomaly: SOL down > 8% within the last hour of samples."""

@@ -271,3 +271,16 @@ async def test_worker_saves_jupiter_key_only_after_jupiter_accepts_it(db, tmp_pa
     assert read_secret(w.s, JUPITER_KEY) == "good-key-0123456789" and w.status()["jupiter_key"] is True
     for c in (w.dex, w.gecko, w.rug, w.jup, w.rpc, w.fx, w.tg):
         await c.close()
+
+
+
+def test_worker_restores_the_learned_geckoterminal_pace(db):
+    from mci.worker import Worker
+
+    with session_scope() as s:
+        repo.set_state(s, "gecko_calls_per_minute", 4.0)
+    w = Worker()
+    assert abs(w.gecko.api.limiter.rate * 60 - 4.0) < 1e-9
+    w.scanner.on_gecko_rate_change(5.5)  # what the scanner calls after adapting
+    with session_scope() as s:
+        assert repo.get_state(s, "gecko_calls_per_minute") == 5.5

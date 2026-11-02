@@ -22,7 +22,7 @@ from datetime import datetime, timedelta
 from typing import Any
 from collections.abc import Callable
 
-from mci.collectors.dexscreener import DexScreenerCollector
+from mci.collectors.dexscreener import SOL_QUOTES, DexScreenerCollector
 from mci.collectors.fx import SolPriceFeed
 from mci.collectors.geckoterminal import GeckoTerminalCollector
 from mci.collectors.jupiter import JupiterCollector
@@ -301,6 +301,20 @@ class Scanner:
         return candidates
 
     # ------------------------------------------------------------------ enrichment
+    async def _sol_candles(self, snap: TokenSnapshot, timeframe: str, limit: int, sol_usd: float | None) -> list[Candle]:
+        """Candles priced in SOL per token, like every other price in the system.
+
+        GeckoTerminal's ``currency=token`` prices a pool in ITS quote token: fine for SOL pools, wrong for pools
+        quoted in USDC or another token (prices off by that token's value). Those pools are fetched in USD and
+        converted with the current SOL/USD rate (relative moves, which the strategies use, are preserved)."""
+        if (snap.quote_symbol or "").upper() in SOL_QUOTES:
+            return await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="token")
+        if not sol_usd:
+            return []
+        usd = await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="usd")
+        return [Candle(k.ts, k.open / sol_usd, k.high / sol_usd, k.low / sol_usd, k.close / sol_usd, k.volume / sol_usd)
+                for k in usd]
+
     async def _enrich(self, candidates: list[TrackedToken], sol_usd: float | None) -> None:
         # Jupiter batch prices for divergence check
         try:
@@ -350,14 +364,14 @@ class Scanner:
             # (shared IPs on GitHub runners): on the first 429 we stop calling it for a while.
             if gecko_budget > 0 and snap.pair_address and c.due("gecko", 300) and not self.gecko_paused():
                 try:
-                    candles = await self.gecko.ohlcv(snap.pair_address, "1m", limit=1000, currency="token")
+                    candles = await self._sol_candles(snap, "1m", 1000, sol_usd)
                     gecko_budget -= 1
                     if candles:
                         c.candles["1m"] = candles
                     age = snap.age_minutes or 0
                     if age > 7 * 1440 and c.due("gecko_1h", 1800):
                         # old tokens (Revival strategy) need hourly history
-                        hourly = await self.gecko.ohlcv(snap.pair_address, "1h", limit=500, currency="token")
+                        hourly = await self._sol_candles(snap, "1h", 500, sol_usd)
                         gecko_budget -= 1
                         if hourly:
                             c.candles["1h"] = hourly

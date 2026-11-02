@@ -37,6 +37,15 @@ from mci.utils.http import SourceUnavailable
 log = logging.getLogger(__name__)
 
 STRATEGY_NAMES = {"A": "Early Entry", "B": "Momentum", "C": "Pullback", "D": "Accumulazione", "E": "Revival"}
+# A signal is computed on candles; if their last price is far from the live market price, the data is stale or
+# in another unit and the signal is not trustworthy (missing/unverifiable data never becomes a positive signal).
+MAX_REFERENCE_DIVERGENCE = 0.20
+
+
+def price_divergence(reference: float | None, live: float | None) -> float | None:
+    if not reference or not live or reference <= 0 or live <= 0:
+        return None
+    return abs(reference / live - 1)
 TF_FACTOR = {"1m": 1, "5m": 5, "15m": 15}
 
 
@@ -211,6 +220,10 @@ class TradingEngine:
             signal_id = row.id
             rd = self.risk.check_entry(self.port, sig, now=utcnow(), reserve_sol=snap.liquidity_quote, fee_pct=fee,
                                        market_anomaly=anomaly)
+            div = price_divergence(sig.reference_price, snap.price_native)
+            if div is not None and div > MAX_REFERENCE_DIVERGENCE:
+                rd.allowed = False
+                rd.reasons = list(rd.reasons) + [f"prezzo delle candele incoerente con il prezzo attuale ({div:.0%})"]
             if not rd.allowed:
                 row.status = "rejected"
                 row.rejection_reason = "; ".join(rd.reasons)

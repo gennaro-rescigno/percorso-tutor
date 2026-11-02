@@ -15,6 +15,7 @@ the balance would move. It is fully separate from the main portfolio:
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 from typing import Any
 
 from mci.config import Settings
@@ -23,8 +24,9 @@ from mci.database.session import session_scope
 from mci.domain import Signal, utcnow
 from mci.execution.costs import CostModel, dex_fee
 from mci.execution.paper import PaperExecutor
-from mci.paper_trading.engine import NullNotifier, TradingEngine
+from mci.paper_trading.engine import MAX_REFERENCE_DIVERGENCE, NullNotifier, TradingEngine, price_divergence
 from mci.risk_management.exits import ExitPolicy
+from mci.risk_management.manager import RiskDecision
 from mci.risk_management.profiles import LAB
 from mci.scanner.service import Scanner, TrackedToken
 from mci.strategies.base import Strategy
@@ -32,6 +34,24 @@ from mci.strategies.base import Strategy
 log = logging.getLogger(__name__)
 
 LAB_MODE = "lab"
+# bump when a fix invalidates earlier lab results: the lab then restarts from 2 SOL (main portfolio untouched)
+# v2: entries priced from the live market price instead of the last candle close
+LAB_VERSION = 2
+
+
+def reset_lab(s) -> None:
+    """Remove every Laboratorio record (positions, orders, fills, equity, state). Main portfolio rows are untouched."""
+    from sqlalchemy import delete, select
+
+    from mci.database.models import EquitySnapshot, FillRow, Order, Position
+
+    lab_orders = select(Order.id).where(Order.mode == LAB_MODE)
+    s.execute(delete(FillRow).where(FillRow.order_id.in_(lab_orders)))
+    s.execute(delete(Order).where(Order.mode == LAB_MODE))
+    s.execute(delete(Position).where(Position.mode == LAB_MODE))
+    s.execute(delete(EquitySnapshot).where(EquitySnapshot.mode == LAB_MODE))
+    for key in ("portfolio_lab", "lab_stats", "lab_skipped", "lab_started_at", "lab_last_scan_at"):
+        repo.set_state(s, key, None)
 
 
 class LabExecutor(PaperExecutor):
@@ -48,8 +68,12 @@ class LabEngine(TradingEngine):
         super().__init__(settings, scanner, LabExecutor(costs), LAB, costs, notifier=NullNotifier(),
                          exit_policy=exit_policy, strategies=strategies)
         with session_scope() as s:
+            if repo.get_state(s, "lab_version") != LAB_VERSION:
+                reset_lab(s)
+                repo.set_state(s, "lab_version", LAB_VERSION)
             if repo.get_state(s, "lab_started_at") is None:
                 repo.set_state(s, "lab_started_at", utcnow().isoformat())
+        self.port = self._load_portfolio()
 
     # no limits, no controls, no messages, no activity-log entries
     def control_flags(self) -> tuple[bool, bool]:
@@ -80,7 +104,17 @@ class LabEngine(TradingEngine):
         snap = tt.snapshot
         fee = dex_fee(snap.dex_id, snap.market_cap_usd)
         now = utcnow()
-        rd = self.risk.check_entry(self.port, sig, now=now, reserve_sol=snap.liquidity_quote, fee_pct=fee)
+        live = snap.price_native
+        div = price_divergence(sig.reference_price, live)
+        if live and div is not None and div <= MAX_REFERENCE_DIVERGENCE:
+            # simulated fills start from the LIVE market price (the same source the position monitor uses), never
+            # from the last candle close, which can be stale or, for non-SOL pools, in another unit
+            sig = replace(sig, reference_price=live, stop_price=sig.stop_price * live / sig.reference_price)
+            rd = self.risk.check_entry(self.port, sig, now=now, reserve_sol=snap.liquidity_quote, fee_pct=fee)
+        elif not live:
+            rd = RiskDecision(False, 0.0, ["prezzo attuale non disponibile"])
+        else:
+            rd = RiskDecision(False, 0.0, [f"prezzo delle candele incoerente con il prezzo attuale ({div:.0%})"])
         with session_scope() as s:
             stats = repo.get_state(s, "lab_stats") or {"signals": 0, "by_strategy": {}}
             stats["signals"] += 1

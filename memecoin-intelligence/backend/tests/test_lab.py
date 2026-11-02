@@ -158,3 +158,89 @@ def test_zero_cooldown_never_blocks_even_with_clock_skew():
                  stop_price=0.8, score=10.0, reasons=[], risks=[])
     rd = RiskManager(LAB, CostModel()).check_entry(st, sig, now=utcnow(), reserve_sol=500.0, fee_pct=0.0025)
     assert not any("cooldown" in r for r in rd.reasons), rd.reasons
+
+
+@pytest.mark.asyncio
+async def test_lab_buys_at_the_live_price_not_at_a_stale_candle_close(db):
+    lab, sc, dex = _lab()
+    tt = _tracked(sc)
+    close = tt.candles["1m"][-1].close
+    tt.snapshot.price_native = close * 0.9  # live market 10% below the last candle (still consistent)
+    await lab.on_scan([tt])
+    with session_scope() as s:
+        p = repo.open_positions(s, "lab")[0]
+        # entry from the live price (+ pool impact, landing slippage), not from the candle close
+        assert close * 0.9 <= p.entry_price < close * 0.9 * 1.05
+        entry = p.entry_price
+    dex.price_native = close * 0.9  # the monitor sees the same live price: no immediate fake "gap" stop
+    await lab.monitor_positions()
+    with session_scope() as s:
+        assert repo.open_positions(s, "lab")[0].entry_price == entry
+
+
+@pytest.mark.asyncio
+async def test_inconsistent_prices_never_become_trades(db):
+    notes = Notes()
+    main, sc, _ = _engine(notes)
+    lab, _, _ = _lab(sc)
+    tt = _tracked(sc)
+    tt.snapshot.price_native = tt.candles["1m"][-1].close / 27  # candles in another unit (non-SOL pool)
+    await main.on_scan([tt])
+    await lab.on_scan([tt])
+    assert _count(Position) == 0
+    with session_scope() as s:
+        sig = s.scalar(select(SignalRow))
+        assert sig.status == "rejected" and "incoerente" in sig.rejection_reason
+        skipped = repo.get_state(s, "lab_skipped")
+        assert len(skipped) == 1 and next(iter(skipped)).startswith("prezzo delle candele incoerente")
+
+
+@pytest.mark.asyncio
+async def test_new_lab_version_restarts_the_lab_and_keeps_the_main_portfolio(db):
+    notes = Notes()
+    main, sc, _ = _engine(notes)
+    tt = _tracked(sc)
+    await main.on_scan([tt])  # one main-portfolio position
+    lab, _, _ = _lab(sc)
+    tt2 = _tracked(sc)
+    tt2.snapshot.token_address = "OtherMint"
+    with session_scope() as s:
+        repo.set_state(s, "lab_version", 1)
+    lab.port.trades_today = 0
+    from mci.domain import utcnow
+
+    # simulate old (v1) lab records
+    with session_scope() as s:
+        s.add(Position(mode="lab", token_address="Old", symbol="OLD", strategy="A", status="closed", opened_at=utcnow(),
+                       entry_price=1.0, qty_initial=1, qty=0, stake_sol=0.05, cost_sol=0.05, stop_price=0.9,
+                       initial_stop=0.9, take_profits=[], last_price=0.04, state={}, realized_pnl_sol=-0.048))
+        repo.set_state(s, "portfolio_lab", {"equity": 1.6, "cash": 1.6, "peak_equity": 2.0, "day_start_equity": 2.0})
+    lab2, _, _ = _lab(sc)
+    assert _count(Position, mode="lab") == 0 and _count(Position, mode="paper") == 1
+    assert lab2.port.equity == pytest.approx(2.0)
+    with session_scope() as s:
+        assert repo.get_state(s, "lab_version") == 2
+
+
+@pytest.mark.asyncio
+async def test_candles_of_non_sol_pools_are_converted_to_sol():
+    from mci.domain import Candle
+    from conftest import good_snapshot
+
+    class FakeGecko:
+        def __init__(self):
+            self.calls = []
+
+        async def ohlcv(self, pool, tf, limit, currency):
+            self.calls.append(currency)
+            return [Candle(0, 3.0, 3.3, 2.7, 3.0, 300.0)]
+
+    g = FakeGecko()
+    sc = Scanner(get_settings(), None, g, None, None, None)  # type: ignore[arg-type]
+    sol_pool = good_snapshot(quote_symbol="SOL")
+    usdc_pool = good_snapshot(quote_symbol="USDC")
+    assert (await sc._sol_candles(sol_pool, "1m", 10, 150.0))[0].close == 3.0
+    c = (await sc._sol_candles(usdc_pool, "1m", 10, 150.0))[0]
+    assert c.close == pytest.approx(0.02) and c.high == pytest.approx(0.022)
+    assert g.calls == ["token", "usd"]
+    assert await sc._sol_candles(usdc_pool, "1m", 10, None) == []  # no SOL/USD rate: no candles, no guess

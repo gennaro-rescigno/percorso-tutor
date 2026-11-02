@@ -56,7 +56,7 @@ class Rpc:
             body = r.json()
             if "error" in body:
                 raise RuntimeError(f"{method}: {body['error']}")
-            await asyncio.sleep(0.25)  # stay far below public limits
+            await asyncio.sleep(0.6)  # stay far below public limits
             return body.get("result")
         raise RuntimeError(f"{method}: rate limited")
 
@@ -73,32 +73,31 @@ def b58(s: str) -> bytes:
     return bytes(Pubkey.from_string(s))
 
 
-async def pumpportal(seconds_new: int = 45, seconds_trades: int = 90) -> tuple[list[dict], list[dict]]:
+async def pumpportal(seconds: int = 150, max_subscribed: int = 25) -> tuple[list[dict], list[dict]]:
+    """Subscribe to the trades of each new token IMMEDIATELY at creation (first buyers happen in seconds)."""
     import websockets
 
     creates: list[dict] = []
     trades: list[dict] = []
+    other: list[dict] = []
     async with websockets.connect("wss://pumpportal.fun/api/data", ping_interval=20) as ws:
         await ws.send(json.dumps({"method": "subscribeNewToken"}))
         t0 = time.time()
-        while time.time() - t0 < seconds_new and len(creates) < 6:
+        while time.time() - t0 < seconds and len(trades) < 600:
             try:
                 msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
             except asyncio.TimeoutError:
                 continue
-            if msg.get("txType") == "create":
+            tx = msg.get("txType")
+            if tx == "create":
                 creates.append(msg)
-        mints = [c["mint"] for c in creates[:6] if c.get("mint")]
-        if mints:
-            await ws.send(json.dumps({"method": "subscribeTokenTrade", "keys": mints}))
-        t0 = time.time()
-        while time.time() - t0 < seconds_trades and len(trades) < 400:
-            try:
-                msg = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
-            except asyncio.TimeoutError:
-                continue
-            if msg.get("txType") in ("buy", "sell"):
+                if len(creates) <= max_subscribed:
+                    await ws.send(json.dumps({"method": "subscribeTokenTrade", "keys": [msg["mint"]]}))
+            elif tx in ("buy", "sell"):
                 trades.append(msg)
+            elif len(other) < 20:
+                other.append(msg)
+    summary["pumpportal_other_messages"] = other[:10]
     return creates, trades
 
 
@@ -112,7 +111,7 @@ async def main() -> None:
             creates, trades = await pumpportal()
             save("pumpportal_creates", creates)
             save("pumpportal_trades", trades)
-            note("pumpportal", bool(creates), f"{len(creates)} create, {len(trades)} trade")
+            note("pumpportal", bool(creates), f"{len(creates)} create, {len(trades)} trade, mint con scambi={len({t.get('mint') for t in trades})}")
         except Exception as e:  # noqa: BLE001
             note("pumpportal", False, repr(e))
 
@@ -120,7 +119,11 @@ async def main() -> None:
         by_mint: dict[str, int] = {}
         for t in trades:
             by_mint[t.get("mint")] = by_mint.get(t.get("mint"), 0) + 1
-        mint = max(by_mint, key=by_mint.get) if by_mint else (creates[0]["mint"] if creates else None)
+        normal = {c["mint"] for c in creates if not c.get("is_mayhem_mode")}
+        ranked = sorted(by_mint, key=by_mint.get, reverse=True)
+        mint = next((m for m in ranked if m in normal), None) or (ranked[0] if ranked else None) \
+            or next(iter(normal), None) or (creates[0]["mint"] if creates else None)
+        summary["mayhem_share"] = sum(1 for c in creates if c.get("is_mayhem_mode")) / max(len(creates), 1)
         summary["mint"] = mint
 
         # 2) mint account (jsonParsed) for the new token, BONK (classic SPL) and PYUSD (Token-2022 extensions)
@@ -227,6 +230,7 @@ async def main() -> None:
 
         # 8) sell simulation via Jupiter + simulateTransaction from a real holder (BONK and the new token)
         for label, m in (("bonk", BONK), ("new", mint)):
+            await asyncio.sleep(5)
             try:
                 largest = await rpc("getTokenLargestAccounts", [m, {"commitment": "confirmed"}])
                 accs = [a for a in (largest or {}).get("value", [])][:15]

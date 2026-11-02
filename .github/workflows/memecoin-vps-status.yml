@@ -25,7 +25,7 @@ jobs:
           IP: ${{ steps.vps.outputs.ip }}
         run: |
           mkdir -p /tmp/d
-          for f in meta overview positions logs signals scanner; do
+          for f in meta overview positions logs signals scanner lab; do
             curl -fsS -m 20 "http://$IP:8080/data/$f.json" -o "/tmp/d/$f.json" || echo "{}" > "/tmp/d/$f.json"
           done
           # details of the highest-scoring tokens (why they were or were not bought)
@@ -34,7 +34,7 @@ jobs:
           python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import json
           from datetime import datetime, timezone
-          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner")}
+          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner", "lab")}
           gen = d["meta"].get("generated_at")
           age = (datetime.now(timezone.utc) - datetime.fromisoformat(gen.replace("Z", "+00:00"))).total_seconds() if gen else None
           ov = d["overview"]; s = ov.get("summary", {}); w = ov.get("worker", {})
@@ -58,6 +58,20 @@ jobs:
           for g in d["signals"].get("signals", [])[:10]:
               print(f"- {g.get('created_at')} {g.get('symbol')} [{g.get('strategy')}] score {g.get('score')} → {g.get('status')} {g.get('rejection') or ''}")
           import os
+          lab = d["lab"]; ls = lab.get("summary") or {}
+          print("\n### Laboratorio (senza limiti)")
+          if ls:
+              le = ls.get("equity_sol") or 0
+              print(f"- attivo dal {lab.get('started_at')} · saldo virtuale {le:.4f} SOL · ROI {100*(ls.get('roi') or 0):+.2f}% · "
+                    f"chiuse {ls.get('total_trades')} · aperte {ls.get('open_positions')} · win rate {ls.get('win_rate')} · "
+                    f"drawdown max {100*(ls.get('max_drawdown') or 0):.1f}%")
+              for r in lab.get("by_strategy", []):
+                  print(f"  - {r['strategy']}: chiuse {r['trades']} (vinte {r['wins']}, perse {r['losses']}) · aperte {r['open']} · "
+                        f"win rate {r['win_rate']} · P/L {r['pnl_sol']:+.4f} SOL · media {r['avg_return']}")
+              if lab.get("skipped"):
+                  print(f"  - segnali non simulabili: {lab['skipped']}")
+          else:
+              print("- dati del Laboratorio non ancora pubblicati")
           print("\n### Token con il punteggio più alto")
           for t in sorted(d["scanner"].get("tokens", []), key=lambda t: -(t.get("score") or 0))[:8]:
               age = t.get("age_hours")

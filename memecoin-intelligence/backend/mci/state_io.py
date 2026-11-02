@@ -195,7 +195,7 @@ def export_static(out_dir: str | Path, max_tokens: int = 30, candle_points: int 
     save("/overview", "overview.json")
     scanner = save("/scanner?sort=score&limit=300&include_excluded=true", "scanner.json") or {"tokens": []}
     positions = save("/positions?status=all", "positions.json") or {"positions": []}
-    for name in ("performance", "risk", "signals", "logs?limit=500", "config/options", "backtests"):
+    for name in ("performance", "risk", "signals", "logs?limit=500", "config/options", "backtests", "lab"):
         save(f"/{name}", name.split("?")[0].replace("/", "_") + ".json")
     wanted = [t["address"] for t in scanner["tokens"] if t.get("status") != "excluded"][:max_tokens]
     wanted += [p["token"] for p in positions["positions"]]

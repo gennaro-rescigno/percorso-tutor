@@ -142,7 +142,7 @@ class RiskManager:
         if signal.token_address in st.exposure:
             no.append("posizione già aperta su questo token")
         last = st.last_exit.get(signal.token_address)
-        if last and now - last[0] < timedelta(minutes=p.cooldown_same_token_min):
+        if last and p.cooldown_same_token_min > 0 and now - last[0] < timedelta(minutes=p.cooldown_same_token_min):
             tag = "dopo una perdita" if last[1] < 0 else "dopo un'uscita recente"
             no.append(f"cooldown sul token {tag}")
         if st.trades_today >= p.max_trades_per_day:

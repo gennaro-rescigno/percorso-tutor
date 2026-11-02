@@ -5,6 +5,7 @@ import { STATIC, getToken, setToken, usePoll } from "./api";
 import { ModeBadge, Status } from "./components/ui";
 import "./theme.css";
 import BacktestLab from "./pages/BacktestLab";
+import Laboratory from "./pages/Laboratory";
 import Login from "./pages/Login";
 import Logs from "./pages/Logs";
 import Overview from "./pages/Overview";
@@ -16,6 +17,7 @@ import TokenPage from "./pages/Token";
 
 const NAV = [
   ["/", "Overview"], ["/scanner", "Market Scanner"], ["/positions", "Posizioni"], ["/performance", "Performance"],
+  ["/laboratorio", "Laboratorio (senza limiti)"],
   ["/backtest", "Backtest Lab"], ["/risk", "Risk Management"], ["/logs", "Log e attività"],
 ];
 
@@ -43,12 +45,12 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           {data?.summary?.paused && <Status level="warning" label="in pausa" />}
           {w.sol_eur && <span className="badge">1 SOL = {w.sol_eur.toFixed(2).replace(".", ",")} €</span>}
           {STATIC && meta?.generated_at && (
-            <span className="badge">ultima esecuzione del bot: {new Date(meta.generated_at).toLocaleString("it-IT")}</span>
+            <span className="badge">ultimo aggiornamento: {new Date(meta.generated_at).toLocaleString("it-IT")}</span>
           )}
         </div>
         {STATIC && (
           <div className="note" style={{ marginTop: -8, marginBottom: 12 }}>
-            Dashboard pubblica in sola lettura, aggiornata a ogni esecuzione del bot (~15 min). Comandi: Telegram.
+            Dashboard pubblica in sola lettura, aggiornata ogni minuto. Comandi: Telegram.
           </div>
         )}
         <Routes>
@@ -57,6 +59,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/token/:address" element={<TokenPage />} />
           <Route path="/positions" element={<Positions />} />
           <Route path="/performance" element={<Performance />} />
+          <Route path="/laboratorio" element={<Laboratory />} />
           <Route path="/backtest" element={<BacktestLab />} />
           <Route path="/risk" element={<Risk />} />
           <Route path="/logs" element={<Logs />} />

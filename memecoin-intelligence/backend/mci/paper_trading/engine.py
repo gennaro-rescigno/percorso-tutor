@@ -103,6 +103,12 @@ class TradingEngine:
     def _save_portfolio(self, s) -> None:
         repo.set_state(s, self._state_key, self.port.to_dict())
 
+    def _log(self, s, category: str, message: str, **kw) -> None:
+        repo.log_event(s, category, message, **kw)
+
+    def _market_anomaly(self) -> str | None:
+        return self.scanner.sol_anomaly() or self.scanner.data_outage()
+
     def control_flags(self) -> tuple[bool, bool]:
         with session_scope() as s:
             paused = bool(repo.get_state(s, "control_paused", False))
@@ -132,7 +138,7 @@ class TradingEngine:
                 self.port.exposure[p.token_address] = p.qty * px
             equity = self.port.cash + value
             for alert in self.risk.update_equity(self.port, equity, self.port.cash, utcnow()):
-                repo.log_event(s, "risk", alert, level="warn")
+                self._log(s, "risk", alert, level="warn")
                 self._pending_alerts.append(alert)
             if record:
                 repo.add_equity_snapshot(s, self.mode, equity, self.port.cash, value, self.port.drawdown_pct, sol_eur, sol_usd)
@@ -160,7 +166,7 @@ class TradingEngine:
 
     async def on_scan(self, candidates: list[TrackedToken]) -> None:
         paused, killed = self.control_flags()
-        anomaly = self.scanner.sol_anomaly() or self.scanner.data_outage()
+        anomaly = self._market_anomaly()
         price = self.scanner.fx.last
         sol_eur = price.eur if price else None
         await self._token_alerts(candidates)
@@ -208,11 +214,11 @@ class TradingEngine:
             if not rd.allowed:
                 row.status = "rejected"
                 row.rejection_reason = "; ".join(rd.reasons)
-                repo.log_event(s, "signal", f"segnale {sig.strategy} su {sig.symbol} rifiutato: {row.rejection_reason}",
+                self._log(s, "signal", f"segnale {sig.strategy} su {sig.symbol} rifiutato: {row.rejection_reason}",
                                token=sig.token_address)
             else:
                 row.status = "accepted"
-                repo.log_event(s, "signal", f"segnale {sig.strategy} su {sig.symbol} accettato: {rd.size_sol:.4f} SOL",
+                self._log(s, "signal", f"segnale {sig.strategy} su {sig.symbol} accettato: {rd.size_sol:.4f} SOL",
                                token=sig.token_address)
         await self.notifier.notify("signal", {
             "symbol": sig.symbol, "strategy_name": STRATEGY_NAMES.get(sig.strategy, sig.strategy), "score": sig.score,
@@ -229,7 +235,7 @@ class TradingEngine:
         coid = f"{self.mode}-buy-{sig.token_address[:12]}-{sig.strategy}-{utcnow():%Y%m%d%H%M}"
         with session_scope() as s:
             if repo.find_order(s, coid):
-                repo.log_event(s, "order", f"ordine duplicato ignorato {coid}", level="warn")
+                self._log(s, "order", f"ordine duplicato ignorato {coid}", level="warn")
                 return
             order = Order(client_order_id=coid, mode=self.mode, side="buy", token_address=sig.token_address,
                           signal_id=signal_id, status="submitted", requested_sol=size, reason=f"strategia {sig.strategy}")
@@ -242,7 +248,7 @@ class TradingEngine:
         res = await self.executor.execute(req)
         with session_scope() as s:
             order = s.get(Order, order_id)
-            sigrow = s.get(SignalRow, signal_id)
+            sigrow = s.get(SignalRow, signal_id) if signal_id is not None else None
             if not res.ok or res.fill is None or res.fill.qty <= 0:
                 order.status = "failed"
                 order.error = res.error
@@ -250,7 +256,7 @@ class TradingEngine:
                     sigrow.status = "failed"
                 fee_lost = res.fill.network_fee_sol if res.fill else 0.0
                 self.port.cash -= fee_lost
-                repo.log_event(s, "order", f"acquisto {sig.symbol} fallito: {res.error}", level="warn",
+                self._log(s, "order", f"acquisto {sig.symbol} fallito: {res.error}", level="warn",
                                token=sig.token_address)
                 self._save_portfolio(s)
                 failed = True
@@ -290,7 +296,7 @@ class TradingEngine:
                     sigrow.status = "executed"
                 self.risk.on_entry(self.port, sig.token_address, f.sol_amount)
                 self._save_portfolio(s)
-                repo.log_event(s, "trade", f"APERTA {sig.symbol} {f.sol_amount:.4f} SOL @ {f.price:.3e} ({f.quote_source})",
+                self._log(s, "trade", f"APERTA {sig.symbol} {f.sol_amount:.4f} SOL @ {f.price:.3e} ({f.quote_source})",
                                token=sig.token_address)
         if failed:
             await self.notifier.notify("anomaly", {"text": f"Acquisto {sig.symbol} non eseguito: {res.error}"})
@@ -412,7 +418,7 @@ class TradingEngine:
                     ps = _pos_state_from_json(p.state)  # allow the take profit to trigger again
                     ps.tp_done = max(0, ps.tp_done - 1)
                     p.state = _pos_state_to_json(ps)
-                repo.log_event(s, "order", f"vendita {symbol} fallita: {res.error}", level="warn", token=token)
+                self._log(s, "order", f"vendita {symbol} fallita: {res.error}", level="warn", token=token)
                 self._save_portfolio(s)
                 if alert or "rug" in (res.error or ""):
                     notify = ("rug", {"symbol": symbol, "reasons": [alert or res.error], "action": "vendita fallita: nuovo tentativo al prossimo controllo"})
@@ -438,7 +444,7 @@ class TradingEngine:
                     reasons = list(dict.fromkeys(((p.exit_reason or "").split(" | ") if p.exit_reason else []) + [desc]))
                     p.exit_reason = " | ".join(reasons)
                     self.risk.on_exit(self.port, token, p.realized_pnl_sol, utcnow(), closed=True)
-                    repo.log_event(s, "trade", f"CHIUSA {symbol}: {p.realized_pnl_sol:+.4f} SOL ({desc})", token=token)
+                    self._log(s, "trade", f"CHIUSA {symbol}: {p.realized_pnl_sol:+.4f} SOL ({desc})", token=token)
                     notify = ("close", {
                         "symbol": symbol, "entry_price": p.entry_price, "exit_price": f.price, "stake_sol": p.stake_sol,
                         "proceeds_sol": p.proceeds_sol,

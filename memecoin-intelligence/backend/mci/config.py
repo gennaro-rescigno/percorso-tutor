@@ -95,6 +95,8 @@ class Settings(BaseSettings):
     # trades = only buys and sells (full or partial); all = also signals, token alerts, daily report, notices.
     # Command replies (/status, /daily, ...) are always sent.
     telegram_notify: Literal["trades", "all"] = "trades"
+    # Laboratorio: second virtual paper portfolio without risk limits (dashboard page "Laboratorio")
+    lab_enabled: bool = True
     telegram_alert_cooldown_minutes: int = 240
 
     # --- dashboard / api ----------------------------------------------------------

@@ -276,6 +276,32 @@ def create_app() -> FastAPI:
                                     "positive_share": sum(1 for x in v if x > 0) / len(v)} for k, v in sorted(sig_q.items())],
             }
 
+    # ------------------------------------------------------------------ laboratorio
+    @app.get("/api/lab")
+    def lab(_: str = Depends(require_user)) -> dict[str, Any]:
+        """Virtual portfolio without risk limits, side by side with the main one (per strategy)."""
+        from mci.database.models import EquitySnapshot
+
+        with session_scope() as s:
+            st = _worker_status(s)
+            sol_eur = st.get("sol_eur")
+            summ = perf.summary(s, "lab", settings.initial_capital_sol, sol_eur)
+            summ["paused"] = False
+            eq = s.scalars(select(EquitySnapshot).where(EquitySnapshot.mode == "lab").order_by(EquitySnapshot.ts)).all()
+            step = max(1, len(eq) // 1000)
+            curve = [{"ts": _iso(r.ts), "equity": r.equity_sol, "drawdown": r.drawdown_pct} for r in eq[::step]]
+            rows = s.scalars(select(Position).where(Position.mode == "lab").order_by(Position.opened_at.desc()).limit(500)).all()
+            return {
+                "enabled": settings.lab_enabled,
+                "started_at": repo.get_state(s, "lab_started_at"),
+                "summary": summ,
+                "equity_curve": curve,
+                "by_strategy": perf.strategy_stats(s, "lab"),
+                "main_by_strategy": perf.strategy_stats(s, _mode(s)),
+                "positions": [perf.position_dict(p, sol_eur) for p in rows],
+                "skipped": repo.get_state(s, "lab_skipped") or {},
+            }
+
     # ------------------------------------------------------------------ risk
     @app.get("/api/risk")
     def risk(_: str = Depends(require_user)) -> dict[str, Any]:

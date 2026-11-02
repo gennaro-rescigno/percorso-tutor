@@ -33,6 +33,7 @@ from mci.domain import utcnow
 from mci.execution.costs import CostModel
 from mci.execution.paper import PaperExecutor
 from mci.paper_trading.engine import TradingEngine
+from mci.paper_trading.lab import LabEngine
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
 from mci.secrets_store import JUPITER_KEY, jupiter_key, write_secret
@@ -64,6 +65,7 @@ class Worker:
         self.tg = TelegramClient(s.telegram_bot_token.get_secret_value(), s.allowed_chat_ids)
         self.notifier = TelegramNotifier(self.tg, s, self.mode)
         self.engine = TradingEngine(s, self.scanner, self.executor, get_profile(s.risk_profile), self.costs, self.notifier)
+        self.lab = LabEngine(s, self.scanner, self.costs) if s.lab_enabled else None
         self.bot = TelegramBot(self.tg, s, self.mode, status_provider=self.status)
         self.bot.on_jupiter_key = self.set_jupiter_key
         self.pump = PumpPortalListener(s.pumpportal_ws_url, self.scanner.on_pumpportal_event) if s.pumpportal_enabled else None
@@ -124,6 +126,15 @@ class Worker:
             except asyncio.TimeoutError:
                 pass
 
+    async def _lab_step(self, name: str, fn: Callable[[], Awaitable[Any]]) -> None:
+        """Run a Laboratorio step in isolation: its errors never affect the main portfolio."""
+        if self.lab is None:
+            return
+        try:
+            await fn()
+        except Exception:
+            log.exception("laboratorio: %s non riuscito (portafoglio principale non coinvolto)", name)
+
     async def scan_once(self) -> None:
         candidates = await self.scanner.run_cycle()
         if self.pump:
@@ -131,15 +142,22 @@ class Worker:
             await self.pump.subscribe_trades(curve[:20])
         await self.engine.on_scan(candidates)
         await self.engine.flush_alerts()
+        await self._lab_step("scan", lambda: self.lab.on_scan(candidates))
         self._heartbeat()
 
     async def monitor_once(self) -> None:
         await self.engine.monitor_positions()
         await self.engine.flush_alerts()
+        await self._lab_step("monitor", lambda: self.lab.monitor_positions())
 
     async def equity_once(self) -> None:
         fxp = await self.fx.get()
         eq = self.engine.mark_to_market(fxp.eur if fxp else None, fxp.usd if fxp else None, record=True)
+
+        async def lab_equity() -> None:
+            self.lab.mark_to_market(fxp.eur if fxp else None, fxp.usd if fxp else None, record=True)
+
+        await self._lab_step("equity", lab_equity)
         prev = self.engine.last_equity_notified
         if prev and abs(eq / prev - 1) >= 0.03:
             await self.notifier.notify("capital", {"equity": eq, "prev": prev, "sol_eur": fxp.eur if fxp else None})

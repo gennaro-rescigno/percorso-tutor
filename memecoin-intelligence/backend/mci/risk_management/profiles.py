@@ -112,6 +112,28 @@ AGGRESSIVE = RiskProfile(
 
 PROFILES = {p.name: p for p in (CONSERVATIVE, MODERATE, AGGRESSIVE)}
 
+_NO_LIMIT = 10**9
+
+# Laboratorio: same sizing rule as the moderate profile (risk per trade, size and rug caps, price impact and
+# pool share, so every trade stays executable and comparable) but WITHOUT portfolio limits: no maximum
+# positions/exposure/trades per day, no cash reserve, no cooldown, no minimum score, no daily-loss or
+# drawdown stop, no pause after losses, no risk reduction in drawdown. It never trades real money and
+# never sends Telegram messages: it only measures what the strategies would do on their own.
+LAB = replace(
+    MODERATE,
+    name="lab",
+    max_positions=_NO_LIMIT,
+    max_exposure_pct=float(_NO_LIMIT),
+    min_cash_reserve_pct=0.0,
+    daily_loss_limit_pct=float(_NO_LIMIT),
+    dd_reduce_threshold_pct=float(_NO_LIMIT),
+    max_drawdown_pause_pct=float(_NO_LIMIT),
+    min_score=0.0,
+    cooldown_same_token_min=0,
+    max_consecutive_losses=_NO_LIMIT,
+    max_trades_per_day=_NO_LIMIT,
+)
+
 
 def get_profile(name: str) -> RiskProfile:
     return PROFILES[name.lower()]

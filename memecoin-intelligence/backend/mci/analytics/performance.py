@@ -118,6 +118,33 @@ def by_strategy(s: Session, mode: str) -> list[dict[str, Any]]:
     return rows
 
 
+def strategy_stats(s: Session, mode: str) -> list[dict[str, Any]]:
+    """Per-strategy breakdown (closed trades, plus how many are still open)."""
+    closed: dict[str, list[Position]] = defaultdict(list)
+    for p in repo.closed_positions(s, mode):
+        closed[p.strategy].append(p)
+    opened: dict[str, int] = defaultdict(int)
+    for p in repo.open_positions(s, mode):
+        opened[p.strategy] += 1
+    rows = []
+    for k in sorted(set(closed) | set(opened)):
+        ps = closed.get(k, [])
+        pnl = [p.realized_pnl_sol or 0.0 for p in ps]
+        rets = [(p.realized_pnl_sol or 0.0) / p.cost_sol for p in ps if p.cost_sol]
+        holds = [(to_utc(p.closed_at) - to_utc(p.opened_at)).total_seconds() / 60 for p in ps if p.closed_at and p.opened_at]
+        w = [x for x in pnl if x > 0]
+        gl = -sum(x for x in pnl if x <= 0)
+        rows.append({
+            "strategy": k, "trades": len(ps), "open": opened.get(k, 0), "wins": len(w), "losses": len(pnl) - len(w),
+            "win_rate": len(w) / len(pnl) if pnl else None, "pnl_sol": sum(pnl),
+            "avg_return": sum(rets) / len(rets) if rets else None,
+            "best_return": max(rets) if rets else None, "worst_return": min(rets) if rets else None,
+            "profit_factor": (sum(w) / gl) if gl > 0 else None,
+            "avg_hold_min": sum(holds) / len(holds) if holds else None,
+        })
+    return rows
+
+
 def returns_distribution(s: Session, mode: str) -> list[float]:
     return [((p.realized_pnl_sol or 0.0) / p.cost_sol) for p in repo.closed_positions(s, mode) if p.cost_sol]
 

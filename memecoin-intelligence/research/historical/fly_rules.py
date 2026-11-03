@@ -68,6 +68,7 @@ def tsv_to_parquet(con: duckdb.DuckDBPyConnection, tsv: str, out: str) -> None:
         COPY (SELECT mint, epoch(CAST(ts AS TIMESTAMPTZ)) AS ts, CAST(close AS DOUBLE) AS close,
                      CAST(high AS DOUBLE) AS high, CAST(buy_sol AS DOUBLE) AS buy_sol,
                      CAST(sell_sol AS DOUBLE) AS sell_sol, CAST(n_traders AS INTEGER) AS n_traders,
+                     CAST(n_buys AS INTEGER) AS n_buys, CAST(n_sells AS INTEGER) AS n_sells,
                      CAST(resq_sol AS DOUBLE) AS resq_sol, CAST(fee_rate AS DOUBLE) AS fee_rate,
                      CAST(top_sell_sol AS DOUBLE) AS top_sell_sol, CAST(insider_sell_sol AS DOUBLE) AS insider_sell_sol
               FROM read_csv('{tsv}', delim='\t', header=false, quote='', escape='', nullstr='\\N',

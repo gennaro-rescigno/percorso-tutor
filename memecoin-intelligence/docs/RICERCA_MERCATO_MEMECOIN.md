@@ -310,6 +310,8 @@ e dal −9% al −57% a settembre.
 | Copiare i wallet migliori **nello stesso istante** | stesse occasioni | **+9%**, ma richiede velocità da infrastruttura a pagamento |
 | Modello che sceglie quando entrare per 5-10 minuti | 1,26 milioni di momenti, set-ott | perde (−7% / −10%) dopo la correzione |
 | Modello portabile per token quotati, 1 e 4 ore | 1 milione di momenti giu-lug + 152.656 set | perde (da −3% a −57%) |
+| Fornire liquidità ai pool PumpSwap (fare il banco), 1 h - 3 giorni | 5.067 token giu-lug + 19.242 set | perde (da −4% a −52%), sezione 9.10 |
+| Short sui perpetui Binance di altcoin e memecoin, 1-3 giorni | 918 contratti 2020-2026 | sezione 10.2 |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i
@@ -320,6 +322,28 @@ e dal −9% al −57% a settembre.
 3. Il bot continua a raccogliere prove fuori campione senza rischi: diario degli eventi, laboratorio delle regole,
    esperimento di copia con il ritardo reale, esperimenti x_safe e x_curve, Laboratorio. Nulla viene promosso senza
    il cancello statistico e senza la tua approvazione.
+
+### 9.10 Fare il banco: fornire liquidità ai pool PumpSwap (`dex_lp`)
+
+Chi fornisce liquidità a un pool PumpSwap riceve lo 0,20% di ogni scambio (la commissione resta nel pool; chiunque
+può aggiungere liquidità a un token diplomato), ma tiene metà della posizione nel token: se il token scende, perde
+anche lui (in SOL la posizione vale la radice quadrata della variazione di prezzo, più le commissioni incassate).
+Posizione da 1 SOL con commissioni di swap, impatto sul prezzo e fee di rete; cinque regole pre-registrate (qualsiasi
+momento, pool molto scambiato, sopravvissuti, sopravvissuti calmi, flusso equilibrato), tenuta 1, 4, 24 e 72 ore; A =
+jocry giugno-luglio (5.067 token), B = fly-trader-seed settembre (19.242 token, ogni scambio).
+
+| Regola (tenuta 1 h / 4 h) | Commissioni incassate | Effetto del prezzo | Netto A giu-lug | Netto B settembre | Comprare il token (A) |
+|---|---|---|---|---|---|
+| Q0 qualsiasi momento | +0,9% / +1,2% | −12% / −19% | −13% / −20% | −5% / −6% | −10% / −17% |
+| Q1 pool molto scambiato | +1,8% / +2,5% | −21% / −34% | −21% / −34% | −22% / −38% | −16% / −26% |
+| Q2 sopravvissuto (24 h, riserva ≥ 50 SOL) | +0,02% / +0,05% | −4% / −9% | −5% / −10% | −5% / −9% | −9% / −14% |
+| Q3 sopravvissuto calmo | +0,02% / +0,05% | −2% / −7% | −4% / −9% | (pochi casi) | −6% / −13% |
+| Q4 flusso equilibrato | +0,3% / +0,7% | −5% / −12% | −7% / −13% | −8% / −19% | −8% / −11% |
+
+**Tutte le 33 combinazioni misurabili (20 su A, 13 su B) sono negative** (q = 1), anche a 24 e 72 ore (dove però A non osserva più i token e il
+risultato dipende dall'ipotesi sul prezzo finale). La commissione dello 0,20% è troppo piccola rispetto alla discesa
+media dei token: si perde un po' meno che comprando, ma si perde. Nei pool PumpSwap chi incassa davvero sono la
+piattaforma e il **creatore del token** (fino allo 0,95% di ogni scambio nei token piccoli), non chi fornisce liquidità.
 
 ---
 

@@ -103,7 +103,7 @@ serve la tua approvazione esplicita.**
 
 ## 9. Ricerca (fase 9, senza autonomia sulle decisioni)
 
-Ogni 6 ore: AUC di ogni caratteristica (con intervallo di confidenza bootstrap) rispetto a "raddoppio" e "crollo",
+Ogni ora: AUC di ogni caratteristica (con intervallo di confidenza bootstrap) rispetto a "raddoppio" e "crollo",
 verifica degli indici, regressione logistica **walk-forward** (addestrata sul passato, provata sul periodo
 successivo), effetto delle regole shadow. Sotto 300 osservazioni o 30 casi positivi il verdetto è
 **"dati insufficienti"**.
@@ -131,7 +131,24 @@ token la sezione **analisi on-chain** (indici con i fattori, sicurezza letta dal
 curva, wallet e cluster con le prove, storico del creatore, istantanee e esiti). Telegram `/status` mostra lo stato
 dello stream. I messaggi automatici restano solo acquisti e vendite del portafoglio principale.
 
-## 13. Cosa NON è stato fatto, e perché
+## 13. Diario degli eventi, studio degli eventi e laboratorio delle regole (3 novembre 2026)
+
+* **Diario di ogni lancio** (tabella `token_events`, conservata 30 giorni): dallo stesso stream gratuito, operazione
+  per operazione, il bot annota i fatti con ora e prezzo: acquisti e vendite del creatore (anche "vende tutto"),
+  acquirenti nel blocco 0, acquisti e vendite di almeno 2 SOL, wash trade atomici (stesso wallet compra e vende
+  nella stessa transazione), soglie della riserva della curva (5, 10, 20, 40, 60, 80 SOL), cali dal massimo del 50% e
+  dell'80%, picchi di acquisti, diploma, 30 minuti senza scambi, nomi già usati. Visibile nella pagina di ogni token.
+* **Studio degli eventi** (ogni ora, pagina Ricerca): per ogni tipo di fatto, cosa è successo nei 60 minuti dopo
+  (variazione mediana, quota che tocca +100% o −50%, quota che si diploma), confrontato con un momento qualsiasi
+  della stessa età. Le finestre con lo stream interrotto sono escluse.
+* **Laboratorio delle regole** (ogni ora, pagina Ricerca): 7 regole d'ingresso e 3 uscite **fissate il 3 novembre
+  2026 prima di vederne i risultati**, applicate a ogni lancio osservato dopo quella data, con latenza, commissioni,
+  priority fee e stop riempito a −60%. Verdetto "promettente" solo con almeno 300 casi fuori campione, intervallo
+  di confidenza sopra zero e correzione per test multipli. Non cambia nulla da solo.
+* **Studi storici gratuiti** sui runner di GitHub (workflow `memecoin historical study`): vedi
+  [RICERCA_MERCATO_MEMECOIN.md](RICERCA_MERCATO_MEMECOIN.md), sezione 9.
+
+## 14. Cosa NON è stato fatto, e perché
 
 * **Trading reale**: resta disattivato (serve il tuo consenso esplicito).
 * **Modifiche automatiche alla strategia di produzione**: vietate; solo esperimenti shadow con cancello statistico.
@@ -141,7 +158,7 @@ dello stream. I messaggi automatici restano solo acquisti e vendite del portafog
 * **Copy-trading di "smart wallet"**: senza uno storico verificato dei loro risultati sarebbe una scommessa; i dati
   per valutarlo ora vengono raccolti (wallet e lanci).
 
-## 14. Cosa aspettarsi
+## 15. Cosa aspettarsi
 
 Nelle prime **4 ore** non ci sono esiti; nei primi **giorni** la ricerca dirà "dati insufficienti" (è corretto).
 Con ~700 lanci all'ora, le 300 osservazioni minime per orizzonte arrivano in poche ore, ma i casi positivi (raddoppi

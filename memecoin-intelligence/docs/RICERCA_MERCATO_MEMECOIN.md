@@ -185,7 +185,67 @@ Si analizzano sui runner gratuiti di GitHub (non sul server, per non rallentare 
 
 ---
 
-## 9. Fonti principali
+## 9. Risultati dei nostri studi storici (3 novembre 2026)
+
+Eseguiti sui runner gratuiti di GitHub (workflow `memecoin historical study`), risultati completi nel branch
+`research-results` (`loop_curve.md`, `postgrad.md`). Le regole sono state scritte **prima** di vedere i risultati
+(il testo della pre-registrazione è in testa a ogni rapporto) e i costi sono inclusi.
+
+### 9.1 Cosa succede ai lanci (loopholetape, 1,36 milioni di lanci "classici", 31 agosto – 27 ottobre)
+
+| Fatto | Settembre | Ottobre |
+|---|---|---|
+| Lanci classici che si diplomano | 3,56% | 2,79% |
+| Diplomi avvenuti entro 1 minuto dal lancio (quasi sempre costruiti da bot/bundle) | 75,6% | 66,7% |
+| Lanci in cui il creatore vende | 66,6% | 67,6% |
+| Tempo mediano alla prima vendita del creatore | 22 s | 16 s |
+| Curve che arrivano almeno a 20 SOL reali | 12,0% | 10,9% |
+| Il creatore non compra all'inizio: diplomi / rug | 0,89% / 9,6% | 0,54% / 8,4% |
+| Il creatore compra più di 5 SOL: diplomi / rug | 33,0% / 66,5% | 23,9% / 76,7% |
+| Più di 10 wallet "bundle" nei primi 10 s: diplomi / rug | 21,3% / 79,1% | 13,9% / 85,8% |
+| Creatore al primo lancio: diplomi | 3,0% | 6,2% |
+| Creatore con oltre 50 lanci precedenti: diplomi / rug | 1,25% / 88,2% | 0,85% / 66,6% |
+| Nome già usato da un lancio precedente (oltre la 6ª volta): diplomi | 5,4% | 3,9% |
+
+Lettura: i lanci che si diplomano di più sono quelli con **grandi acquisti iniziali del creatore e molti wallet
+bundle**, cioè i diplomi "costruiti" che avvengono in pochi secondi e su cui un bot gratuito non può arrivare in
+tempo. Gli stessi lanci hanno anche i tassi di rug più alti.
+
+### 9.2 Comprare sulla curva e tenere fino al diploma (o alla morte della curva)
+
+Idea verificata: sulla curva il prezzo non può scendere sotto il prezzo iniziale, quindi la perdita massima è
+limitata, mentre il diploma vale molte volte il prezzo d'ingresso. **Risultato: perde sempre.** Su 2,2 milioni di
+istantanee di 547.350 token, per ogni combinazione di età (da 0 a 15 minuti) e riserva della curva (da 0 a 85 SOL)
+la quota di token che si diplomano è circa **la metà** di quella necessaria per andare in pari. Esempi: con
+riserva tra 20 e 40 SOL si diploma il 15% (servirebbe il 30%); tra 40 e 85 SOL il 48% (servirebbe il 75%).
+Le 7 regole pre-registrate (anche con filtri su creatore, insider, bundle, attività) perdono tutte tra il **13% e
+il 25% per operazione**, con intervalli di confidenza interamente negativi e lo stesso risultato in entrambe le
+metà del periodo. Il mercato "prezza" correttamente la probabilità di diploma, e le commissioni fanno il resto.
+
+### 9.3 Comprare dopo il diploma (jocry giugno-luglio, 5.669 diplomi; loopholetape settembre-ottobre, 27.096 pool)
+
+- Dopo 30 minuti dall'apertura del pool il prezzo mediano è al **2% del prezzo iniziale**; il 58,9% dei pool
+  finisce sotto il 10% del prezzo iniziale, e chi tocca quel livello lo fa in mediana dopo 8,6 minuti.
+- In giugno-luglio a 30 minuti dal diploma la mediana è ×0,58 e il 37% è già sotto ×0,2.
+- 36 combinazioni pre-registrate (entrata a 1/5/10/30 minuti, tenuta 1/6/24 ore, quattro filtri): **nessuna
+  positiva e stabile**. Le medie sono dominate da pochi casi estremi (e cambiano segno tra la prima e la seconda
+  metà del periodo), le mediane sono fortemente negative (da −4% a −92%). Anche "ha retto il primo crollo" perde
+  (−6% a 1 ora, intervallo interamente negativo); "diploma organico" non aiuta.
+
+### 9.4 Cosa ne segue per il bot
+
+1. Le strategie "semplici" sui lanci (comprare presto, tenere fino al diploma, comprare dopo il diploma, comprare
+   i crolli) sono **verificate perdenti** su milioni di casi: non le adotteremo.
+2. Il valore che possiamo costruire gratis sta in tre cose: **evitare** (filtri che riducono le perdite),
+   **orizzonti brevi con uscite rapide** misurati sul percorso completo dei prezzi (che solo il nostro stream ha),
+   e **verifica fuori campione** continua prima di qualunque decisione.
+3. Per questo il bot ora tiene un **diario di ogni lancio** (fatti on-chain con prezzo e ora), uno **studio di cosa
+   succede dopo ogni tipo di evento** e un **laboratorio di regole** pre-registrate valutate su ogni lancio
+   osservato dopo il 3 novembre 2026, con i costi. Nulla cambia nel portafoglio principale senza il tuo consenso.
+
+---
+
+## 10. Fonti principali
 
 - Arrow Algo, *Solana Memecoin Trading: What 1,411 Launches Showed* — https://arrowalgo.com/solana-memecoin-trading/
 - Bitquery, *Solana Memecoin Traders: 74% Lose Money* — https://bitquery.io/investigations/solana-memecoin-traders-lose-money

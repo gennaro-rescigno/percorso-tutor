@@ -10,6 +10,8 @@ PRE-REGISTERED (written before looking at any result):
     5-minute volume / 1-hour volume (acceleration), buys / (buys + sells) in the last hour (count), log of the
     trades in the last hour, market cap / liquidity;
   * targets: net return of a 0.1 SOL trade held 1 and 4 hours, exit at the first observation at or after that time;
+    (correction after the first run, before reading any corrected number: both trades go through the pool's
+    constant product with its reserve at that moment, so a price spike in an empty pool cannot be cashed);
     costs: 3% latency, 1% pool fee per side, 1% priority fees; a token with no later observation is valued at its
     last observation (optimistic) and, as a second reading, at -100% (pessimistic): both are reported;
   * model: scikit-learn HistGradientBoostingRegressor (fixed settings), target clipped to [-100%, +300%];
@@ -62,14 +64,19 @@ def jocry_points() -> pd.DataFrame:
     s["log_trades"] = np.log1p(tot)
     s["mcap_liq"] = s.market_cap_usd / s.liquidity_usd
     s["px"] = s.price_usd
+    s["rq"] = s.liquidity_usd / 2  # quote side of the pool, USD
     s["day"] = (s.t // 86400).astype(int)
-    return s[["mint", "t", "day", "px"] + FEATS]
+    return s[["mint", "t", "day", "px", "rq"] + FEATS]
 
 
-def add_targets(d: pd.DataFrame, obs: pd.DataFrame) -> pd.DataFrame:
-    """Exit price = first observation at or after t + hold; else the last one (and a pessimistic flag)."""
-    obs = obs[["mint", "t", "px"]].rename(columns={"t": "x_t", "px": "x_px"}).sort_values("x_t")
-    last = obs.groupby("mint").x_px.last()
+def add_targets(d: pd.DataFrame, obs: pd.DataFrame, size: float) -> pd.DataFrame:
+    """Exit = first observation at or after t + hold (else the last one, plus a pessimistic -100% reading).
+
+    Both trades go through the pool: the entry pays the constant-product slippage size / reserve, the exit sells the
+    position into the pool's reserve AT THAT MOMENT (a price spike in an empty pool cannot be cashed)."""
+    obs = obs[["mint", "t", "px", "rq"]].rename(columns={"t": "x_t", "px": "x_px", "rq": "x_rq"}).sort_values("x_t")
+    last = obs.groupby("mint")[["x_px", "x_rq"]].last()
+    rq_in = d.rq.to_numpy().astype(float)
     for h in HOLDS_H:
         left = d[["mint", "t"]].copy()
         left["target"] = left.t + h * 3600
@@ -77,8 +84,12 @@ def add_targets(d: pd.DataFrame, obs: pd.DataFrame) -> pd.DataFrame:
         m = pd.merge_asof(left.sort_values("target"), obs, left_on="target", right_on="x_t", by="mint",
                           direction="forward").sort_values("i")
         found = m.x_px.notna().to_numpy()
-        px_out = np.where(found, m.x_px.to_numpy(), d.mint.map(last).to_numpy())
-        d[f"y{h}"] = net(px_out / d.px.to_numpy())
+        px_out = np.where(found, m.x_px.to_numpy(), d.mint.map(last.x_px).to_numpy())
+        rq_out = np.where(found, m.x_rq.to_numpy(), d.mint.map(last.x_rq).to_numpy()).astype(float)
+        value = size * (px_out / d.px.to_numpy()) / (1 + size / np.where(rq_in > 0, rq_in, np.nan))
+        rq_out = np.where(np.isfinite(rq_out) & (rq_out > 0), rq_out, 0.0)
+        proceeds = np.where(rq_out > 0, rq_out * value / (rq_out + value), 0.0)
+        d[f"y{h}"] = net(proceeds / size)
         d[f"y{h}_pess"] = np.where(found, d[f"y{h}"], -1.0)
         d[f"found{h}"] = found
     return d
@@ -103,7 +114,7 @@ def fly_points(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
                max(high) OVER (PARTITION BY mint ORDER BY b ROWS UNBOUNDED PRECEDING) AS peak
         FROM hb""").df()
     df = df.sort_values(["mint", "t"])
-    minute = con.execute("SELECT mint, ts, close, buy_sol + sell_sol AS v FROM pm").df().sort_values("ts")
+    minute = con.execute("SELECT mint, ts, close, resq_sol, buy_sol + sell_sol AS v FROM pm").df().sort_values("ts")
 
     def asof_close(lag_s: float) -> np.ndarray:
         left = df[["mint", "t"]].copy()
@@ -115,6 +126,7 @@ def fly_points(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
 
     out = pd.DataFrame({"mint": df.mint.to_numpy(), "t": df.t.to_numpy()})
     out["px"] = df.close.to_numpy()
+    out["rq"] = df.resq.to_numpy()
     out["age_h"] = (df.b + 1).to_numpy()
     for name, lag in (("r5m", 300), ("r1h", 3600), ("r6h", 21600)):
         prev = asof_close(lag)
@@ -138,8 +150,8 @@ def fly_points(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     out["log_trades"] = np.log1p(tot)
     out["mcap_liq"] = out.px * 1e9 / np.where(liq > 0, liq, np.nan)
     out["day"] = (out.t // 86400).astype(int)
-    obs = minute.rename(columns={"ts": "t", "close": "px"})
-    return add_targets(out, obs)
+    obs = minute.rename(columns={"ts": "t", "close": "px", "resq_sol": "rq"})
+    return add_targets(out, obs, size=0.1)
 
 
 # ----------------------------------------------------------------------------------------------- evaluation
@@ -172,7 +184,7 @@ def main() -> None:
     r("# Studio storico: un modello portabile per i token quotati, tenuta 1 e 4 ore")
     r("\nPre-registrazione (testo originale):\n\n```\n" + __doc__.split("PRE-REGISTERED")[1].strip() + "\n```")
     a = jocry_points()
-    a = add_targets(a, a)
+    a = add_targets(a, a, size=15.0)  # 0.1 SOL is about 15 USD
     r(f"A (giugno-luglio): {len(a):,} momenti di decisione di {a.mint.nunique():,} token, {a.day.nunique()} giorni.")
     rows = []
     days = sorted(a.day.unique())

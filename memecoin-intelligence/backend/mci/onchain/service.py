@@ -69,7 +69,9 @@ class OnchainService:
         self.wallets = wallets or WalletIntel(rpc)
         self.discrepancies = 0
         self._reported: set[str] = set()
-        self.stats = {"security_checks": 0, "curve_reads": 0, "wallet_analyses": 0, "errors": 0}
+        self.stats = {"security_checks": 0, "curve_reads": 0, "wallet_analyses": 0, "errors": 0,
+                      "sell_sims": 0, "sell_sim_ok": 0, "sell_sim_blocked": 0, "sell_sim_unverified": 0}
+        self.last_sell_sim: str | None = None
 
     async def security(self, snap: TokenSnapshot) -> None:
         mint = snap.token_address
@@ -145,7 +147,8 @@ class OnchainService:
         oc["risk"], oc["opportunity"] = r.to_dict(), o.to_dict()
 
     def health(self) -> dict[str, Any]:
-        return {**self.stats, "rugcheck_disagreements": self.discrepancies, "wallets": self.wallets.health(),
+        return {**self.stats, "rugcheck_disagreements": self.discrepancies, "last_sell_sim": self.last_sell_sim,
+                "wallets": self.wallets.health(),
                 "rpc": self.rpc.health(), "launches": self.tracker.health()}
 
     @staticmethod

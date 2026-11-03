@@ -531,6 +531,10 @@ class Scanner:
         holders = [b["wallet"] for b in early_buyers(st, time.time()) if b["net_tokens"] > 0][:3] if st else []
         ok, detail = await simulate_holder_sell(self.jup, self.onchain.rpc, c.address, probe_raw, holders)
         snap.sell_sim_ok, snap.sell_sim_detail = ok, detail
+        st_ = self.onchain.stats
+        st_["sell_sims"] += 1
+        st_["sell_sim_ok" if ok else "sell_sim_blocked" if ok is False else "sell_sim_unverified"] += 1
+        self.onchain.last_sell_sim = f"{snap.symbol or c.address[:8]}: {detail}"[:200]
         snap.sources["sell_sim"] = "rpc_simulation"
         c.mark("sell_sim")
 

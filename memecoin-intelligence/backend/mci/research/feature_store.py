@@ -36,7 +36,7 @@ def _aware(d: datetime | None) -> datetime | None:
 
 def persist_stream(rows: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
     """Write what ``LaunchTracker.drain()`` returned. Idempotent on restarts (existing keys are skipped)."""
-    out = {"launches": 0, "stats": 0, "trades": 0, "bars": 0}
+    out = {"launches": 0, "launch_updates": 0, "stats": 0, "trades": 0, "bars": 0}
     with session_scope() as s:
         launches = rows.get("launches") or []
         if launches:
@@ -47,6 +47,14 @@ def persist_stream(rows: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
                 s.execute(insert(PumpLaunch), new)
             out["launches"] = len(new)
             s.flush()
+        ups = rows.get("launch_updates") or []
+        if ups:
+            t = PumpLaunch.__table__
+            cols = ("created_at", "slot", "signature", "creator", "name", "symbol", "uri", "mayhem", "token_program",
+                    "quote_mint", "source")
+            stmt = update(t).where(t.c.mint == bindparam("b_mint")).values(**{c: bindparam(f"b_{c}") for c in cols})
+            s.execute(stmt, [{"b_mint": r["mint"], **{f"b_{c}": r[c] for c in cols}} for r in ups])
+            out["launch_updates"] = len(ups)
         stats = rows.get("stats") or []
         if stats:
             t = PumpLaunch.__table__

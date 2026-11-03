@@ -133,6 +133,7 @@ class LaunchTracker:
         self.watch: set[str] = set()
         self._created: deque = deque()  # creation times (epoch) of the last 24 h, for the launch counter
         self._new_launches: list[LaunchState] = []
+        self._upgraded: list[LaunchState] = []  # PumpPortal launches later confirmed by the chain CreateEvent
         self.gaps: deque = deque(maxlen=500)  # (start, end) epoch intervals without stream data
         self._gap_open: float | None = time.time()  # nothing received yet = gap
         self.stats: dict[str, int] = {"creates": 0, "trades": 0, "untracked_trades": 0, "completes": 0,
@@ -195,7 +196,9 @@ class LaunchTracker:
             new.buy_sol, new.sell_sol, new.wallets, new.last = st.buy_sol, st.sell_sol, st.wallets, st.last
             new.bars, new.peak_price, new.persisted_trades = st.bars, st.peak_price, st.persisted_trades
             new.horizons_done, new.early_truncated = st.horizons_done, st.early_truncated
+            new.persisted_bars_upto = st.persisted_bars_upto
             self.launches[ev.mint] = new
+            self._upgraded.append(new)  # its database row must get the on-chain time, slot and creator
             return
         self._register(new)
 
@@ -316,12 +319,16 @@ class LaunchTracker:
     def drain(self, now: float | None = None) -> dict[str, list[dict[str, Any]]]:
         """Rows to persist since the last call: new launches, launch stats, early trades, closed 1m bars."""
         now = now or time.time()
-        new = [{
-            "mint": st.mint, "created_at": _dt(st.created_ts), "slot": st.slot, "signature": st.signature,
-            "creator": st.creator, "name": st.name, "symbol": st.symbol, "uri": st.uri, "mayhem": st.mayhem,
-            "token_program": st.token_program, "quote_mint": st.quote_mint, "source": st.source,
-        } for st in self._new_launches]
-        self._new_launches = []
+        def row(st: LaunchState) -> dict[str, Any]:
+            return {"mint": st.mint, "created_at": _dt(st.created_ts), "slot": st.slot, "signature": st.signature,
+                    "creator": st.creator, "name": st.name, "symbol": st.symbol, "uri": st.uri, "mayhem": st.mayhem,
+                    "token_program": st.token_program, "quote_mint": st.quote_mint, "source": st.source}
+
+        # always the CURRENT state (a PumpPortal launch may already have been confirmed by the chain stream)
+        new = [row(self.launches.get(st.mint) or st) for st in self._new_launches]
+        new_mints = {r["mint"] for r in new}
+        updates = [row(st) for st in self._upgraded if st.mint not in new_mints]
+        self._new_launches, self._upgraded = [], []
         stats, trades, bars = [], [], []
         cur_minute = int(now) // 60 * 60
         for st in self.launches.values():
@@ -345,7 +352,7 @@ class LaunchTracker:
                     st.persisted_bars_upto = m
             if any(m >= cur_minute for m in st.bars):
                 st.dirty = True  # current minute still open: persist it next time
-        return {"launches": new, "stats": stats, "trades": trades, "bars": bars}
+        return {"launches": new, "launch_updates": updates, "stats": stats, "trades": trades, "bars": bars}
 
     def evict(self, now: float | None = None) -> int:
         """Forget launches older than ``keep_hours`` with no recent activity (they stay in the database)."""

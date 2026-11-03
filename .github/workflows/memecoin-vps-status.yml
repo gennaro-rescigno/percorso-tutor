@@ -93,6 +93,7 @@ jobs:
                     f"interruzioni 24 h {lt.get('gaps_24h')} · gap aperto {lt.get('stream_gap_open')}")
               print(f"- RPC: chiamate {rpc.get('calls')} · cache {rpc.get('cache_hits')} · rinviate per budget {rpc.get('budget_refused')} · "
                     f"fallite {rpc.get('failed')} · endpoint {rpc.get('endpoints')}")
+              print(f"  - per metodo: {rpc.get('by_method')} · ultimi errori: {rpc.get('last_errors')}")
               print(f"- on-chain: {sy.get('onchain')} · wallet {sy.get('wallets')}")
               print(f"- costi di rete misurati: {sy.get('network_costs')} · in uso {sy.get('costs_in_use')}")
               print(f"- dataset: {sy.get('dataset')} · database {sy.get('db_size_bytes')} byte")

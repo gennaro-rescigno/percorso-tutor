@@ -514,3 +514,30 @@ def test_redundant_connections_are_deduplicated():
     stream._set_up(0, False)  # one connection still up: no gap
     stream._set_up(1, False)
     assert states == [True, False]
+
+
+def test_pumpportal_launch_confirmed_by_the_chain_is_updated_in_the_database(db):
+    from mci.database.models import PumpLaunch
+    from mci.database.session import session_scope
+    from mci.research import feature_store as fs
+
+    tr = LaunchTracker()
+    tr.on_pumpportal({"txType": "create", "mint": "M2", "traderPublicKey": "PP", "pool": "pump", "name": "x"})
+    fs.persist_stream(tr.drain())  # row written with the PumpPortal data (receive time)
+    chain_ts = int(time.time()) - 30
+    tr.on_events([pump.CreateEvent(name="N", symbol="S", uri="u", mint="M2", bonding_curve="X", user="C1",
+                                   creator="C1", timestamp=chain_ts, slot=77)])
+    out = fs.persist_stream(tr.drain())
+    assert out["launch_updates"] == 1
+    with session_scope() as s:
+        row = s.get(PumpLaunch, "M2")
+        assert row.source == "stream" and row.slot == 77 and row.creator == "C1"
+        assert int(row.created_at.replace(tzinfo=row.created_at.tzinfo or __import__("datetime").timezone.utc)
+                   .timestamp()) == chain_ts
+    # both events inside the same flush: a single row with the chain data
+    tr.on_pumpportal({"txType": "create", "mint": "M3", "traderPublicKey": "PP", "pool": "pump"})
+    tr.on_events([pump.CreateEvent(name="N", symbol="S", uri="u", mint="M3", bonding_curve="X", user="C3",
+                                   creator="C3", timestamp=chain_ts, slot=78)])
+    fs.persist_stream(tr.drain())
+    with session_scope() as s:
+        assert s.get(PumpLaunch, "M3").source == "stream"

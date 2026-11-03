@@ -287,7 +287,18 @@ li conta al loro valore finale e allena il modello sulla prima metà dei giorni,
 del 50%. Il modello guarda soprattutto la riserva della curva e il calo dal massimo; prevede bene l'ordine dei
 risultati (correlazione 0,61), ma anche i token migliori secondo lui restano in media sotto zero dopo i costi.
 
-### 9.8 Conclusione onesta (3 novembre 2026)
+### 9.8 Un modello "portabile" per i token quotati, tenuta 1 e 4 ore (jocry giugno-luglio + settembre da un'altra fonte)
+
+Caratteristiche che esistono per qualsiasi token su un DEX (rendimenti a 5 minuti, 1 ora e 6 ore, distanza dal
+massimo, volume rispetto alla liquidità, accelerazione del volume, quota di acquisti, numero di operazioni,
+capitalizzazione rispetto alla liquidità, età). Allenato su giugno-luglio (walk-forward) e poi applicato invariato a
+una settimana di settembre presa da un'altra fonte (`dex_model`). Al primo passaggio settembre sembrava enormemente
+positivo (+57% / +1.047%) con solo il 3% di operazioni vincenti: **altro errore dello studio**, perché la vendita
+non teneva conto della liquidità e incassava picchi di prezzo in pool quasi vuoti. Con ogni vendita fatta dentro il
+pool, con la sua riserva reale in quel momento: **tutte le 32 combinazioni perdono**, dal −3% al −47% a giugno-luglio
+e dal −9% al −57% a settembre.
+
+### 9.9 Conclusione onesta (3 novembre 2026)
 
 | Famiglia di strategie | Dati | Risultato |
 |---|---|---|
@@ -298,6 +309,7 @@ risultati (correlazione 0,61), ma anche i token migliori secondo lui restano in 
 | Copiare i wallet migliori con 1-10 s di ritardo | 4.163 copie, giu-lug | perde (−5% / −6%) |
 | Copiare i wallet migliori **nello stesso istante** | stesse occasioni | **+9%**, ma richiede velocità da infrastruttura a pagamento |
 | Modello che sceglie quando entrare per 5-10 minuti | 1,26 milioni di momenti, set-ott | perde (−7% / −10%) dopo la correzione |
+| Modello portabile per token quotati, 1 e 4 ore | 1 milione di momenti giu-lug + 152.656 set | perde (da −3% a −57%) |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i

@@ -1,0 +1,81 @@
+# Studio storico: operazioni brevi (1-3 giorni) su moltissime monete, memecoin comprese (Binance 2018-2026)
+
+Pre-registrazione (testo originale):
+
+```
+(written before looking at any result):
+  * universe each day: the 100 most traded USDT pairs by 30-day average volume known the day before (memecoins
+    such as DOGE, SHIB, PEPE, WIF, BONK, FLOKI included whenever they are in it), >= 60 days of history,
+    stablecoins and leveraged tokens excluded, delisted pairs included with their real losses;
+  * entries at the daily close (00:00 UTC) after the signal; exit at the close 1, 2 or 3 days later, or earlier at
+    a -15% stop on the daily low (filled at the stop, or at the open if the day opens below it);
+  * rules:
+      H1 hype burst: day return >= +10% and volume >= 3x its 30-day average;
+      H2 H1 only while BTC is above its 50-day average;
+      P1 pullback in an uptrend: coin above its 50-day average and day return <= -7%;
+      B1 breakout: close above the previous 20-day high, volume >= 2x average, BTC above its 50-day average;
+      S1 short-term strength: the 5 best 3-day returns of the top 50, BTC above its 50-day average;
+      M1 model: gradient-boosted trees on 15 daily features (returns 1/3/7/30 days, volume vs average,
+         distance from the 20/50/200-day averages, 14-day volatility, age, liquidity rank, BTC's return and
+         trend), trained on the past only (expanding window, retrained every 90 days from 2021-01-01), entering
+         the 5 best predictions of the day when the prediction is above zero;
+  * portfolio: at most 10 positions at once, 10% of equity each, a new signal is skipped when full (strongest
+    first); costs per side: 0.10% fee + slippage 0.05% (top 30) or 0.20% (rank 31-100);
+  * periods: 2018-2021 (in sample) and 2022-01-01 .. end (out of sample); verdict "regge" only with a positive
+    out-of-sample CAGR, a 95% interval of the daily Sharpe above zero and positive results in both periods.
+```
+coppie USDT (senza stablecoin né token a leva): 698
+  0/698
+  50/698
+  100/698
+  150/698
+  200/698
+  250/698
+  300/698
+  350/698
+  400/698
+  450/698
+  500/698
+  550/698
+  600/698
+  650/698
+Universo: le 100 più scambiate di ogni giorno; memecoin presenti in media 3.3 al giorno (DOGE, SHIB, PEPE, WIF, BONK, FLOKI, BOME, 1000SATS, MEME, TRUMP).
+{'regola': 'H1', 'giorni': 1, 'IS_CAGR_%': np.float64(-18.348366071395784), 'IS_maxDD_%': np.float64(-59.49253562767871), 'OOS_CAGR_%': np.float64(-30.13037200610925), 'OOS_Sharpe': np.float64(-0.8558641145384094), 'OOS_Sharpe_IC95': '[-1.68, -0.08]', 'OOS_maxDD_%': np.float64(-83.89272592464411), 'OOS_operazioni': 2224, 'OOS_media_op_%': np.float64(-0.6509074756597538), 'OOS_vincenti_%': np.float64(37.365107913669064), 'verdetto': 'non regge'}
+{'regola': 'H1', 'giorni': 2, 'IS_CAGR_%': np.float64(-8.673273345816735), 'IS_maxDD_%': np.float64(-58.92192910021941), 'OOS_CAGR_%': np.float64(-20.983255793174415), 'OOS_Sharpe': np.float64(-0.34590617636883025), 'OOS_Sharpe_IC95': '[-1.25, 0.52]', 'OOS_maxDD_%': np.float64(-69.95334454178963), 'OOS_operazioni': 1906, 'OOS_media_op_%': np.float64(-0.4111627432869756), 'OOS_vincenti_%': np.float64(37.14585519412382), 'verdetto': 'non regge'}
+{'regola': 'H1', 'giorni': 3, 'IS_CAGR_%': np.float64(10.018385647979166), 'IS_maxDD_%': np.float64(-55.88452346571462), 'OOS_CAGR_%': np.float64(-20.240978528614583), 'OOS_Sharpe': np.float64(-0.23934737132576583), 'OOS_Sharpe_IC95': '[-1.21, 0.63]', 'OOS_maxDD_%': np.float64(-77.48933055669123), 'OOS_operazioni': 1725, 'OOS_media_op_%': np.float64(-0.33846806821778364), 'OOS_vincenti_%': np.float64(35.88405797101449), 'verdetto': 'non regge'}
+{'regola': 'H2', 'giorni': 1, 'IS_CAGR_%': np.float64(-8.257477533080614), 'IS_maxDD_%': np.float64(-50.6302802909099), 'OOS_CAGR_%': np.float64(-11.089615681093878), 'OOS_Sharpe': np.float64(-0.2759545785962493), 'OOS_Sharpe_IC95': '[-1.10, 0.38]', 'OOS_maxDD_%': np.float64(-56.44728198162874), 'OOS_operazioni': 1620, 'OOS_media_op_%': np.float64(-0.23362875740315403), 'OOS_vincenti_%': np.float64(38.95061728395062), 'verdetto': 'non regge'}
+{'regola': 'H2', 'giorni': 2, 'IS_CAGR_%': np.float64(4.760134675396088), 'IS_maxDD_%': np.float64(-44.195014945945886), 'OOS_CAGR_%': np.float64(7.647066117465395), 'OOS_Sharpe': np.float64(0.3812590467014653), 'OOS_Sharpe_IC95': '[-0.50, 1.19]', 'OOS_maxDD_%': np.float64(-44.34950443602342), 'OOS_operazioni': 1371, 'OOS_media_op_%': np.float64(0.45223564083577156), 'OOS_vincenti_%': np.float64(40.62727935813275), 'verdetto': 'non regge'}
+{'regola': 'H2', 'giorni': 3, 'IS_CAGR_%': np.float64(24.105284490126056), 'IS_maxDD_%': np.float64(-41.637022506712505), 'OOS_CAGR_%': np.float64(11.65630501021855), 'OOS_Sharpe': np.float64(0.4711778855641903), 'OOS_Sharpe_IC95': '[-0.50, 1.35]', 'OOS_maxDD_%': np.float64(-51.22318992416628), 'OOS_operazioni': 1216, 'OOS_media_op_%': np.float64(0.7643487306579617), 'OOS_vincenti_%': np.float64(38.89802631578947), 'verdetto': 'non regge'}
+{'regola': 'P1', 'giorni': 1, 'IS_CAGR_%': np.float64(-12.107211419393614), 'IS_maxDD_%': np.float64(-58.756797689383575), 'OOS_CAGR_%': np.float64(-52.03626261186541), 'OOS_Sharpe': np.float64(-1.4724957885245777), 'OOS_Sharpe_IC95': '[-2.34, -0.61]', 'OOS_maxDD_%': np.float64(-97.18464248172259), 'OOS_operazioni': 3946, 'OOS_media_op_%': np.float64(-0.7833782890124565), 'OOS_vincenti_%': np.float64(41.33299543841865), 'verdetto': 'non regge'}
+{'regola': 'P1', 'giorni': 2, 'IS_CAGR_%': np.float64(-17.783730130004294), 'IS_maxDD_%': np.float64(-78.21978152806034), 'OOS_CAGR_%': np.float64(-58.628650595140265), 'OOS_Sharpe': np.float64(-1.3498505216284886), 'OOS_Sharpe_IC95': '[-2.16, -0.56]', 'OOS_maxDD_%': np.float64(-98.67624917962662), 'OOS_operazioni': 3378, 'OOS_media_op_%': np.float64(-1.0746789356627249), 'OOS_vincenti_%': np.float64(38.57312018946122), 'verdetto': 'non regge'}
+{'regola': 'P1', 'giorni': 3, 'IS_CAGR_%': np.float64(-10.807546521603806), 'IS_maxDD_%': np.float64(-68.63817489171949), 'OOS_CAGR_%': np.float64(-57.53962081271605), 'OOS_Sharpe': np.float64(-1.130408779890982), 'OOS_Sharpe_IC95': '[-1.92, -0.30]', 'OOS_maxDD_%': np.float64(-98.60278297734084), 'OOS_operazioni': 2941, 'OOS_media_op_%': np.float64(-1.1302953669181708), 'OOS_vincenti_%': np.float64(38.35430125807549), 'verdetto': 'non regge'}
+{'regola': 'B1', 'giorni': 1, 'IS_CAGR_%': np.float64(-7.685247532639394), 'IS_maxDD_%': np.float64(-64.09883144492403), 'OOS_CAGR_%': np.float64(-29.544862745004675), 'OOS_Sharpe': np.float64(-0.7101635936154389), 'OOS_Sharpe_IC95': '[-1.66, 0.12]', 'OOS_maxDD_%': np.float64(-83.02014831149917), 'OOS_operazioni': 3715, 'OOS_media_op_%': np.float64(-0.35847232811255497), 'OOS_vincenti_%': np.float64(39.54239569313594), 'verdetto': 'non regge'}
+{'regola': 'B1', 'giorni': 2, 'IS_CAGR_%': np.float64(27.373934985185855), 'IS_maxDD_%': np.float64(-33.24215548255543), 'OOS_CAGR_%': np.float64(-8.352499340191866), 'OOS_Sharpe': np.float64(0.02116128418383843), 'OOS_Sharpe_IC95': '[-1.09, 1.04]', 'OOS_maxDD_%': np.float64(-57.43154850875713), 'OOS_operazioni': 2432, 'OOS_media_op_%': np.float64(0.033447794288651474), 'OOS_vincenti_%': np.float64(40.70723684210527), 'verdetto': 'non regge'}
+{'regola': 'B1', 'giorni': 3, 'IS_CAGR_%': np.float64(41.80007802001644), 'IS_maxDD_%': np.float64(-56.883465769597954), 'OOS_CAGR_%': np.float64(-12.782522717103163), 'OOS_Sharpe': np.float64(-0.05669379241741789), 'OOS_Sharpe_IC95': '[-1.02, 0.87]', 'OOS_maxDD_%': np.float64(-68.87276566496267), 'OOS_operazioni': 1919, 'OOS_media_op_%': np.float64(-0.0788358833091804), 'OOS_vincenti_%': np.float64(40.07295466388744), 'verdetto': 'non regge'}
+{'regola': 'S1', 'giorni': 1, 'IS_CAGR_%': np.float64(-4.099413505592597), 'IS_maxDD_%': np.float64(-65.6518031903253), 'OOS_CAGR_%': np.float64(-41.25189011665371), 'OOS_Sharpe': np.float64(-1.2517822770123403), 'OOS_Sharpe_IC95': '[-2.37, -0.24]', 'OOS_maxDD_%': np.float64(-92.73420583618125), 'OOS_operazioni': 4580, 'OOS_media_op_%': np.float64(-0.48932517015884786), 'OOS_vincenti_%': np.float64(40.21834061135372), 'verdetto': 'non regge'}
+{'regola': 'S1', 'giorni': 2, 'IS_CAGR_%': np.float64(5.084348869325495), 'IS_maxDD_%': np.float64(-71.95574227409125), 'OOS_CAGR_%': np.float64(-39.985866913994286), 'OOS_Sharpe': np.float64(-0.8835234868012646), 'OOS_Sharpe_IC95': '[-1.99, 0.11]', 'OOS_maxDD_%': np.float64(-92.53012289104336), 'OOS_operazioni': 3208, 'OOS_media_op_%': np.float64(-0.5948039236799015), 'OOS_vincenti_%': np.float64(40.430174563591024), 'verdetto': 'non regge'}
+{'regola': 'S1', 'giorni': 3, 'IS_CAGR_%': np.float64(8.318076535350482), 'IS_maxDD_%': np.float64(-72.01123369098214), 'OOS_CAGR_%': np.float64(-44.4195639243688), 'OOS_Sharpe': np.float64(-0.9168224464339985), 'OOS_Sharpe_IC95': '[-2.05, 0.21]', 'OOS_maxDD_%': np.float64(-94.4230258249734), 'OOS_operazioni': 2550, 'OOS_media_op_%': np.float64(-0.8457224762354831), 'OOS_vincenti_%': np.float64(38.588235294117645), 'verdetto': 'non regge'}
+{'regola': 'M1', 'giorni': 1, 'IS_CAGR_%': np.float64(15.043162610654349), 'IS_maxDD_%': np.float64(-54.41880347838297), 'OOS_CAGR_%': np.float64(-55.62023864255743), 'OOS_Sharpe': np.float64(-1.5336968496593124), 'OOS_Sharpe_IC95': '[-2.49, -0.73]', 'OOS_maxDD_%': np.float64(-98.20414968988322), 'OOS_operazioni': 6847, 'OOS_media_op_%': np.float64(-0.5057393947880797), 'OOS_vincenti_%': np.float64(40.2219950343216), 'verdetto': 'non regge'}
+{'regola': 'M1', 'giorni': 2, 'IS_CAGR_%': np.float64(23.770943234699438), 'IS_maxDD_%': np.float64(-63.96471538253097), 'OOS_CAGR_%': np.float64(-54.53912519035974), 'OOS_Sharpe': np.float64(-0.8555939962110344), 'OOS_Sharpe_IC95': '[-1.79, 0.03]', 'OOS_maxDD_%': np.float64(-97.94752902179387), 'OOS_operazioni': 5517, 'OOS_media_op_%': np.float64(-0.5003907046917418), 'OOS_vincenti_%': np.float64(40.94616639477977), 'verdetto': 'non regge'}
+{'regola': 'M1', 'giorni': 3, 'IS_CAGR_%': np.float64(29.063884399410277), 'IS_maxDD_%': np.float64(-66.63202462064058), 'OOS_CAGR_%': np.float64(-64.87202613667407), 'OOS_Sharpe': np.float64(-1.0891948451382927), 'OOS_Sharpe_IC95': '[-2.01, -0.20]', 'OOS_maxDD_%': np.float64(-99.41172463384504), 'OOS_operazioni': 4446, 'OOS_media_op_%': np.float64(-0.8692908342021453), 'OOS_vincenti_%': np.float64(39.9685110211426), 'verdetto': 'non regge'}
+| regola | giorni | IS_CAGR_% | IS_maxDD_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_media_op_% | OOS_vincenti_% | verdetto |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| H1 | 1 | -18.35 | -59.49 | -30.13 | -0.8559 | [-1.68, -0.08] | -83.89 | 2224 | -0.6509 | 37.37 | non regge |
+| H1 | 2 | -8.673 | -58.92 | -20.98 | -0.3459 | [-1.25, 0.52] | -69.95 | 1906 | -0.4112 | 37.15 | non regge |
+| H1 | 3 | 10.02 | -55.88 | -20.24 | -0.2393 | [-1.21, 0.63] | -77.49 | 1725 | -0.3385 | 35.88 | non regge |
+| H2 | 1 | -8.257 | -50.63 | -11.09 | -0.276 | [-1.10, 0.38] | -56.45 | 1620 | -0.2336 | 38.95 | non regge |
+| H2 | 2 | 4.76 | -44.2 | 7.647 | 0.3813 | [-0.50, 1.19] | -44.35 | 1371 | 0.4522 | 40.63 | non regge |
+| H2 | 3 | 24.11 | -41.64 | 11.66 | 0.4712 | [-0.50, 1.35] | -51.22 | 1216 | 0.7643 | 38.9 | non regge |
+| P1 | 1 | -12.11 | -58.76 | -52.04 | -1.472 | [-2.34, -0.61] | -97.18 | 3946 | -0.7834 | 41.33 | non regge |
+| P1 | 2 | -17.78 | -78.22 | -58.63 | -1.35 | [-2.16, -0.56] | -98.68 | 3378 | -1.075 | 38.57 | non regge |
+| P1 | 3 | -10.81 | -68.64 | -57.54 | -1.13 | [-1.92, -0.30] | -98.6 | 2941 | -1.13 | 38.35 | non regge |
+| B1 | 1 | -7.685 | -64.1 | -29.54 | -0.7102 | [-1.66, 0.12] | -83.02 | 3715 | -0.3585 | 39.54 | non regge |
+| B1 | 2 | 27.37 | -33.24 | -8.352 | 0.02116 | [-1.09, 1.04] | -57.43 | 2432 | 0.03345 | 40.71 | non regge |
+| B1 | 3 | 41.8 | -56.88 | -12.78 | -0.05669 | [-1.02, 0.87] | -68.87 | 1919 | -0.07884 | 40.07 | non regge |
+| S1 | 1 | -4.099 | -65.65 | -41.25 | -1.252 | [-2.37, -0.24] | -92.73 | 4580 | -0.4893 | 40.22 | non regge |
+| S1 | 2 | 5.084 | -71.96 | -39.99 | -0.8835 | [-1.99, 0.11] | -92.53 | 3208 | -0.5948 | 40.43 | non regge |
+| S1 | 3 | 8.318 | -72.01 | -44.42 | -0.9168 | [-2.05, 0.21] | -94.42 | 2550 | -0.8457 | 38.59 | non regge |
+| M1 | 1 | 15.04 | -54.42 | -55.62 | -1.534 | [-2.49, -0.73] | -98.2 | 6847 | -0.5057 | 40.22 | non regge |
+| M1 | 2 | 23.77 | -63.96 | -54.54 | -0.8556 | [-1.79, 0.03] | -97.95 | 5517 | -0.5004 | 40.95 | non regge |
+| M1 | 3 | 29.06 | -66.63 | -64.87 | -1.089 | [-2.01, -0.20] | -99.41 | 4446 | -0.8693 | 39.97 | non regge |
+

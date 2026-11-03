@@ -313,6 +313,7 @@ e dal −9% al −57% a settembre.
 | Fornire liquidità ai pool PumpSwap (fare il banco), 1 h - 3 giorni | 5.067 token giu-lug + 19.242 set | perde (da −4% a −52%), sezione 9.10 |
 | Short sui perpetui Binance di altcoin e memecoin, 1-3 giorni | 918 contratti 2020-2026 | nessuna regge (la migliore +3,7% annuo, negativa con costi doppi), sezione 10.2 |
 | Incassare il funding (spot + short perpetuo), 1-3 giorni | 451 monete 2020-2026 | perde (12 su 12), sezione 10.3 |
+| Filtro di trend sulle memecoin quotate (giornaliero e 4 ore) | 60 memecoin 2021-2026 | perde meno che tenerle, ma non regge (+4,6% dipende da PEPE e FLOKI), sezione 10.4 |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i
@@ -471,9 +472,30 @@ su entrambe le gambe, funding reale.
 - Con le memecoin più calde capitano anche rialzi del 100% in pochi giorni che azzerano la gamba short (fino a 23
   "liquidazioni" fuori campione).
 
+### 10.4 Il filtro di trend sulle memecoin già quotate (`meme_trend`)
+
+Il filtro di trend è l'unico effetto che ha retto ovunque (e su DOGE): l'abbiamo applicato senza cambiare nulla a
+**60 memecoin con un perpetuo Binance** (DOGE, SHIB, PEPE, BONK, FLOKI, WIF, BOME, POPCAT, MEW, FARTCOIN, GOAT, PNUT,
+MOODENG, TRUMP, PENGU e altre 45, elenco scritto prima, comprese quelle crollate), 1/N per moneta tenuta solo sopra
+la sua media, altrimenti liquidità, 0,30% per lato.
+
+| 2022-2026 | Rendimento annuo | Perdita massima | Con costi doppi | Un giorno dopo |
+|---|---|---|---|---|
+| M1 media di 50 giorni | **+4,6%** | −60% | −2,9% | +4,6% |
+| M2 media di 20 giorni | −14,3% | −75% | −24,3% | −8,2% |
+| M3 candele di 4 ore, media di 50 | −11,1% | −75% | −43,1% | −14,0% |
+| Tenerle sempre tutte | −23,1% | −84% | | |
+
+- Il filtro a 50 giorni **perde molto meno** che tenere le memecoin (+4,6% contro −23% annuo, −60% contro −84%), ma
+  **non regge**: l'intervallo dello Sharpe va da −0,78 a 1,31 e con costi doppi diventa negativo.
+- Il risultato dipende da **due monete**: PEPE (+402%) e FLOKI (+481%) compongono quasi tutto il guadagno; 52 memecoin
+  su 60 perdono anche con il filtro (RATS −99%, MEME −93%, NOT −87%, WIF −48%, POPCAT −56%, TRUMP −63%). Solo il 15%
+  delle operazioni è vincente e il 97,7% dei guadagni viene dal 10% migliore.
+- Anno per anno con il filtro: 2022 −44%, 2023 +46%, 2024 +98%, 2025 −13%, 2026 −12%.
+
 **Conclusione delle sezioni 9-10 (3 novembre 2026).** Con tenute fino a 3 giorni non c'è niente che funzioni nei dati
 gratuiti: né comprare (hype, slancio, ritracciamenti, modelli), né vendere allo scoperto, né fornire liquidità, né
-incassare il funding. Le uniche due cose con un vantaggio misurato sono la **velocità nello stesso blocco** (copia
+incassare il funding; e sulle memecoin nemmeno il filtro di trend regge. Le uniche due cose con un vantaggio misurato sono la **velocità nello stesso blocco** (copia
 perfetta +9,1%, sparisce in 1 secondo, richiede infrastruttura a pagamento) e il **filtro di trend a 50 giorni** su
 BTC·ETH·SOL (+31,2% annuo fuori campione, tenute di settimane).
 

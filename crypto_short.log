@@ -48,116 +48,91 @@ perpetui USDT: 918
   850/918
   900/918
 Perpetui USDT: **918** (di cui 31 chiusi o delistati prima della fine), dati fino al 2026-10-31; con dati di funding: 918. Memecoin dell'elenco presenti: 36.
+Giorni di contrattazione con dato di funding: **93.5%**; nelle 100 più scambiate funding giornaliero medio -0.0054%, mediano +0.0250%, giorni >= 0,10%: 9.4%.
 - 2020-2021: delle 100 monete più scambiate, il 48.1% scende nei 3 giorni successivi (variazione media +1.68%, mediana +0.39%); tenerle tutte in parti uguali: +239.1% annuo, perdita massima -65%.
 - 2022-fine: delle 100 monete più scambiate, il 53.9% scende nei 3 giorni successivi (variazione media -0.25%, mediana -0.67%); tenerle tutte in parti uguali: -44.6% annuo, perdita massima -95%.
-{'variante': 'SH1, 1 giorni', 'IS_CAGR_%': np.float64(-44.47851898305887), 'OOS_CAGR_%': np.float64(-32.45977762329526), 'OOS_Sharpe': np.float64(-1.3538811891956861), 'OOS_Sharpe_IC95': '[-2.38, -0.25]', 'OOS_maxDD_%': np.float64(-91.59547739808497), 'OOS_operazioni': 2197, 'OOS_vincenti_%': np.float64(51.70687300864816), 'OOS_media_op_%': np.float64(-0.7849738219759912), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(25.489303595812473), '_lo': -2.3799061989494414}
-{'variante': 'SH1, 2 giorni', 'IS_CAGR_%': np.float64(-67.19952405180054), 'OOS_CAGR_%': np.float64(-40.644049893516545), 'OOS_Sharpe': np.float64(-1.351525018541931), 'OOS_Sharpe_IC95': '[-2.43, -0.33]', 'OOS_maxDD_%': np.float64(-96.42972991667004), 'OOS_operazioni': 2142, 'OOS_vincenti_%': np.float64(49.2530345471522), 'OOS_media_op_%': np.float64(-1.0368782415485551), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(35.901027077497666), '_lo': -2.4294542423563366}
-{'variante': 'SH1, 3 giorni', 'IS_CAGR_%': np.float64(-71.30563472053481), 'OOS_CAGR_%': np.float64(-34.57293889042566), 'OOS_Sharpe': np.float64(-0.9046430817373545), 'OOS_Sharpe_IC95': '[-1.87, 0.16]', 'OOS_maxDD_%': np.float64(-93.17541645291382), 'OOS_operazioni': 2078, 'OOS_vincenti_%': np.float64(47.20885466794995), 'OOS_media_op_%': np.float64(-0.8003484514353293), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(40.95283926852743), '_lo': -1.8736103921740774}
-{'variante': 'SH2, 1 giorni', 'IS_CAGR_%': np.float64(-6.051895340165514), 'OOS_CAGR_%': np.float64(-0.14573544084126588), 'OOS_Sharpe': np.float64(0.07106615294550385), 'OOS_Sharpe_IC95': '[-0.73, 0.87]', 'OOS_maxDD_%': np.float64(-33.501059251541), 'OOS_operazioni': 767, 'OOS_vincenti_%': np.float64(53.58539765319426), 'OOS_media_op_%': np.float64(0.07531192510769508), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(25.945241199478485), '_lo': -0.7330140274148207}
-{'variante': 'SH2, 2 giorni', 'IS_CAGR_%': np.float64(-9.383101305406305), 'OOS_CAGR_%': np.float64(0.19811029779299716), 'OOS_Sharpe': np.float64(0.11472772272139424), 'OOS_Sharpe_IC95': '[-0.67, 0.87]', 'OOS_maxDD_%': np.float64(-48.28551895356564), 'OOS_operazioni': 765, 'OOS_vincenti_%': np.float64(52.156862745098046), 'OOS_media_op_%': np.float64(0.15976768684769893), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(35.16339869281046), '_lo': -0.6730027059774775}
-{'variante': 'SH2, 3 giorni', 'IS_CAGR_%': np.float64(-8.614028558230057), 'OOS_CAGR_%': np.float64(5.423772276355554), 'OOS_Sharpe': np.float64(0.33928402761523235), 'OOS_Sharpe_IC95': '[-0.40, 0.99]', 'OOS_maxDD_%': np.float64(-38.921384098740255), 'OOS_operazioni': 755, 'OOS_vincenti_%': np.float64(48.60927152317881), 'OOS_media_op_%': np.float64(0.5448671064426692), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(40.0), '_lo': -0.40480476331582355}
-{'variante': 'SS1, 1 giorni', 'IS_CAGR_%': np.float64(-86.33294876730271), 'OOS_CAGR_%': np.float64(-51.21274942727345), 'OOS_Sharpe': np.float64(-1.1727163807867766), 'OOS_Sharpe_IC95': '[-2.17, -0.23]', 'OOS_maxDD_%': np.float64(-97.71001785375594), 'OOS_operazioni': 8815, 'OOS_vincenti_%': np.float64(52.31990924560408), 'OOS_media_op_%': np.float64(-0.3165072168938565), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(12.977878615995461), '_lo': -2.1707102581586786}
-{'variante': 'SS1, 2 giorni', 'IS_CAGR_%': np.float64(-86.75494613138129), 'OOS_CAGR_%': np.float64(-43.64196901037888), 'OOS_Sharpe': np.float64(-0.6358113746226838), 'OOS_Sharpe_IC95': '[-1.61, 0.27]', 'OOS_maxDD_%': np.float64(-96.8920144408996), 'OOS_operazioni': 6353, 'OOS_vincenti_%': np.float64(51.361561467023456), 'OOS_media_op_%': np.float64(-0.29051732547198755), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(21.832205257358726), '_lo': -1.6145569666579}
-{'variante': 'SS1, 3 giorni', 'IS_CAGR_%': np.float64(-89.67570941102552), 'OOS_CAGR_%': np.float64(-31.975164301389324), 'OOS_Sharpe': np.float64(-0.24007966675787812), 'OOS_Sharpe_IC95': '[-1.17, 0.68]', 'OOS_maxDD_%': np.float64(-94.86604363777137), 'OOS_operazioni': 5164, 'OOS_vincenti_%': np.float64(50.367931835786216), 'OOS_media_op_%': np.float64(-0.14293713127523996), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(27.82726568551511), '_lo': -1.1740554131725305}
-{'variante': 'SN1, 1 giorni', 'IS_CAGR_%': np.float64(2.128707041377642), 'OOS_CAGR_%': np.float64(2.8754483890711446), 'OOS_Sharpe': np.float64(0.2759648464236209), 'OOS_Sharpe_IC95': '[-0.56, 1.13]', 'OOS_maxDD_%': np.float64(-21.44457344554589), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(55.51330798479087), 'OOS_media_op_%': np.float64(0.3451975803923936), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(25.85551330798479), '_lo': -0.5605491148350836}
-{'variante': 'SN1, 2 giorni', 'IS_CAGR_%': np.float64(4.683076779241602), 'OOS_CAGR_%': np.float64(2.729091338085632), 'OOS_Sharpe': np.float64(0.24262453552832866), 'OOS_Sharpe_IC95': '[-0.69, 1.14]', 'OOS_maxDD_%': np.float64(-33.35664590772763), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(51.90114068441065), 'OOS_media_op_%': np.float64(0.37675252795983727), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(36.31178707224335), '_lo': -0.6936436262965421}
-{'variante': 'SN1, 3 giorni', 'IS_CAGR_%': np.float64(10.768240824969254), 'OOS_CAGR_%': np.float64(6.037845112819373), 'OOS_Sharpe': np.float64(0.39556133583988734), 'OOS_Sharpe_IC95': '[-0.53, 1.20]', 'OOS_maxDD_%': np.float64(-40.306003562658844), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(49.42965779467681), 'OOS_media_op_%': np.float64(0.7081904509475005), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(41.44486692015209), '_lo': -0.5257679359665792}
-{'variante': 'SF1, 1 giorni', 'IS_CAGR_%': np.float64(0.0), 'OOS_CAGR_%': np.float64(0.0), 'OOS_Sharpe': nan, 'OOS_Sharpe_IC95': '[0.00, 0.00]', 'OOS_maxDD_%': np.float64(0.0), 'OOS_operazioni': 0, 'OOS_vincenti_%': nan, 'OOS_media_op_%': nan, 'OOS_funding_medio_op_%': nan, 'OOS_stop_%': nan, '_lo': 0.0}
-{'variante': 'SF1, 2 giorni', 'IS_CAGR_%': np.float64(0.0), 'OOS_CAGR_%': np.float64(0.0), 'OOS_Sharpe': nan, 'OOS_Sharpe_IC95': '[0.00, 0.00]', 'OOS_maxDD_%': np.float64(0.0), 'OOS_operazioni': 0, 'OOS_vincenti_%': nan, 'OOS_media_op_%': nan, 'OOS_funding_medio_op_%': nan, 'OOS_stop_%': nan, '_lo': 0.0}
-{'variante': 'SF1, 3 giorni', 'IS_CAGR_%': np.float64(0.0), 'OOS_CAGR_%': np.float64(0.0), 'OOS_Sharpe': nan, 'OOS_Sharpe_IC95': '[0.00, 0.00]', 'OOS_maxDD_%': np.float64(0.0), 'OOS_operazioni': 0, 'OOS_vincenti_%': nan, 'OOS_media_op_%': nan, 'OOS_funding_medio_op_%': nan, 'OOS_stop_%': nan, '_lo': 0.0}
-{'variante': 'SB1, 1 giorni', 'IS_CAGR_%': np.float64(-26.541465482653937), 'OOS_CAGR_%': np.float64(-26.893348065269485), 'OOS_Sharpe': np.float64(-0.6931422585231728), 'OOS_Sharpe_IC95': '[-1.50, 0.03]', 'OOS_maxDD_%': np.float64(-85.20674111433802), 'OOS_operazioni': 4230, 'OOS_vincenti_%': np.float64(48.3451536643026), 'OOS_media_op_%': np.float64(-0.2792092965984746), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(8.085106382978724), '_lo': -1.4954900079560791}
-{'variante': 'SB1, 2 giorni', 'IS_CAGR_%': np.float64(-34.02815747179459), 'OOS_CAGR_%': np.float64(-21.03400757474517), 'OOS_Sharpe': np.float64(-0.3592388652482822), 'OOS_Sharpe_IC95': '[-1.12, 0.31]', 'OOS_maxDD_%': np.float64(-80.11562252010434), 'OOS_operazioni': 2762, 'OOS_vincenti_%': np.float64(49.60173787110789), 'OOS_media_op_%': np.float64(-0.25801242333021057), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(14.482259232440262), '_lo': -1.1162371786008525}
-{'variante': 'SB1, 3 giorni', 'IS_CAGR_%': np.float64(-29.675977051541626), 'OOS_CAGR_%': np.float64(-18.35033357199801), 'OOS_Sharpe': np.float64(-0.22045637986077646), 'OOS_Sharpe_IC95': '[-0.98, 0.49]', 'OOS_maxDD_%': np.float64(-81.89820308215401), 'OOS_operazioni': 2221, 'OOS_vincenti_%': np.float64(49.572264745610084), 'OOS_media_op_%': np.float64(-0.20045544259517997), 'OOS_funding_medio_op_%': np.float64(0.0), 'OOS_stop_%': np.float64(20.711391265195857), '_lo': -0.9812474061979877}
+{'variante': 'SH1, 1 giorni', 'IS_CAGR_%': np.float64(-41.771653154221525), 'OOS_CAGR_%': np.float64(-37.77658605925711), 'OOS_Sharpe': np.float64(-1.6914329855763257), 'OOS_Sharpe_IC95': '[-2.70, -0.61]', 'OOS_maxDD_%': np.float64(-94.27664029166584), 'OOS_operazioni': 2198, 'OOS_vincenti_%': np.float64(51.228389444949954), 'OOS_media_op_%': np.float64(-0.9667421865093753), 'OOS_funding_medio_op_%': np.float64(-0.1850073739763421), 'OOS_stop_%': np.float64(25.477707006369428), '_lo': -2.696189692683852}
+{'variante': 'SH1, 2 giorni', 'IS_CAGR_%': np.float64(-64.61319122866766), 'OOS_CAGR_%': np.float64(-47.55146302167387), 'OOS_Sharpe': np.float64(-1.7429278017959384), 'OOS_Sharpe_IC95': '[-2.79, -0.73]', 'OOS_maxDD_%': np.float64(-98.00561567108944), 'OOS_operazioni': 2142, 'OOS_vincenti_%': np.float64(48.36601307189542), 'OOS_media_op_%': np.float64(-1.3200717269430586), 'OOS_funding_medio_op_%': np.float64(-0.2831934853945035), 'OOS_stop_%': np.float64(35.901027077497666), '_lo': -2.7910249829516616}
+{'variante': 'SH1, 3 giorni', 'IS_CAGR_%': np.float64(-68.62019733690067), 'OOS_CAGR_%': np.float64(-43.266254798235636), 'OOS_Sharpe': np.float64(-1.2956044027753975), 'OOS_Sharpe_IC95': '[-2.25, -0.25]', 'OOS_maxDD_%': np.float64(-96.5158276303441), 'OOS_operazioni': 2078, 'OOS_vincenti_%': np.float64(46.92011549566891), 'OOS_media_op_%': np.float64(-1.1393510881284041), 'OOS_funding_medio_op_%': np.float64(-0.33900263669307473), 'OOS_stop_%': np.float64(40.95283926852743), '_lo': -2.2496673067325985}
+{'variante': 'SH2, 1 giorni', 'IS_CAGR_%': np.float64(-6.295420503282334), 'OOS_CAGR_%': np.float64(-5.841117539951468), 'OOS_Sharpe': np.float64(-0.2986006351880779), 'OOS_Sharpe_IC95': '[-1.15, 0.57]', 'OOS_maxDD_%': np.float64(-45.68722976965519), 'OOS_operazioni': 767, 'OOS_vincenti_%': np.float64(52.54237288135594), 'OOS_media_op_%': np.float64(-0.29661552208917624), 'OOS_funding_medio_op_%': np.float64(-0.371927447196871), 'OOS_stop_%': np.float64(25.945241199478485), '_lo': -1.1472185703916638}
+{'variante': 'SH2, 2 giorni', 'IS_CAGR_%': np.float64(-9.666389415590547), 'OOS_CAGR_%': np.float64(-8.414672914724663), 'OOS_Sharpe': np.float64(-0.3192205438483419), 'OOS_Sharpe_IC95': '[-1.12, 0.49]', 'OOS_maxDD_%': np.float64(-63.865915870838045), 'OOS_operazioni': 765, 'OOS_vincenti_%': np.float64(50.19607843137255), 'OOS_media_op_%': np.float64(-0.4152191959695546), 'OOS_funding_medio_op_%': np.float64(-0.5749868828172543), 'OOS_stop_%': np.float64(35.16339869281046), '_lo': -1.1210698099440675}
+{'variante': 'SH2, 3 giorni', 'IS_CAGR_%': np.float64(-8.905844774144345), 'OOS_CAGR_%': np.float64(-5.346109323994153), 'OOS_Sharpe': np.float64(-0.119091394586208), 'OOS_Sharpe_IC95': '[-0.85, 0.56]', 'OOS_maxDD_%': np.float64(-56.633197067955955), 'OOS_operazioni': 755, 'OOS_vincenti_%': np.float64(47.682119205298015), 'OOS_media_op_%': np.float64(-0.16045123839360945), 'OOS_funding_medio_op_%': np.float64(-0.705318344836279), 'OOS_stop_%': np.float64(40.0), '_lo': -0.8549493457066949}
+{'variante': 'SS1, 1 giorni', 'IS_CAGR_%': np.float64(-85.05066993980718), 'OOS_CAGR_%': np.float64(-58.3810285686245), 'OOS_Sharpe': np.float64(-1.5046402215957801), 'OOS_Sharpe_IC95': '[-2.52, -0.54]', 'OOS_maxDD_%': np.float64(-98.89553669146657), 'OOS_operazioni': 8815, 'OOS_vincenti_%': np.float64(52.0022688598979), 'OOS_media_op_%': np.float64(-0.40457455347922244), 'OOS_funding_medio_op_%': np.float64(-0.08806733658536585), 'OOS_stop_%': np.float64(12.977878615995461), '_lo': -2.515820586599639}
+{'variante': 'SS1, 2 giorni', 'IS_CAGR_%': np.float64(-85.00833465600547), 'OOS_CAGR_%': np.float64(-53.4049055085631), 'OOS_Sharpe': np.float64(-0.9549162820503678), 'OOS_Sharpe_IC95': '[-1.97, -0.04]', 'OOS_maxDD_%': np.float64(-98.69189817643138), 'OOS_operazioni': 6353, 'OOS_vincenti_%': np.float64(51.18841492208406), 'OOS_media_op_%': np.float64(-0.43665428941397355), 'OOS_funding_medio_op_%': np.float64(-0.14613696394198594), 'OOS_stop_%': np.float64(21.832205257358726), '_lo': -1.9654967665484055}
+{'variante': 'SS1, 3 giorni', 'IS_CAGR_%': np.float64(-87.93718044454707), 'OOS_CAGR_%': np.float64(-44.703776191354486), 'OOS_Sharpe': np.float64(-0.5534168329286298), 'OOS_Sharpe_IC95': '[-1.52, 0.39]', 'OOS_maxDD_%': np.float64(-97.99933634883226), 'OOS_operazioni': 5164, 'OOS_vincenti_%': np.float64(50.13555383423702), 'OOS_media_op_%': np.float64(-0.33964192427164924), 'OOS_funding_medio_op_%': np.float64(-0.1967047929964089), 'OOS_stop_%': np.float64(27.82726568551511), '_lo': -1.516891859000709}
+{'variante': 'SN1, 1 giorni', 'IS_CAGR_%': np.float64(2.2817190575592505), 'OOS_CAGR_%': np.float64(1.2634453133450352), 'OOS_Sharpe': np.float64(0.16006187906370029), 'OOS_Sharpe_IC95': '[-0.69, 0.99]', 'OOS_maxDD_%': np.float64(-22.734723433952208), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(54.94296577946768), 'OOS_media_op_%': np.float64(0.19939296822509273), 'OOS_funding_medio_op_%': np.float64(-0.14580461216730037), 'OOS_stop_%': np.float64(25.85551330798479), '_lo': -0.6873131928293286}
+{'variante': 'SN1, 2 giorni', 'IS_CAGR_%': np.float64(4.909006717259401), 'OOS_CAGR_%': np.float64(0.56847756184224), 'OOS_Sharpe': np.float64(0.11837180800679803), 'OOS_Sharpe_IC95': '[-0.82, 1.06]', 'OOS_maxDD_%': np.float64(-35.91056960692748), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(51.71102661596958), 'OOS_media_op_%': np.float64(0.1804558397948044), 'OOS_funding_medio_op_%': np.float64(-0.19629668816503174), 'OOS_stop_%': np.float64(36.31178707224335), '_lo': -0.8193226790065584}
+{'variante': 'SN1, 3 giorni', 'IS_CAGR_%': np.float64(11.03587705407849), 'OOS_CAGR_%': np.float64(3.683202811401798), 'OOS_Sharpe': np.float64(0.28184511262182727), 'OOS_Sharpe_IC95': '[-0.66, 1.09]', 'OOS_maxDD_%': np.float64(-42.56972665363289), 'OOS_operazioni': 526, 'OOS_vincenti_%': np.float64(49.049429657794676), 'OOS_media_op_%': np.float64(0.5004174088799677), 'OOS_funding_medio_op_%': np.float64(-0.20777304206753291), 'OOS_stop_%': np.float64(41.44486692015209), '_lo': -0.65784773729457}
+{'variante': 'SF1, 1 giorni', 'IS_CAGR_%': np.float64(-64.68128386891775), 'OOS_CAGR_%': np.float64(-37.44729250170343), 'OOS_Sharpe': np.float64(-1.4010586894140644), 'OOS_Sharpe_IC95': '[-2.57, -0.33]', 'OOS_maxDD_%': np.float64(-89.64184082351481), 'OOS_operazioni': 2612, 'OOS_vincenti_%': np.float64(49.846860643185295), 'OOS_media_op_%': np.float64(-0.7830735075778379), 'OOS_funding_medio_op_%': np.float64(0.1231249176875957), 'OOS_stop_%': np.float64(20.82695252679939), '_lo': -2.5652322545948163}
+{'variante': 'SF1, 2 giorni', 'IS_CAGR_%': np.float64(-47.70918203600425), 'OOS_CAGR_%': np.float64(-31.09923062760933), 'OOS_Sharpe': np.float64(-0.9349794575635703), 'OOS_Sharpe_IC95': '[-1.86, -0.05]', 'OOS_maxDD_%': np.float64(-84.40607626756821), 'OOS_operazioni': 1830, 'OOS_vincenti_%': np.float64(48.41530054644809), 'OOS_media_op_%': np.float64(-0.8345337146614731), 'OOS_funding_medio_op_%': np.float64(0.1970301812365454), 'OOS_stop_%': np.float64(32.622950819672134), '_lo': -1.8558747564672344}
+{'variante': 'SF1, 3 giorni', 'IS_CAGR_%': np.float64(-47.60524638826335), 'OOS_CAGR_%': np.float64(-26.02886035344326), 'OOS_Sharpe': np.float64(-0.6746369139625302), 'OOS_Sharpe_IC95': '[-1.78, 0.34]', 'OOS_maxDD_%': np.float64(-80.01782900473466), 'OOS_operazioni': 1562, 'OOS_vincenti_%': np.float64(46.22279129321383), 'OOS_media_op_%': np.float64(-0.732720094079993), 'OOS_funding_medio_op_%': np.float64(0.24397928727095944), 'OOS_stop_%': np.float64(39.88476312419974), '_lo': -1.7837394427134776}
+{'variante': 'SB1, 1 giorni', 'IS_CAGR_%': np.float64(-25.818363277290814), 'OOS_CAGR_%': np.float64(-30.38024374180163), 'OOS_Sharpe': np.float64(-0.8326807674517617), 'OOS_Sharpe_IC95': '[-1.60, -0.13]', 'OOS_maxDD_%': np.float64(-88.34362138936943), 'OOS_operazioni': 4230, 'OOS_vincenti_%': np.float64(47.87234042553192), 'OOS_media_op_%': np.float64(-0.33536228146845115), 'OOS_funding_medio_op_%': np.float64(-0.05615298486997635), 'OOS_stop_%': np.float64(8.085106382978724), '_lo': -1.5993322429779575}
+{'variante': 'SB1, 2 giorni', 'IS_CAGR_%': np.float64(-33.13047138676543), 'OOS_CAGR_%': np.float64(-25.330447150327785), 'OOS_Sharpe': np.float64(-0.4934554139549729), 'OOS_Sharpe_IC95': '[-1.27, 0.19]', 'OOS_maxDD_%': np.float64(-84.83388019875161), 'OOS_operazioni': 2762, 'OOS_vincenti_%': np.float64(49.167270094134686), 'OOS_media_op_%': np.float64(-0.35595925932215533), 'OOS_funding_medio_op_%': np.float64(-0.09794683599194484), 'OOS_stop_%': np.float64(14.482259232440262), '_lo': -1.2691380482604115}
+{'variante': 'SB1, 3 giorni', 'IS_CAGR_%': np.float64(-28.65727730276052), 'OOS_CAGR_%': np.float64(-23.18628388656204), 'OOS_Sharpe': np.float64(-0.3545248538776876), 'OOS_Sharpe_IC95': '[-1.10, 0.36]', 'OOS_maxDD_%': np.float64(-86.12240195010953), 'OOS_operazioni': 2221, 'OOS_vincenti_%': np.float64(49.167041873030165), 'OOS_media_op_%': np.float64(-0.33354776740044245), 'OOS_funding_medio_op_%': np.float64(-0.13309232480526303), 'OOS_stop_%': np.float64(20.711391265195857), '_lo': -1.10151950425092}
 
 ## Le regole pre-registrate
 | variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SH1, 1 giorni | -44.48 | -32.46 | -1.354 | [-2.38, -0.25] | -91.6 | 2197 | 51.71 | -0.785 | 0 | 25.49 |
-| SH1, 2 giorni | -67.2 | -40.64 | -1.352 | [-2.43, -0.33] | -96.43 | 2142 | 49.25 | -1.037 | 0 | 35.9 |
-| SH1, 3 giorni | -71.31 | -34.57 | -0.9046 | [-1.87, 0.16] | -93.18 | 2078 | 47.21 | -0.8003 | 0 | 40.95 |
-| SH2, 1 giorni | -6.052 | -0.1457 | 0.07107 | [-0.73, 0.87] | -33.5 | 767 | 53.59 | 0.07531 | 0 | 25.95 |
-| SH2, 2 giorni | -9.383 | 0.1981 | 0.1147 | [-0.67, 0.87] | -48.29 | 765 | 52.16 | 0.1598 | 0 | 35.16 |
-| SH2, 3 giorni | -8.614 | 5.424 | 0.3393 | [-0.40, 0.99] | -38.92 | 755 | 48.61 | 0.5449 | 0 | 40 |
-| SS1, 1 giorni | -86.33 | -51.21 | -1.173 | [-2.17, -0.23] | -97.71 | 8815 | 52.32 | -0.3165 | 0 | 12.98 |
-| SS1, 2 giorni | -86.75 | -43.64 | -0.6358 | [-1.61, 0.27] | -96.89 | 6353 | 51.36 | -0.2905 | 0 | 21.83 |
-| SS1, 3 giorni | -89.68 | -31.98 | -0.2401 | [-1.17, 0.68] | -94.87 | 5164 | 50.37 | -0.1429 | 0 | 27.83 |
-| SN1, 1 giorni | 2.129 | 2.875 | 0.276 | [-0.56, 1.13] | -21.44 | 526 | 55.51 | 0.3452 | 0 | 25.86 |
-| SN1, 2 giorni | 4.683 | 2.729 | 0.2426 | [-0.69, 1.14] | -33.36 | 526 | 51.9 | 0.3768 | 0 | 36.31 |
-| SN1, 3 giorni | 10.77 | 6.038 | 0.3956 | [-0.53, 1.20] | -40.31 | 526 | 49.43 | 0.7082 | 0 | 41.44 |
-| SF1, 1 giorni | 0 | 0 |  | [0.00, 0.00] | 0 | 0 |  |  |  |  |
-| SF1, 2 giorni | 0 | 0 |  | [0.00, 0.00] | 0 | 0 |  |  |  |  |
-| SF1, 3 giorni | 0 | 0 |  | [0.00, 0.00] | 0 | 0 |  |  |  |  |
-| SB1, 1 giorni | -26.54 | -26.89 | -0.6931 | [-1.50, 0.03] | -85.21 | 4230 | 48.35 | -0.2792 | 0 | 8.085 |
-| SB1, 2 giorni | -34.03 | -21.03 | -0.3592 | [-1.12, 0.31] | -80.12 | 2762 | 49.6 | -0.258 | 0 | 14.48 |
-| SB1, 3 giorni | -29.68 | -18.35 | -0.2205 | [-0.98, 0.49] | -81.9 | 2221 | 49.57 | -0.2005 | 0 | 20.71 |
+| SH1, 1 giorni | -41.77 | -37.78 | -1.691 | [-2.70, -0.61] | -94.28 | 2198 | 51.23 | -0.9667 | -0.185 | 25.48 |
+| SH1, 2 giorni | -64.61 | -47.55 | -1.743 | [-2.79, -0.73] | -98.01 | 2142 | 48.37 | -1.32 | -0.2832 | 35.9 |
+| SH1, 3 giorni | -68.62 | -43.27 | -1.296 | [-2.25, -0.25] | -96.52 | 2078 | 46.92 | -1.139 | -0.339 | 40.95 |
+| SH2, 1 giorni | -6.295 | -5.841 | -0.2986 | [-1.15, 0.57] | -45.69 | 767 | 52.54 | -0.2966 | -0.3719 | 25.95 |
+| SH2, 2 giorni | -9.666 | -8.415 | -0.3192 | [-1.12, 0.49] | -63.87 | 765 | 50.2 | -0.4152 | -0.575 | 35.16 |
+| SH2, 3 giorni | -8.906 | -5.346 | -0.1191 | [-0.85, 0.56] | -56.63 | 755 | 47.68 | -0.1605 | -0.7053 | 40 |
+| SS1, 1 giorni | -85.05 | -58.38 | -1.505 | [-2.52, -0.54] | -98.9 | 8815 | 52 | -0.4046 | -0.08807 | 12.98 |
+| SS1, 2 giorni | -85.01 | -53.4 | -0.9549 | [-1.97, -0.04] | -98.69 | 6353 | 51.19 | -0.4367 | -0.1461 | 21.83 |
+| SS1, 3 giorni | -87.94 | -44.7 | -0.5534 | [-1.52, 0.39] | -98 | 5164 | 50.14 | -0.3396 | -0.1967 | 27.83 |
+| SN1, 1 giorni | 2.282 | 1.263 | 0.1601 | [-0.69, 0.99] | -22.73 | 526 | 54.94 | 0.1994 | -0.1458 | 25.86 |
+| SN1, 2 giorni | 4.909 | 0.5685 | 0.1184 | [-0.82, 1.06] | -35.91 | 526 | 51.71 | 0.1805 | -0.1963 | 36.31 |
+| SN1, 3 giorni | 11.04 | 3.683 | 0.2818 | [-0.66, 1.09] | -42.57 | 526 | 49.05 | 0.5004 | -0.2078 | 41.44 |
+| SF1, 1 giorni | -64.68 | -37.45 | -1.401 | [-2.57, -0.33] | -89.64 | 2612 | 49.85 | -0.7831 | 0.1231 | 20.83 |
+| SF1, 2 giorni | -47.71 | -31.1 | -0.935 | [-1.86, -0.05] | -84.41 | 1830 | 48.42 | -0.8345 | 0.197 | 32.62 |
+| SF1, 3 giorni | -47.61 | -26.03 | -0.6746 | [-1.78, 0.34] | -80.02 | 1562 | 46.22 | -0.7327 | 0.244 | 39.88 |
+| SB1, 1 giorni | -25.82 | -30.38 | -0.8327 | [-1.60, -0.13] | -88.34 | 4230 | 47.87 | -0.3354 | -0.05615 | 8.085 |
+| SB1, 2 giorni | -33.13 | -25.33 | -0.4935 | [-1.27, 0.19] | -84.83 | 2762 | 49.17 | -0.356 | -0.09795 | 14.48 |
+| SB1, 3 giorni | -28.66 | -23.19 | -0.3545 | [-1.10, 0.36] | -86.12 | 2221 | 49.17 | -0.3335 | -0.1331 | 20.71 |
 
-Positive fuori campione: **5 su 18**.
+Positive fuori campione: **3 su 18**.
 
 ## Verifiche sulle combinazioni positive fuori campione
-
-### SH2, 2 giorni
-| variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
-|---|---|---|---|---|---|---|---|---|---|---|
-| SH2, 2 giorni | -9.383 | 0.1981 | 0.1147 | [-0.67, 0.87] | -48.29 | 765 | 52.16 | 0.1598 | 0 | 35.16 |
-| SH2, 2 giorni: costi doppi | -12.92 | -6.567 | -0.212 | [-0.95, 0.56] | -59.24 | 765 | 50.59 | -0.2802 | 0 | 35.16 |
-| SH2, 2 giorni: entrata un giorno dopo | -10.58 | -7.423 | -0.2998 | [-1.20, 0.51] | -54.84 | 711 | 50.49 | -0.3688 | 0 | 33.33 |
-| SH2, 2 giorni: stop a +25% | -3.535 | -3.316 | -0.005916 | [-0.77, 0.73] | -54.91 | 739 | 57.92 | 0.009693 | 0 | 22.33 |
-| SH2, 2 giorni: senza funding | -9.383 | 0.1981 | 0.1147 | [-0.65, 0.82] | -48.29 | 765 | 52.16 | 0.1598 | 0 | 35.16 |
-
-Anno per anno (%): 2020 +0.6, 2021 -18.4, 2022 +61.2, 2023 +0.4, 2024 -18.3, 2025 -10.4, 2026 -14.7
-Fuori campione, solo descrittivo: 34 operazioni su memecoin (media -1.18%), 731 sulle altre (media +0.22%).
-
-### SH2, 3 giorni
-| variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
-|---|---|---|---|---|---|---|---|---|---|---|
-| SH2, 3 giorni | -8.614 | 5.424 | 0.3393 | [-0.40, 0.99] | -38.92 | 755 | 48.61 | 0.5449 | 0 | 40 |
-| SH2, 3 giorni: costi doppi | -12.12 | -1.607 | 0.05169 | [-0.75, 0.75] | -49.27 | 755 | 47.42 | 0.1048 | 0 | 40 |
-| SH2, 3 giorni: entrata un giorno dopo | -19.16 | -6.703 | -0.1953 | [-1.16, 0.67] | -57.75 | 710 | 48.17 | -0.273 | 0 | 39.15 |
-| SH2, 3 giorni: stop a +25% | -3.662 | 2.492 | 0.2288 | [-0.43, 0.87] | -44.85 | 717 | 54.95 | 0.4769 | 0 | 26.36 |
-| SH2, 3 giorni: senza funding | -8.614 | 5.424 | 0.3393 | [-0.43, 0.99] | -38.92 | 755 | 48.61 | 0.5449 | 0 | 40 |
-
-Anno per anno (%): 2020 +0.3, 2021 -16.8, 2022 +57.3, 2023 +0.2, 2024 -21.5, 2025 -9.7, 2026 +15.6
-Fuori campione, solo descrittivo: 32 operazioni su memecoin (media -3.14%), 723 sulle altre (media +0.71%).
 
 ### SN1, 1 giorni
 | variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SN1, 1 giorni | 2.129 | 2.875 | 0.276 | [-0.56, 1.13] | -21.44 | 526 | 55.51 | 0.3452 | 0 | 25.86 |
-| SN1, 1 giorni: costi doppi | 0.2935 | -2.557 | -0.1218 | [-0.97, 0.70] | -25.49 | 526 | 53.04 | -0.1527 | 0 | 25.86 |
-| SN1, 1 giorni: entrata un giorno dopo | 2.078 | -3.549 | -0.2369 | [-1.02, 0.65] | -34.98 | 526 | 49.81 | -0.2642 | 0 | 23.76 |
-| SN1, 1 giorni: stop a +25% | 0.04832 | 1.985 | 0.2048 | [-0.73, 1.17] | -29.9 | 526 | 58.37 | 0.2891 | 0 | 13.69 |
-| SN1, 1 giorni: senza funding | 2.129 | 2.875 | 0.276 | [-0.58, 1.10] | -21.44 | 526 | 55.51 | 0.3452 | 0 | 25.86 |
+| SN1, 1 giorni | 2.282 | 1.263 | 0.1601 | [-0.69, 0.99] | -22.73 | 526 | 54.94 | 0.1994 | -0.1458 | 25.86 |
+| SN1, 1 giorni: costi doppi | 0.4439 | -4.085 | -0.2389 | [-1.14, 0.65] | -29.2 | 526 | 52.66 | -0.2985 | -0.1458 | 25.86 |
+| SN1, 1 giorni: entrata un giorno dopo | 2.313 | -4.266 | -0.2984 | [-1.08, 0.59] | -36.49 | 526 | 49.62 | -0.3328 | -0.06854 | 23.76 |
+| SN1, 1 giorni: stop a +25% | 0.3399 | -0.1909 | 0.06409 | [-0.81, 0.98] | -32.07 | 526 | 57.79 | 0.09007 | -0.1991 | 13.69 |
+| SN1, 1 giorni: senza funding | 2.129 | 2.875 | 0.276 | [-0.59, 1.11] | -21.44 | 526 | 55.51 | 0.3452 | 0 | 25.86 |
 
-Anno per anno (%): 2020 +9.7, 2021 -4.9, 2022 +4.2, 2023 -1.3, 2024 +3.6, 2025 +17.4, 2026 -8.4
-Fuori campione, solo descrittivo: 33 operazioni su memecoin (media -0.12%), 493 sulle altre (media +0.38%).
+Anno per anno (%): 2020 +9.5, 2021 -4.4, 2022 +4.0, 2023 -2.9, 2024 +4.0, 2025 +12.8, 2026 -10.3
+Fuori campione, solo descrittivo: 33 operazioni su memecoin (media -0.01%), 493 sulle altre (media +0.21%).
 
 ### SN1, 2 giorni
 | variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SN1, 2 giorni | 4.683 | 2.729 | 0.2426 | [-0.69, 1.14] | -33.36 | 526 | 51.9 | 0.3768 | 0 | 36.31 |
-| SN1, 2 giorni: costi doppi | 2.809 | -2.7 | -0.07296 | [-0.92, 0.85] | -38.55 | 526 | 51.14 | -0.1211 | 0 | 36.31 |
-| SN1, 2 giorni: entrata un giorno dopo | 11.52 | 0.3161 | 0.09936 | [-0.66, 0.84] | -34.15 | 526 | 49.24 | 0.141 | 0 | 33.46 |
-| SN1, 2 giorni: stop a +25% | 2.152 | 0.6175 | 0.132 | [-0.90, 1.15] | -47.35 | 526 | 57.79 | 0.242 | 0 | 21.29 |
-| SN1, 2 giorni: senza funding | 4.683 | 2.729 | 0.2426 | [-0.66, 1.13] | -33.36 | 526 | 51.9 | 0.3768 | 0 | 36.31 |
+| SN1, 2 giorni | 4.909 | 0.5685 | 0.1184 | [-0.82, 1.06] | -35.91 | 526 | 51.71 | 0.1805 | -0.1963 | 36.31 |
+| SN1, 2 giorni: costi doppi | 3.031 | -4.748 | -0.197 | [-1.12, 0.62] | -42.37 | 526 | 50.38 | -0.3174 | -0.1963 | 36.31 |
+| SN1, 2 giorni: entrata un giorno dopo | 11.89 | -0.6706 | 0.03732 | [-0.76, 0.80] | -36.09 | 526 | 49.05 | 0.05051 | -0.09047 | 33.46 |
+| SN1, 2 giorni: stop a +25% | 2.678 | -2.206 | -0.008554 | [-0.96, 0.98] | -49.92 | 526 | 57.22 | -0.02079 | -0.2627 | 21.29 |
+| SN1, 2 giorni: senza funding | 4.683 | 2.729 | 0.2426 | [-0.63, 1.09] | -33.36 | 526 | 51.9 | 0.3768 | 0 | 36.31 |
 
-Anno per anno (%): 2020 +16.9, 2021 -6.3, 2022 +9.1, 2023 -10.1, 2024 +11.0, 2025 +5.7, 2026 -1.0
-Fuori campione, solo descrittivo: 33 operazioni su memecoin (media -0.76%), 493 sulle altre (media +0.45%).
+Anno per anno (%): 2020 +16.5, 2021 -5.5, 2022 +8.7, 2023 -11.7, 2024 +11.7, 2025 -0.8, 2026 -3.4
+Fuori campione, solo descrittivo: 33 operazioni su memecoin (media -0.56%), 493 sulle altre (media +0.23%).
 
 ### SN1, 3 giorni
 | variante | IS_CAGR_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_operazioni | OOS_vincenti_% | OOS_media_op_% | OOS_funding_medio_op_% | OOS_stop_% |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SN1, 3 giorni | 10.77 | 6.038 | 0.3956 | [-0.53, 1.20] | -40.31 | 526 | 49.43 | 0.7082 | 0 | 41.44 |
-| SN1, 3 giorni: costi doppi | 8.805 | 0.4436 | 0.1213 | [-0.85, 0.96] | -45.17 | 526 | 48.67 | 0.2112 | 0 | 41.44 |
-| SN1, 3 giorni: entrata un giorno dopo | 12.39 | 0.7297 | 0.1328 | [-0.65, 0.90] | -37.61 | 526 | 50 | 0.2063 | 0 | 38.59 |
-| SN1, 3 giorni: stop a +25% | 9.643 | 2.855 | 0.2372 | [-0.78, 1.19] | -54.02 | 526 | 56.08 | 0.5163 | 0 | 26.81 |
-| SN1, 3 giorni: senza funding | 10.77 | 6.038 | 0.3956 | [-0.50, 1.24] | -40.31 | 526 | 49.43 | 0.7082 | 0 | 41.44 |
+| SN1, 3 giorni | 11.04 | 3.683 | 0.2818 | [-0.66, 1.09] | -42.57 | 526 | 49.05 | 0.5004 | -0.2078 | 41.44 |
+| SN1, 3 giorni: costi doppi | 9.068 | -1.789 | 0.007785 | [-0.82, 0.87] | -47.7 | 526 | 48.48 | 0.00343 | -0.2078 | 41.44 |
+| SN1, 3 giorni: entrata un giorno dopo | 12.77 | -0.6077 | 0.06189 | [-0.67, 0.89] | -39.48 | 526 | 49.43 | 0.08339 | -0.1229 | 38.59 |
+| SN1, 3 giorni: stop a +25% | 10.3 | -0.3512 | 0.103 | [-0.87, 1.07] | -56.24 | 526 | 55.13 | 0.2245 | -0.2918 | 26.81 |
+| SN1, 3 giorni: senza funding | 10.77 | 6.038 | 0.3956 | [-0.44, 1.25] | -40.31 | 526 | 49.43 | 0.7082 | 0 | 41.44 |
 
-Anno per anno (%): 2020 +25.7, 2021 -2.3, 2022 +11.3, 2023 -2.1, 2024 +19.0, 2025 +7.0, 2026 -4.4
-Fuori campione, solo descrittivo: 33 operazioni su memecoin (media +0.36%), 493 sulle altre (media +0.73%).
+Anno per anno (%): 2020 +25.1, 2021 -1.4, 2022 +10.8, 2023 -3.8, 2024 +20.4, 2025 -0.4, 2026 -6.8
+Fuori campione, solo descrittivo: 33 operazioni su memecoin (media +0.64%), 493 sulle altre (media +0.49%).
 
 ## Verdetto
-- SH2, 2 giorni: **non regge**
-- SH2, 3 giorni: **non regge**
 - SN1, 1 giorni: **non regge**
 - SN1, 2 giorni: **non regge**
 - SN1, 3 giorni: **non regge**

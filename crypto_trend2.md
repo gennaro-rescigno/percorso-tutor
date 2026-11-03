@@ -1,0 +1,118 @@
+# Il filtro di trend è un effetto generale? Verifiche di robustezza (Binance, 2018-2026)
+
+```
+crypto_trend found that holding BTC only above its N-day average beat BTC buy & hold out of sample (2022-2026) for
+N = 50, 100 and 200, with half the drawdown, while every altcoin strategy lost. Written before running:
+  * the same rule (hold the coin while its close is above its N-day average, else cash; N = 50, 100, 200) on each
+    major with a long history: BTC, ETH, SOL, BNB, XRP, ADA, DOGE, each against its own buy & hold;
+  * a portfolio of BTC, ETH and SOL, one third each (rebalanced monthly), every third with its own filter;
+  * execution one full day late (signal of day t traded at the close of t+1) and costs doubled (0.30% per side);
+  * same split as before: 2018-2021 in sample, 2022-01-01 .. end of data out of sample (SOL from its listing);
+  * an effect is called "general" only if the filter beats buy & hold out of sample (higher CAGR AND smaller maximum
+    drawdown) on at least 5 of the 7 coins for the N chosen in sample on BTC, and survives the late execution.
+```
+
+## Ogni moneta: compra e tieni contro il filtro di trend
+| scenario | moneta | regola | IS_CAGR_% | IS_maxDD_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% |
+|---|---|---|---|---|---|---|---|---|
+| base | BTC | compra e tieni | 35.46 | -81.18 | 11.31 | 0.4644 | [-0.51, 1.36] | -66.93 |
+| base | BTC | filtro 50 | 75.09 | -60.13 | 20.04 | 0.7145 | [-0.22, 1.65] | -51.2 |
+| base | BTC | filtro 100 | 55.54 | -60.22 | 20.78 | 0.7437 | [-0.18, 1.73] | -36.8 |
+| base | BTC | filtro 200 | 21.41 | -64.41 | 27.34 | 0.8883 | [-0.02, 1.71] | -32.1 |
+| base | ETH | compra e tieni | 49.56 | -93.97 | -9.608 | 0.1923 | [-0.68, 1.13] | -74.01 |
+| base | ETH | filtro 50 | 82.03 | -64.74 | 25.69 | 0.7408 | [-0.10, 1.60] | -38 |
+| base | ETH | filtro 100 | 67.19 | -64.52 | 4.614 | 0.3184 | [-0.56, 1.21] | -52.68 |
+| base | ETH | filtro 200 | 49.74 | -73.91 | 12.89 | 0.5021 | [-0.39, 1.40] | -38.78 |
+| base | SOL | compra e tieni | 1597 | -74.74 | -11.23 | 0.3367 | [-0.60, 1.28] | -94.62 |
+| base | SOL | filtro 50 | 1003 | -69.42 | 35.23 | 0.7928 | [-0.28, 1.82] | -60.52 |
+| base | SOL | filtro 100 | 1043 | -69.96 | -4.717 | 0.1947 | [-0.82, 1.15] | -80.11 |
+| base | SOL | filtro 200 | 513.4 | -58.06 | 18.89 | 0.5843 | [-0.38, 1.48] | -58.88 |
+| base | BNB | compra e tieni | 178.1 | -80.02 | 6.832 | 0.3984 | [-0.48, 1.23] | -62.9 |
+| base | BNB | filtro 50 | 219.8 | -70.58 | 14.36 | 0.5375 | [-0.36, 1.37] | -36.56 |
+| base | BNB | filtro 100 | 135.5 | -66.06 | 12.55 | 0.4967 | [-0.28, 1.33] | -54.11 |
+| base | BNB | filtro 200 | 120.6 | -63.52 | -3.548 | 0.1074 | [-0.79, 0.92] | -53.69 |
+| base | XRP | compra e tieni | -1.933 | -84.99 | 8.879 | 0.4906 | [-0.45, 1.35] | -72.01 |
+| base | XRP | filtro 50 | 38.07 | -61.58 | -3.724 | 0.1885 | [-0.95, 1.31] | -73.87 |
+| base | XRP | filtro 100 | -21.15 | -80.11 | -12.7 | 0.009968 | [-1.24, 1.14] | -78.25 |
+| base | XRP | filtro 200 | -10.44 | -77.65 | -0.8665 | 0.2747 | [-0.80, 1.23] | -67.85 |
+| base | ADA | compra e tieni | 57.37 | -93.74 | -32.68 | -0.0279 | [-0.86, 0.91] | -91.03 |
+| base | ADA | filtro 50 | 144.2 | -59.54 | -12.57 | -0.004474 | [-1.25, 1.14] | -76.12 |
+| base | ADA | filtro 100 | 182.3 | -43.27 | -9.394 | 0.06312 | [-1.05, 1.19] | -70 |
+| base | ADA | filtro 200 | 145.1 | -51.35 | -19.89 | -0.2 | [-1.34, 0.97] | -84.71 |
+| base | DOGE | compra e tieni | 355.2 | -77.2 | -15.45 | 0.2478 | [-0.65, 1.22] | -85.18 |
+| base | DOGE | filtro 50 | 586.1 | -67.29 | -0.1791 | 0.3149 | [-0.76, 1.36] | -75.41 |
+| base | DOGE | filtro 100 | 250.1 | -86.72 | -4.574 | 0.2484 | [-0.79, 1.23] | -70.56 |
+| base | DOGE | filtro 200 | 375.7 | -77.03 | -11.78 | 0.09492 | [-1.07, 1.10] | -76.94 |
+| costi doppi | BTC | compra e tieni | 35.46 | -81.18 | 11.31 | 0.4644 | [-0.38, 1.44] | -66.93 |
+| costi doppi | BTC | filtro 50 | 70.12 | -62.04 | 16.23 | 0.6161 | [-0.31, 1.61] | -52.84 |
+| costi doppi | BTC | filtro 100 | 52.4 | -61.43 | 18.4 | 0.681 | [-0.30, 1.63] | -38.51 |
+| costi doppi | BTC | filtro 200 | 19.92 | -65.45 | 26.02 | 0.8563 | [-0.02, 1.80] | -33.13 |
+| costi doppi | ETH | compra e tieni | 49.56 | -93.97 | -9.608 | 0.1923 | [-0.73, 1.14] | -74.01 |
+| costi doppi | ETH | filtro 50 | 76.65 | -65.61 | 22.46 | 0.68 | [-0.21, 1.50] | -39.43 |
+| costi doppi | ETH | filtro 100 | 64.51 | -64.89 | 1.989 | 0.2594 | [-0.57, 1.09] | -53.85 |
+| costi doppi | ETH | filtro 200 | 48.13 | -74.49 | 11.89 | 0.4795 | [-0.42, 1.35] | -39.53 |
+| costi doppi | SOL | compra e tieni | 1595 | -74.74 | -11.23 | 0.3367 | [-0.59, 1.36] | -94.62 |
+| costi doppi | SOL | filtro 50 | 967.6 | -70.11 | 31.08 | 0.741 | [-0.24, 1.63] | -63.26 |
+| costi doppi | SOL | filtro 100 | 1022 | -70.45 | -7.59 | 0.142 | [-0.86, 1.09] | -81.13 |
+| costi doppi | SOL | filtro 200 | 512.7 | -58.06 | 17.31 | 0.5603 | [-0.43, 1.49] | -60.02 |
+| costi doppi | BNB | compra e tieni | 178.1 | -80.02 | 6.832 | 0.3984 | [-0.46, 1.21] | -62.9 |
+| costi doppi | BNB | filtro 50 | 209.6 | -71.74 | 9.76 | 0.4326 | [-0.40, 1.34] | -40.32 |
+| costi doppi | BNB | filtro 100 | 130.4 | -66.62 | 9.709 | 0.4314 | [-0.42, 1.26] | -56.84 |
+| costi doppi | BNB | filtro 200 | 117.3 | -64.45 | -5.67 | 0.0526 | [-0.86, 0.93] | -56.16 |
+| costi doppi | XRP | compra e tieni | -1.973 | -84.99 | 8.879 | 0.4906 | [-0.44, 1.37] | -72.01 |
+| costi doppi | XRP | filtro 50 | 33.14 | -64.81 | -7.668 | 0.1115 | [-1.02, 1.22] | -76.88 |
+| costi doppi | XRP | filtro 100 | -23.47 | -81.72 | -15.28 | -0.0442 | [-1.28, 1.09] | -80.05 |
+| costi doppi | XRP | filtro 200 | -11.54 | -77.95 | -2.984 | 0.2417 | [-0.88, 1.17] | -70.49 |
+| costi doppi | ADA | compra e tieni | 57.31 | -93.74 | -32.68 | -0.0279 | [-0.92, 0.91] | -91.03 |
+| costi doppi | ADA | filtro 50 | 138.4 | -60.66 | -15.8 | -0.07513 | [-1.18, 1.00] | -77.68 |
+| costi doppi | ADA | filtro 100 | 179.9 | -43.79 | -11.35 | 0.02187 | [-1.07, 1.09] | -71.02 |
+| costi doppi | ADA | filtro 200 | 142.9 | -51.5 | -21.12 | -0.2297 | [-1.37, 0.99] | -85.29 |
+| costi doppi | DOGE | compra e tieni | 354.9 | -77.2 | -15.45 | 0.2478 | [-0.71, 1.14] | -85.18 |
+| costi doppi | DOGE | filtro 50 | 575.1 | -67.6 | -3.567 | 0.2635 | [-0.88, 1.27] | -76.89 |
+| costi doppi | DOGE | filtro 100 | 243.1 | -87 | -6.629 | 0.2162 | [-0.88, 1.12] | -71.99 |
+| costi doppi | DOGE | filtro 200 | 368.7 | -77.17 | -13.07 | 0.07168 | [-0.92, 1.08] | -77.55 |
+| un giorno di ritardo | BTC | compra e tieni | 35.46 | -81.18 | 11.31 | 0.4644 | [-0.44, 1.32] | -66.93 |
+| un giorno di ritardo | BTC | filtro 50 | 63.52 | -67.83 | 14.85 | 0.5832 | [-0.46, 1.57] | -53.88 |
+| un giorno di ritardo | BTC | filtro 100 | 61.9 | -58.85 | 18.48 | 0.6853 | [-0.20, 1.56] | -37.27 |
+| un giorno di ritardo | BTC | filtro 200 | 34.14 | -53.09 | 19.63 | 0.6997 | [-0.23, 1.61] | -35.87 |
+| un giorno di ritardo | ETH | compra e tieni | 49.56 | -93.97 | -9.608 | 0.1923 | [-0.70, 1.06] | -74.01 |
+| un giorno di ritardo | ETH | filtro 50 | 122.7 | -55.33 | 9.547 | 0.4255 | [-0.54, 1.27] | -51.57 |
+| un giorno di ritardo | ETH | filtro 100 | 70.99 | -66 | -4.53 | 0.1068 | [-0.78, 1.05] | -59.02 |
+| un giorno di ritardo | ETH | filtro 200 | 50.74 | -75.27 | 7.574 | 0.3805 | [-0.42, 1.24] | -44.62 |
+| un giorno di ritardo | SOL | compra e tieni | 1597 | -74.74 | -11.23 | 0.3367 | [-0.57, 1.32] | -94.62 |
+| un giorno di ritardo | SOL | filtro 50 | 1308 | -62.48 | 19.86 | 0.5944 | [-0.55, 1.55] | -67.21 |
+| un giorno di ritardo | SOL | filtro 100 | 1066 | -56.17 | 0.3158 | 0.2844 | [-0.73, 1.17] | -70.27 |
+| un giorno di ritardo | SOL | filtro 200 | 526.8 | -58.06 | 14.76 | 0.5209 | [-0.46, 1.53] | -59.1 |
+| un giorno di ritardo | BNB | compra e tieni | 178.1 | -80.02 | 6.832 | 0.3984 | [-0.48, 1.28] | -62.9 |
+| un giorno di ritardo | BNB | filtro 50 | 253.6 | -66.73 | 18.11 | 0.6149 | [-0.17, 1.38] | -43.55 |
+| un giorno di ritardo | BNB | filtro 100 | 130.8 | -57.99 | 18.25 | 0.6206 | [-0.21, 1.44] | -36.14 |
+| un giorno di ritardo | BNB | filtro 200 | 106.4 | -68.72 | -3.501 | 0.1128 | [-0.87, 0.97] | -57.38 |
+| un giorno di ritardo | XRP | compra e tieni | -1.933 | -84.99 | 8.879 | 0.4906 | [-0.43, 1.35] | -72.01 |
+| un giorno di ritardo | XRP | filtro 50 | -0.6757 | -75.43 | -0.551 | 0.2462 | [-0.99, 1.38] | -66.1 |
+| un giorno di ritardo | XRP | filtro 100 | -14.64 | -72.19 | 0.8121 | 0.2777 | [-0.91, 1.36] | -71.75 |
+| un giorno di ritardo | XRP | filtro 200 | -16.55 | -78.72 | -2.366 | 0.2563 | [-0.86, 1.15] | -71.46 |
+| un giorno di ritardo | ADA | compra e tieni | 57.37 | -93.74 | -32.68 | -0.0279 | [-0.91, 0.79] | -91.03 |
+| un giorno di ritardo | ADA | filtro 50 | 136.4 | -63.11 | -9.051 | 0.04982 | [-1.04, 1.06] | -70.36 |
+| un giorno di ritardo | ADA | filtro 100 | 196.5 | -42.88 | 3.283 | 0.3114 | [-0.73, 1.28] | -66.79 |
+| un giorno di ritardo | ADA | filtro 200 | 145.2 | -54.32 | -11.37 | -0.01618 | [-1.04, 1.01] | -79.75 |
+| un giorno di ritardo | DOGE | compra e tieni | 355.2 | -77.2 | -15.45 | 0.2478 | [-0.67, 1.12] | -85.18 |
+| un giorno di ritardo | DOGE | filtro 50 | 619.2 | -56.19 | 13.07 | 0.5037 | [-0.52, 1.34] | -69.36 |
+| un giorno di ritardo | DOGE | filtro 100 | 293.4 | -79.87 | -7.919 | 0.1914 | [-0.74, 1.11] | -72.1 |
+| un giorno di ritardo | DOGE | filtro 200 | 433.3 | -75.06 | -10.51 | 0.1055 | [-0.99, 1.05] | -79.64 |
+
+Media scelta sul solo BTC nel 2018-2021 (miglior Sharpe): **50 giorni**.
+| scenario | monete in cui il filtro batte compra e tieni (rendimento E perdita massima) | verdetto |
+|---|---|---|
+| base | 6/7 | effetto generale |
+| costi doppi | 6/7 | effetto generale |
+| un giorno di ritardo | 6/7 | effetto generale |
+
+
+## Portafoglio BTC + ETH + SOL (un terzo ciascuno)
+| scenario | portafoglio | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | 2018_% | 2019_% | 2020_% | 2021_% | 2022_% | 2023_% | 2024_% | 2025_% | 2026_% |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| base | BTC+ETH+SOL compra e tieni | 1.381 | 0.3471 | [-0.52, 1.30] | -80.42 | -76.88 | 41.94 | 201 | 1150 | -79.52 | 294.3 | 90.27 | -14.27 | -18.89 |
+| base | BTC+ETH+SOL con filtro 50 | 31.16 | 0.889 | [-0.09, 1.83] | -42.41 | -24.28 | 40.72 | 202 | 759.6 | -36.19 | 206.2 | 37.89 | 29.5 | 6.395 |
+| un giorno di ritardo | BTC+ETH+SOL compra e tieni | 1.381 | 0.3471 | [-0.54, 1.22] | -80.42 | -76.88 | 41.94 | 201 | 1150 | -79.52 | 294.3 | 90.27 | -14.27 | -18.89 |
+| un giorno di ritardo | BTC+ETH+SOL con filtro 50 | 18.55 | 0.6271 | [-0.44, 1.65] | -50.56 | -26.38 | 42.13 | 257.2 | 905 | -49.52 | 215.9 | 20.49 | 17.46 | 0.8575 |
+

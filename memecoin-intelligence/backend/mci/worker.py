@@ -454,7 +454,8 @@ class Worker:
             asyncio.create_task(self.telegram_loop()),
             asyncio.create_task(self._loop("chaindata", 15, self.chaindata_once)),
             asyncio.create_task(self._loop("labels", 600, self.labels_once)),
-            asyncio.create_task(self._loop("research", 6 * 3600, self.research_once)),
+            # hourly: ~10 s of CPU in a thread; the first outcomes arrive 4 h after the first launches
+            asyncio.create_task(self._loop("research", 3600, self.research_once)),
             asyncio.create_task(self._loop("netcosts", 600, self.netcosts_once)),
         ]
         if self.pump:

@@ -116,10 +116,10 @@ jobs:
                     f"t+5m acquirenti {t5.get('unique_buyers')} pressione {t5.get('buy_pressure')} rischio {t5.get('risk')} opportunità {t5.get('opportunity')} esito {t5.get('labels')}")
           print("\n### Token con il punteggio più alto")
           for t in sorted(d["scanner"].get("tokens", []), key=lambda t: -(t.get("score") or 0))[:8]:
-              age = t.get("age_hours")
+              age_h = t.get("age_hours")  # not "age": that one is the data freshness checked at the end
               print(f"- **{t.get('symbol')}** score {t.get('score')} ({t.get('label')}) · rischio {t.get('risk')} · stato {t.get('status')} · "
-                    f"età {age:.1f} h · liquidità {t.get('liquidity_usd')} $ · 1h {t.get('change_h1')}% · copertura dati {t.get('coverage')} · "
-                    f"ultimo segnale: {t.get('signal')} · esclusione: {t.get('exclusion')}" if age is not None else f"- {t.get('symbol')} score {t.get('score')} stato {t.get('status')} esclusione {t.get('exclusion')}")
+                    f"età {age_h:.1f} h · liquidità {t.get('liquidity_usd')} $ · 1h {t.get('change_h1')}% · copertura dati {t.get('coverage')} · "
+                    f"ultimo segnale: {t.get('signal')} · esclusione: {t.get('exclusion')}" if age_h is not None else f"- {t.get('symbol')} score {t.get('score')} stato {t.get('status')} esclusione {t.get('exclusion')}")
               fp = f"/tmp/d/tokens/{t['address']}.json"
               if os.path.exists(fp):
                   td = json.load(open(fp)); sc = td.get("score") or {}

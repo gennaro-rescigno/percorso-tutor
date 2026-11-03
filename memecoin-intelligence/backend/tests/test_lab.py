@@ -231,8 +231,9 @@ async def test_candles_of_non_sol_pools_are_converted_to_sol():
         def __init__(self):
             self.calls = []
 
-        async def ohlcv(self, pool, tf, limit, currency):
+        async def ohlcv(self, pool, tf, limit, currency, token=None):
             self.calls.append(currency)
+            self.tokens = getattr(self, "tokens", []) + [token]
             return [Candle(0, 3.0, 3.3, 2.7, 3.0, 300.0)]
 
     g = FakeGecko()
@@ -243,4 +244,5 @@ async def test_candles_of_non_sol_pools_are_converted_to_sol():
     c = (await sc._sol_candles(usdc_pool, "1m", 10, 150.0))[0]
     assert c.close == pytest.approx(0.02) and c.high == pytest.approx(0.022)
     assert g.calls == ["token", "usd"]
+    assert g.tokens == [sol_pool.token_address, usdc_pool.token_address]  # always the analysed token
     assert await sc._sol_candles(usdc_pool, "1m", 10, None) == []  # no SOL/USD rate: no candles, no guess

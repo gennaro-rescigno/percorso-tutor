@@ -122,10 +122,17 @@ class GeckoTerminalCollector:
         before_timestamp: int | None = None,
         limit: int = 1000,
         currency: str = "usd",
+        token: str | None = None,
     ) -> list[Candle]:
-        """Candles oldest -> newest. ``currency='token'`` returns prices in the quote token."""
+        """Candles oldest -> newest. ``currency='token'`` returns prices in the pool's other token.
+
+        ``token`` (a mint address) selects WHICH token the candles describe. Without it GeckoTerminal uses the
+        pool's base token, and some pools list SOL as base: the candles were then the price of SOL in the token
+        (seen live: ratios of ~2 million vs the real price). Always pass the token being analysed."""
         tf, agg = TIMEFRAMES[timeframe]
         params: dict[str, Any] = {"aggregate": agg, "limit": limit, "currency": currency}
+        if token:
+            params["token"] = token
         if before_timestamp:
             params["before_timestamp"] = int(before_timestamp)
         data = await self.api.get(

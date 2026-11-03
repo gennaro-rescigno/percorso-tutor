@@ -316,10 +316,12 @@ class Scanner:
         quoted in USDC or another token (prices off by that token's value). Those pools are fetched in USD and
         converted with the current SOL/USD rate (relative moves, which the strategies use, are preserved)."""
         if (snap.quote_symbol or "").upper() in SOL_QUOTES:
-            return await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="token")
+            return await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="token",
+                                          token=snap.token_address)
         if not sol_usd:
             return []
-        usd = await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="usd")
+        usd = await self.gecko.ohlcv(snap.pair_address, timeframe, limit=limit, currency="usd",
+                                     token=snap.token_address)
         return [Candle(k.ts, k.open / sol_usd, k.high / sol_usd, k.low / sol_usd, k.close / sol_usd, k.volume / sol_usd)
                 for k in usd]
 

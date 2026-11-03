@@ -71,6 +71,18 @@ async def test_gecko_ohlcv_parsing_and_validation():
 
 @pytest.mark.asyncio
 @respx.mock
+async def test_gecko_ohlcv_asks_for_the_analysed_token():
+    """Some pools list SOL as base: without ``token`` GeckoTerminal returned the price of SOL in the token."""
+    route = respx.get("https://gt.test/networks/solana/pools/P/ohlcv/minute").mock(return_value=httpx.Response(200, json={
+        "data": {"attributes": {"ohlcv_list": [[60, 1, 1.1, 0.9, 1.0, 5]]}}}))
+    g = GeckoTerminalCollector("https://gt.test", 600)
+    await g.ohlcv("P", "1m", currency="token", token="MINT1")
+    assert route.calls.last.request.url.params["token"] == "MINT1"
+    await g.close()
+
+
+@pytest.mark.asyncio
+@respx.mock
 async def test_api_unavailable_raises_and_opens_circuit():
     route = respx.get("https://down.test/x").mock(return_value=httpx.Response(503))
     api = ApiClient("down", "https://down.test", rate_per_s=1000, max_retries=0)

@@ -1,4 +1,4 @@
-"""5-10 minute entry model on OUR data: does the full on-chain picture tell when to enter a curve?
+"""Entry model (5 minutes to 4 hours) on OUR data: does the full on-chain picture tell when to enter a curve?
 
 PRE-REGISTERED on 2026-11-03 (before any result):
   * decision points: the feature snapshots at 1, 2, 3, 5, 7 and 10 minutes of every classic launch with complete
@@ -6,7 +6,8 @@ PRE-REGISTERED on 2026-11-03 (before any result):
   * features: every numeric fact of the snapshot computed from the trades up to that moment (activity, buyers,
     flows, sniper and block-0 shares, concentration, flippers, creator behaviour, curve progress and its speed,
     distance from the peak, last-minute buyers, creator history); never anything from after the moment;
-  * targets: net return of a 0.1 SOL trade held 5 and 10 minutes (price of the stream candles), after 3% latency,
+  * targets: net return of a 0.1 SOL trade held 5, 10, 60 or 240 minutes (price of the stream candles; added the
+    same day, 60/240 on the user's request "anche 4 ore"), after 3% latency,
     1.25% fee per side and 1% priority fees; the model learns P(net return > 0) (logistic regression, numpy,
     standardised features, missing values set to the training mean, l2 = 1);
   * walk-forward by UTC day: trained on all days before, tested on the next day only; at least 3 training days;
@@ -28,7 +29,7 @@ import numpy as np
 
 LAT, FEE, PRIO = 0.03, 0.0125, 0.01
 HORIZONS = ("t+1m", "t+2m", "t+3m", "t+5m", "t+7m", "t+10m")
-HOLDS = (5, 10)
+HOLDS = (5, 10, 60, 240)  # minutes; 60 and 240 use the labels kept since the start of the feature store
 EXCLUDE = {"version", "complete", "source", "price", "stream_coverage", "mayhem", "quote_native",
            "deployer_observed_days"}
 MIN_TRAIN_DAYS, MIN_TRADES, MIN_TEST_DAYS, BOOT = 3, 300, 5, 1000
@@ -169,6 +170,7 @@ def run_short_model(days: int = 21) -> dict[str, Any]:
             rows.append({"token": tok, "day": int(ts // 86400), "ts": ts, "features": f, "labels": lab})
     rep = evaluate(rows)
     rep["generated_at"] = utcnow().isoformat()
-    rep["note"] = ("Modello che stima quando un'entrata di 5-10 minuti chiude in guadagno netto. Addestrato solo sui "
-                   "giorni passati e giudicato sul giorno dopo; non compra mai nulla.")
+    rep["note"] = ("Modello che stima quando un'entrata da 5 minuti a 4 ore chiude in guadagno netto. Addestrato solo sui "
+                   "giorni passati e giudicato sul giorno dopo; non compra mai nulla. A 1 e 4 ore, per i token che si "
+                   "diplomano il valore è l'ultimo prezzo sulla curva (ottimistico: il crollo nel pool non è visto).")
     return rep

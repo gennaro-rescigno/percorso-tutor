@@ -14,11 +14,11 @@ function AucCell({ v }: { v: any }) {
 }
 
 function ShortModel({ m }: { m: any }) {
-  if (!m) return <div className="card section"><h2>Modello "quando entrare" per 5-10 minuti</h2><div className="muted">Il primo calcolo parte dopo l'avvio; servono almeno 3 giorni di dati per il primo test.</div></div>;
+  if (!m) return <div className="card section"><h2>Modello "quando entrare" (da 5 minuti a 4 ore)</h2><div className="muted">Il primo calcolo parte dopo l'avvio; servono almeno 3 giorni di dati per il primo test.</div></div>;
   const pct = (v: number | null | undefined) => v == null || Number.isNaN(v) ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
   return (
     <div className="card section">
-      <h2>Modello "quando entrare" per 5-10 minuti (dati nostri)</h2>
+      <h2>Modello "quando entrare" (da 5 minuti a 4 ore) (dati nostri)</h2>
       <div className="note">{m.note} Usa {m.features} caratteristiche di {fmtNum(m.rows)} momenti di decisione su {m.days} giorni.
         Costi inclusi (latenza 3%, commissioni 1,25% per lato, priority fee 1%).</div>
       <table><thead><tr><th>Tenuta</th><th>Selezione</th><th className="num">Operazioni</th><th className="num">Giorni di test</th><th className="num">Media</th>

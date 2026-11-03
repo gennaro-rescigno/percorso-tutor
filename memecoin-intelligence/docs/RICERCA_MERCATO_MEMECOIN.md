@@ -323,7 +323,41 @@ e dal −9% al −57% a settembre.
 
 ---
 
-## 10. Fonti principali
+## 10. Fuori dalle memecoin: le crypto affermate (Binance 2018 - ottobre 2026)
+
+Su indicazione dell'utente ("qualunque coin, basta che funzioni nel tempo e abbia una logica") la ricerca si è
+allargata alle crypto affermate. Dati: candele giornaliere di **697 coppie USDT di Binance, comprese quelle poi
+tolte dal mercato** (LUNA, FTT...), archivio pubblico gratuito. Regole fissate prima, parametri scelti solo sul
+2018-2021, giudizio sul 2022 - ottobre 2026; costi 0,15% per lato (`crypto_trend`, `crypto_trend2`).
+
+| Strategia (fuori campione 2022-2026) | Rendimento annuo | Perdita massima |
+|---|---|---|
+| BTC comprato e tenuto | +11,3% | −67% |
+| BTC solo sopra la media di 50 / 100 / 200 giorni | +20,0% / +20,8% / +27,3% | −51% / −37% / −32% |
+| Le 10 crypto più scambiate comprate e tenute | −33,3% | −91% |
+| Momentum tra monete (le 5 migliori ogni settimana) | da −29% a −72% | fino a −99,8% |
+| Trend sulle 10 più scambiate, rottura dei massimi | da −17% a +4% | |
+| **BTC + ETH + SOL, ognuno solo sopra la media di 50 giorni** | **+31,2%** | **−42%** |
+| BTC + ETH + SOL comprati e tenuti | +1,4% | −80% |
+
+- **Il filtro di trend è un effetto generale**: con la media di 50 giorni (scelta solo sul BTC del 2018-2021) batte
+  il "compra e tieni" sia nel rendimento sia nella perdita massima su **6 monete su 7** (BTC, ETH, SOL, BNB, ADA,
+  DOGE; non XRP), anche con **costi doppi** e con **un giorno intero di ritardo** nell'esecuzione.
+- Anno per anno il portafoglio con filtro: 2022 −36% (contro −80%), 2023 +206% (contro +294%), 2024 +38% (contro
+  +90%), 2025 +30% (contro −14%), 2026 fino a ottobre +6% (contro −19%). Rinuncia a parte dei grandi rialzi ed
+  evita gran parte dei grandi crolli.
+- **La logica**: nelle crypto i trend tendono a persistere (momentum nel tempo, documentato in letteratura, per
+  esempio Liu e Tsyvinski, 2021) e le perdite più grandi arrivano nei crolli lunghi; uscire quando il prezzo scende
+  sotto la media ne evita la maggior parte.
+- **Limiti**: con meno di 5 anni fuori campione l'intervallo di confidenza dello Sharpe tocca lo zero (−0,09); il
+  ritardo conta (con un giorno di ritardo +18,6% annuo invece di +31,2%); le altcoin, anche le più scambiate, nel
+  2022-2026 hanno distrutto valore e nessuna strategia su di loro ha funzionato.
+- **Nel bot**: portafoglio virtuale "Trend BTC·ETH·SOL" (pagina dedicata della dashboard), decisioni alla chiusura
+  giornaliera delle 00:00 UTC con dati gratuiti (Binance, Kraken di riserva), 0,15% di costi per lato, confronto
+  continuo con il compra e tieni. Nessuna operazione reale e nessun messaggio Telegram. Essendo giornaliera, servono
+  mesi perché la verifica dal vivo dica qualcosa.
+
+## 11. Fonti principali
 
 - Arrow Algo, *Solana Memecoin Trading: What 1,411 Launches Showed* — https://arrowalgo.com/solana-memecoin-trading/
 - Bitquery, *Solana Memecoin Traders: 74% Lose Money* — https://bitquery.io/investigations/solana-memecoin-traders-lose-money

@@ -416,6 +416,12 @@ def create_app() -> FastAPI:
                 "rules_lab": rules_lab, "copy": copy, "short_model": short_model,
                 "rules": [{"code": r.code, "mode": r.mode, "description": r.description} for r in RULES.values()]}
 
+    @app.get("/api/trend")
+    def trend(_: str = Depends(require_user)) -> dict[str, Any]:
+        from mci.trend.service import TrendService
+
+        return TrendService.report()
+
     @app.get("/api/launches")
     def launches(limit: int = 150, _: str = Depends(require_user)) -> dict[str, Any]:
         """Most recent pump.fun launches seen on the free chain stream, with their t+5m indices."""

@@ -158,6 +158,10 @@ dello stream. I messaggi automatici restano solo acquisti e vendite del portafog
   controllo. Nessuna operazione reale.
 * **Strategia A spenta nel portafoglio principale** (3 novembre 2026, con il tuo consenso): 1 vincente su 10 nel
   Laboratorio e tutti i test storici sugli acquisti precoci perdenti; continua a essere misurata nel Laboratorio.
+* **Portafoglio virtuale "Trend BTC·ETH·SOL"** (pagina Trend della dashboard): un terzo per moneta, tenuta solo sopra
+  la media degli ultimi 50 giorni, altrimenti liquidità; decisione alla chiusura giornaliera (00:00 UTC) con dati
+  gratuiti di Binance (Kraken di riserva), 0,15% di costi per lato, confronto con il compra e tieni. È l'unica
+  strategia che ha retto la verifica storica fuori campione (vedi RICERCA_MERCATO_MEMECOIN.md, sezione 10).
 * **Studi storici gratuiti** sui runner di GitHub (workflow `memecoin historical study`): vedi
   [RICERCA_MERCATO_MEMECOIN.md](RICERCA_MERCATO_MEMECOIN.md), sezione 9.
 

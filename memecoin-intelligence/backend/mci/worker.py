@@ -45,6 +45,7 @@ from mci.onchain.wallet_ledger import WalletLedger
 from mci.paper_trading.copy_sim import build_sims
 from mci.paper_trading.copy_sim import refresh as refresh_copy_leaders
 from mci.research import copy_store
+from mci.trend.service import DailyCloses, TrendService
 from mci.research import feature_store as fs
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
@@ -119,6 +120,9 @@ class Worker:
         self.experiments = ([SafeRulesExperiment(s, self.scanner, self.costs), CurveExperiment(s, self.scanner, self.costs)]
                             if s.experiments_enabled and s.lab_enabled else [])
         self.bot = TelegramBot(self.tg, s, self.mode, status_provider=self.status)
+        # virtual trend portfolio on BTC/ETH/SOL (shadow: no real trade, no Telegram message)
+        self.trend_closes = DailyCloses()
+        self.trend = TrendService(self.trend_closes, self._trend_start_usd)
         self.bot.on_jupiter_key = self.set_jupiter_key
         self.pump = PumpPortalListener(s.pumpportal_ws_url, self.scanner.on_pumpportal_event) if s.pumpportal_enabled else None
         self._stop = asyncio.Event()
@@ -259,6 +263,15 @@ class Worker:
             else:
                 merged.append([a, b])
         return merged
+
+    async def _trend_start_usd(self) -> float | None:
+        fxp = await self.fx.get()
+        return self.s.initial_capital_sol * fxp.usd if fxp and fxp.usd else None
+
+    async def trend_once(self) -> None:
+        trades = await self.trend.run_once()
+        if trades:
+            log.info("portafoglio trend: %s operazioni virtuali", len(trades))
 
     async def copy_leaders_once(self) -> None:
         """Choose the wallets to follow from PAST data only; the copies that follow are out of sample."""
@@ -525,6 +538,7 @@ class Worker:
             # hourly: ~10 s of CPU in a thread; the first outcomes arrive 4 h after the first launches
             asyncio.create_task(self._loop("research", 3600, self.research_once)),
             asyncio.create_task(self._loop("copyleaders", 3600, self.copy_leaders_once)),
+            asyncio.create_task(self._loop("trend", 600, self.trend_once)),
             asyncio.create_task(self._loop("netcosts", 600, self.netcosts_once)),
         ]
         if self.pump:
@@ -543,7 +557,7 @@ class Worker:
                 copy_store.save_copy_trades(sim.drain())
         except Exception:
             log.exception("final chain data flush failed")
-        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg, self.rpc_pool):
+        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg, self.rpc_pool, self.trend_closes):
             try:
                 await c.close()
             except Exception:

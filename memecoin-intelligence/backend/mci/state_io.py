@@ -198,7 +198,7 @@ def export_static(out_dir: str | Path, max_tokens: int = 30, candle_points: int 
     positions = save("/positions?status=all", "positions.json") or {"positions": []}
     launches_body: dict = {}
     for name in ("performance", "risk", "signals", "logs?limit=500", "config/options", "backtests", "lab",
-                 "experiments", "research", "system", "launches"):
+                 "experiments", "research", "system", "launches", "trend"):
         body = save(f"/{name}", name.split("?")[0].replace("/", "_") + ".json")
         if name == "launches" and body:
             launches_body = body

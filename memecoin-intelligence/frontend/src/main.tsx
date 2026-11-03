@@ -8,6 +8,7 @@ import BacktestLab from "./pages/BacktestLab";
 import Experiments from "./pages/Experiments";
 import Launches from "./pages/Launches";
 import Research from "./pages/Research";
+import Trend from "./pages/Trend";
 import System from "./pages/System";
 import Laboratory from "./pages/Laboratory";
 import Login from "./pages/Login";
@@ -20,7 +21,7 @@ import Scanner from "./pages/Scanner";
 import TokenPage from "./pages/Token";
 
 const NAV = [
-  ["/", "Overview"], ["/scanner", "Market Scanner"], ["/positions", "Posizioni"], ["/performance", "Performance"],
+  ["/", "Overview"], ["/trend", "Trend BTC·ETH·SOL"], ["/scanner", "Market Scanner"], ["/positions", "Posizioni"], ["/performance", "Performance"],
   ["/laboratorio", "Laboratorio (senza limiti)"], ["/esperimenti", "Esperimenti"], ["/lanci", "Lanci pump.fun live"],
   ["/ricerca", "Ricerca"], ["/sistema", "Salute del sistema"],
   ["/backtest", "Backtest Lab"], ["/risk", "Risk Management"], ["/logs", "Log e attività"],
@@ -68,6 +69,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           <Route path="/esperimenti" element={<Experiments />} />
           <Route path="/lanci" element={<Launches />} />
           <Route path="/ricerca" element={<Research />} />
+          <Route path="/trend" element={<Trend />} />
           <Route path="/sistema" element={<System />} />
           <Route path="/backtest" element={<BacktestLab />} />
           <Route path="/risk" element={<Risk />} />

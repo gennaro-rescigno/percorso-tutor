@@ -1,0 +1,62 @@
+# Probe di fly-trader-seed
+dump: 2.29 GB
+pg_restore: pg_restore (PostgreSQL) 16.15 (Ubuntu 16.15-1.pgdg24.04+2)
+
+## Indice del dump
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+```
+
+## Tabelle
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## pump_minutes: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## corpus_tokens: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## corpus_features: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## pump_pools: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## pump_events: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## tokens: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## token_insiders: prime righe
+```
+
+```
+pg_restore: error: unsupported version (1.16) in file header
+
+## mature_days: prime righe
+```
+
+```

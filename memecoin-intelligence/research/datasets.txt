@@ -1,0 +1,9 @@
+# Dataset pubblici gratuiti (Hugging Face): il workflow ne legge scheda, licenza e file
+jocry/Pumpfun_Memecoin_Corpus
+loopholetape/pumpfun-launches
+bryceweiner/fly-trader-seed
+AratiKamat/red-pump-2026
+cryptodata/pumpfun-dataset-light
+launchtape/solana-launch-tape
+pumpdatafun/pump-fun-trades-sample
+hussxamg04/trenches-pumpfun-forward-2026-08

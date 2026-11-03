@@ -1,0 +1,31 @@
+name: memecoin research fetch
+# Scarica in testo semplice gli studi, gli articoli e le schede dei dataset elencati in
+# memecoin-intelligence/research/ (la sandbox di sviluppo non raggiunge questi siti) e li pubblica nel branch
+# "research-sources". Sola lettura, gratuito.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: memecoin-intelligence/research }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Fetch sources
+        run: python memecoin-intelligence/research/fetch_sources.py /tmp/out | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Publish to the research-sources branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd /tmp/out
+          git init -q -b research-sources
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "research sources $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" research-sources

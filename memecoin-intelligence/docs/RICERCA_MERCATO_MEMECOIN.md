@@ -312,6 +312,7 @@ e dal −9% al −57% a settembre.
 | Modello portabile per token quotati, 1 e 4 ore | 1 milione di momenti giu-lug + 152.656 set | perde (da −3% a −57%) |
 | Fornire liquidità ai pool PumpSwap (fare il banco), 1 h - 3 giorni | 5.067 token giu-lug + 19.242 set | perde (da −4% a −52%), sezione 9.10 |
 | Short sui perpetui Binance di altcoin e memecoin, 1-3 giorni | 918 contratti 2020-2026 | nessuna regge (la migliore +3,7% annuo, negativa con costi doppi), sezione 10.2 |
+| Incassare il funding (spot + short perpetuo), 1-3 giorni | 451 monete 2020-2026 | perde (12 su 12), sezione 10.3 |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i
@@ -451,6 +452,30 @@ ma la variazione media è solo −0,25% (mediana −0,67%): la discesa media è 
 - Una nota sul primo calcolo: nella prima esecuzione il funding non veniva abbinato alle candele (date con e senza
   fuso orario); corretto e rieseguito con le stesse regole. Senza funding SN1 a 3 giorni faceva +6,0%: il funding
   pagato dai venditori ne mangia quasi metà.
+
+### 10.3 Incassare il funding dell'hype senza scommettere sul prezzo (`crypto_carry`)
+
+Quando c'è euforia chi compra a leva sui perpetui paga un funding a chi vende. Comprando la moneta spot e vendendo
+la stessa quantità sul perpetuo il prezzo si annulla e si incassa il funding ("cash and carry", documentato da
+Schmeling, Schrimpf e Todorov, BIS 2023). 451 monete con perpetuo e spot Binance della stessa moneta (correlazione
+>= 0,9), le 100 più scambiate, metà del capitale in spot e metà come garanzia 1x dello short, costi e slittamento
+su entrambe le gambe, funding reale.
+
+- Il funding è **crollato dopo il 2021**: nel 2020-2021 il funding giornaliero mediano era +0,035% e il 26,7% dei
+  giorni superava lo 0,10%; nel 2022-2026 mediano +0,020%, media negativa (−0,026%) e solo il 3,0% dei giorni sopra
+  lo 0,10%.
+- **Tutte le 12 combinazioni da 1-3 giorni perdono fuori campione** (da −1,5% a −72% annuo; operazioni vincenti
+  dallo 0% al 10%): in 1-3 giorni si incassa dallo 0,02% allo 0,16% di funding per operazione, mentre entrare e
+  uscire su due mercati costa 0,4-0,6%. Anche a 7 giorni (fuori dal limite di 3) restano tutte negative
+  (da −0,6% a −18%); nel 2020-2021 tre versioni su quattro a 7 giorni guadagnavano (+4/+12%): era un'opportunità di quegli anni.
+- Con le memecoin più calde capitano anche rialzi del 100% in pochi giorni che azzerano la gamba short (fino a 23
+  "liquidazioni" fuori campione).
+
+**Conclusione delle sezioni 9-10 (3 novembre 2026).** Con tenute fino a 3 giorni non c'è niente che funzioni nei dati
+gratuiti: né comprare (hype, slancio, ritracciamenti, modelli), né vendere allo scoperto, né fornire liquidità, né
+incassare il funding. Le uniche due cose con un vantaggio misurato sono la **velocità nello stesso blocco** (copia
+perfetta +9,1%, sparisce in 1 secondo, richiede infrastruttura a pagamento) e il **filtro di trend a 50 giorni** su
+BTC·ETH·SOL (+31,2% annuo fuori campione, tenute di settimane).
 
 ## 11. Fonti principali
 

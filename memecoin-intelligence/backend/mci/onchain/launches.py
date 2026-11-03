@@ -118,6 +118,15 @@ def interval_coverage(start: float, end: float, gaps: list[tuple[float, float]])
     return max(0.0, 1.0 - missing / (end - start))
 
 
+def lag_quantiles(lags) -> dict[str, float] | None:
+    """Delay between the block time (1 s resolution) and the arrival of a trade: what a copy can never beat."""
+    if len(lags) < 20:
+        return None
+    xs = sorted(lags)
+    q = lambda p: round(xs[min(len(xs) - 1, int(p * len(xs)))], 2)  # noqa: E731
+    return {"n": len(xs), "p50": q(0.5), "p90": q(0.9), "p99": q(0.99)}
+
+
 def _dt(ts: float) -> datetime:
     return datetime.fromtimestamp(ts, tz=timezone.utc)
 
@@ -141,6 +150,7 @@ class LaunchTracker:
                                       "pumpportal_creates": 0, "evicted": 0}
         self.journal: Any = None  # optional mci.onchain.journal.Journal (lifecycle diary of every launch)
         self.listeners: list[Any] = []  # objects with on_create(st), on_trade(mint, t), on_complete(mint), tick(now)
+        self.lags: deque = deque(maxlen=2000)  # seconds between the block time of a trade and its arrival here
 
     # ------------------------------------------------------------------ stream health
     def stream_up(self) -> None:
@@ -247,6 +257,8 @@ class LaunchTracker:
             st = LaunchState(mint=ev.mint, created_ts=0.0, source="trade")
             self.launches[ev.mint] = st
         self.stats["trades"] += 1
+        if ev.timestamp:
+            self.lags.append(time.time() - float(ev.timestamp))
         t = TradeLite(int(ev.timestamp), ev.slot, ev.user, ev.is_buy, ev.sol_amount, ev.token_amount,
                       ev.virtual_sol_reserves, ev.virtual_token_reserves, ev.real_token_reserves, ev.agent,
                       ev.signature, not ev.quote_mint or ev.quote_mint in NATIVE_QUOTES)
@@ -405,4 +417,5 @@ class LaunchTracker:
             "launches_24h": self.launches_last(86400),
             "stream_gap_open": self._gap_open is not None,
             "gaps_24h": sum(1 for a, b in self.gaps if b > time.time() - 86400),
+            "arrival_lag_s": lag_quantiles(self.lags),
         }

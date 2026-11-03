@@ -54,7 +54,11 @@ export default function System() {
             ))}
           </tbody></table>
           <div className="note">Analisi on-chain: {fmtNum(data?.onchain?.security_checks)} controlli di sicurezza, {fmtNum(data?.onchain?.wallet_analyses)} analisi wallet,
-            {" "}{fmtNum(data?.onchain?.rugcheck_disagreements)} disaccordi con RugCheck (vale il dato on-chain).</div>
+            {" "}{fmtNum(data?.onchain?.rugcheck_disagreements)} disaccordi con RugCheck (vale il dato on-chain).
+            {" "}Vendite simulate: {fmtNum(data?.onchain?.sell_sims)} (riuscite {fmtNum(data?.onchain?.sell_sim_ok)},
+            {" "}bloccate {fmtNum(data?.onchain?.sell_sim_blocked)}, non verificabili {fmtNum(data?.onchain?.sell_sim_unverified)})
+            {data?.onchain?.last_sell_sim ? ` · ultima: ${data.onchain.last_sell_sim}` : ""}.
+            {Object.keys(rpc.last_errors ?? {}).length > 0 && <> Ultimi errori RPC: {Object.entries(rpc.last_errors).map(([m, e]) => `${m}: ${e}`).join(" · ")}.</>}</div>
         </div>
         <div className="card">
           <h2>Raccolta dati</h2>

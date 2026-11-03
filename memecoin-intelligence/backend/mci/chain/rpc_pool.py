@@ -34,7 +34,7 @@ DEFAULT_BUDGETS = {
     "getMultipleAccounts": 30,
     "getTransaction": 40,
     "getSignaturesForAddress": 30,
-    "getTokenLargestAccounts": 6,
+    "getTokenLargestAccounts": 2,  # heavily rate-limited on public nodes: last resort only
     "getTokenAccountsByOwner": 20,
     "simulateTransaction": 10,
     "getRecentPrioritizationFees": 4,
@@ -64,14 +64,29 @@ class Endpoint:
     cooldown_until: float = 0.0
     strikes: int = 0
     stats: dict[str, int] = field(default_factory=lambda: {"ok": 0, "rate_limited": 0, "errors": 0})
+    # public nodes rate-limit each method separately (heavy ones such as getTokenLargestAccounts much earlier):
+    # a 429 pauses only that method on this endpoint, never the security checks that use other methods
+    method_cooldown: dict[str, float] = field(default_factory=dict)
+    method_strikes: dict[str, int] = field(default_factory=dict)
 
     @property
     def available(self) -> bool:
         return time.monotonic() >= self.cooldown_until
 
+    def available_for(self, method: str) -> bool:
+        return self.available and time.monotonic() >= self.method_cooldown.get(method, 0.0)
+
     def penalize(self, base: float) -> None:
         self.strikes += 1
         self.cooldown_until = time.monotonic() + min(base * 2 ** (self.strikes - 1), 300.0)
+
+    def penalize_method(self, method: str, base: float) -> None:
+        n = self.method_strikes.get(method, 0) + 1
+        self.method_strikes[method] = n
+        self.method_cooldown[method] = time.monotonic() + min(base * 2 ** (n - 1), 600.0)
+
+    def method_ok(self, method: str) -> None:
+        self.method_strikes.pop(method, None)
 
 
 class RpcPool:
@@ -145,13 +160,14 @@ class RpcPool:
         self.stats["by_method"][method] = m + 1
         self.stats["calls"] += 1
         last = "no endpoint available"
-        order = sorted(self.endpoints, key=lambda e: (not e.available, e.strikes))
+        order = sorted(self.endpoints, key=lambda e: (not e.available_for(method), e.strikes))
         for ep in order:
-            if not ep.available and ep is not order[0]:
+            if not ep.available_for(method) and ep is not order[0]:
                 continue
-            if not ep.available:  # every endpoint is cooling down: wait for the first one (bounded)
-                wait = ep.cooldown_until - time.monotonic()
+            if not ep.available_for(method):  # every endpoint is cooling down: wait for the first one (bounded)
+                wait = max(ep.cooldown_until, ep.method_cooldown.get(method, 0.0)) - time.monotonic()
                 if wait > 15:
+                    last = f"{ep.name}: {method} in pausa dopo un 429 ({wait:.0f} s)"
                     break
                 await asyncio.sleep(max(wait, 0))
             await ep.limiter.acquire()
@@ -166,7 +182,7 @@ class RpcPool:
                 continue
             if resp.status_code == 429:
                 ep.stats["rate_limited"] += 1
-                ep.penalize(20.0)
+                ep.penalize_method(method, 30.0)
                 last = f"{ep.name}: 429"
                 continue
             if resp.status_code >= 500:
@@ -187,7 +203,7 @@ class RpcPool:
                 msg = str((err or {}).get("message", err))[:160] if isinstance(err, dict) else str(err)[:160]
                 if code in RATE_LIMIT_CODES or "rate" in msg.lower() or "too many" in msg.lower():
                     ep.stats["rate_limited"] += 1
-                    ep.penalize(20.0)
+                    ep.penalize_method(method, 30.0)
                     last = f"{ep.name}: {msg}"
                     continue
                 ep.stats["ok"] += 1  # the endpoint works; the request itself is invalid
@@ -196,6 +212,7 @@ class RpcPool:
                 raise SourceUnavailable("solana_rpc", f"rpc error {code}: {msg}")
             ep.stats["ok"] += 1
             ep.strikes = 0
+            ep.method_ok(method)
             result = data.get("result")
             if ttl:
                 self._cache_put(key, ttl, result)
@@ -210,7 +227,9 @@ class RpcPool:
             "by_method": dict(self.stats["by_method"]),
             "budget_left": {m: self.budget_left(m) for m in self.budgets},
             "last_errors": dict(self.last_errors),
-            "endpoints": [{"name": e.name, "available": e.available, **e.stats} for e in self.endpoints],
+            "endpoints": [{"name": e.name, "available": e.available, **e.stats,
+                           "paused_methods": sorted(m for m, u in e.method_cooldown.items() if u > time.monotonic())}
+                          for e in self.endpoints],
         }
 
     # ------------------------------------------------------------------ helpers

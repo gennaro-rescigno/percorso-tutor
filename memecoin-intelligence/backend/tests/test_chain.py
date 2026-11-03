@@ -153,7 +153,8 @@ async def test_rpc_pool_failover_cache_and_budget():
     with pytest.raises(SourceUnavailable):
         await pool.call("getBalance", ["X"])  # request error is not an endpoint failure
     h = pool.health()
-    assert h["endpoints"][0]["rate_limited"] == 1 and h["budget_refused"] == 1
+    # 429 pauses only the refused method: getBalance tried endpoint a again (second 429), then b
+    assert h["endpoints"][0]["rate_limited"] == 2 and h["budget_refused"] == 1
     assert "example" not in json.dumps(h)  # endpoint URLs (may contain keys) are never exposed
     await client.aclose()
 
@@ -167,3 +168,22 @@ def test_decoder_layouts_match_the_official_idl():
     t = next(x for x in broken["types"] if x["name"] == "TradeEvent")
     t["type"]["fields"][1], t["type"]["fields"][2] = t["type"]["fields"][2], t["type"]["fields"][1]
     assert any("TradeEvent" in p for p in check_idl(broken))
+
+
+async def test_rpc_429_pauses_only_that_method():
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        if body["method"] == "getTokenLargestAccounts":
+            return httpx.Response(429)
+        return httpx.Response(200, json={"jsonrpc": "2.0", "id": body["id"], "result": {"value": {"ok": 1}}})
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    pool = RpcPool(["https://a.example"], rps=100, client=client, ttl={"getAccountInfo": 0})
+    with pytest.raises(SourceUnavailable):
+        await pool.largest_accounts("MINT")
+    # the security checks (getAccountInfo) keep working while the heavy method is paused
+    assert (await pool.account("X")) == {"ok": 1}
+    h = pool.health()
+    assert h["endpoints"][0]["available"] and h["endpoints"][0]["paused_methods"] == ["getTokenLargestAccounts"]
+    assert "getTokenLargestAccounts" in h["last_errors"]
+    await client.aclose()

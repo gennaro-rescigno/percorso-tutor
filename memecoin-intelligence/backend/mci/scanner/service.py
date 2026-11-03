@@ -529,6 +529,9 @@ class Scanner:
         probe_raw = int(0.05 / snap.price_native * 10**dec)
         st = self.onchain.tracker.get(c.address)
         holders = [b["wallet"] for b in early_buyers(st, time.time()) if b["net_tokens"] > 0][:3] if st else []
+        # real holders from the RugCheck report (already downloaded): avoids getTokenLargestAccounts, which public
+        # nodes rate-limit heavily
+        holders += [w for w in (snap.onchain.get("holder_wallets") or []) if w not in holders][:3]
         ok, detail = await simulate_holder_sell(self.jup, self.onchain.rpc, c.address, probe_raw, holders)
         snap.sell_sim_ok, snap.sell_sim_detail = ok, detail
         st_ = self.onchain.stats

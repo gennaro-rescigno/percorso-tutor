@@ -163,6 +163,7 @@ class RugCheckCollector:
                     non_holders.add(addr)
 
         holders = rep.get("topHolders") or []
+        holder_wallets: list[str] = []  # real holders (pools excluded): used for the on-chain sell simulation
         pcts = []
         insider_pct = 0.0
         insider_seen = False
@@ -178,11 +179,15 @@ class RugCheckCollector:
             if pct is None:
                 continue
             pcts.append(pct)
+            if owner and pct > 0 and len(holder_wallets) < 5:
+                holder_wallets.append(owner)
             if h.get("insider") is True:
                 insider_pct += pct
                 insider_seen = True
             if creator and owner == creator:
                 dev_pct = (dev_pct or 0.0) + pct
+        if holder_wallets:
+            snap.onchain["holder_wallets"] = holder_wallets
         if pcts:
             pcts.sort(reverse=True)
             snap.top1_pct = pcts[0]

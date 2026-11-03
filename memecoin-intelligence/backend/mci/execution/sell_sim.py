@@ -51,6 +51,8 @@ async def find_holder(rpc: RpcPool, mint: str, candidates: list[str] | None = No
             return None
         if bal > 0:
             return w, bal
+    if candidates:
+        return None  # known holders sold out: do not spend the scarce getTokenLargestAccounts budget
     try:
         largest = await rpc.largest_accounts(mint)
     except SourceUnavailable:

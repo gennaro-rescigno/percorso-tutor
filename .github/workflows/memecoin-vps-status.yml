@@ -123,6 +123,19 @@ jobs:
               for f in ranked[:12]:
                   x = f[tgt]
                   print(f"    {f['feature']}: AUC {x.get('auc')} IC {x.get('ci')} informativa={x.get('informative')} n={f.get('n')}")
+          es = d["research"].get("event_study") or {}
+          print(f"\n### Diario e studio degli eventi\n- journal: {(w.get('journal') or {})}")
+          print(f"- studio del {es.get('generated_at')} · esclusi {es.get('skipped')} · gruppi piccoli {es.get('small_groups')}")
+          for g in es.get("events") or []:
+              print(f"    {g.get('event')}: n={g.get('n')} età {g.get('age_median_min')} min · mediana 60m {g.get('end_median_pct')}% · "
+                    f"+100% {g.get('p_up_100')} · -50% {g.get('p_down_50')} · diploma {g.get('p_migrated')} · confronto {g.get('baseline')}")
+          for h, b in (es.get("baseline") or {}).items():
+              print(f"    momento qualsiasi {h}: {b}")
+          rl = d["research"].get("rules_lab") or {}
+          print(f"\n### Laboratorio delle regole (registrate {rl.get('registered_at')}, righe {rl.get('rows')})")
+          for x in rl.get("results") or []:
+              print(f"- {x.get('rule')} {x.get('exit')}: fuori campione n={x.get('n_oos')} media {x.get('mean_oos_pct')}% IC {x.get('ci_oos')} · "
+                    f"in campione n={x.get('n_in_sample')} media {x.get('mean_in_sample_pct')}% · {x.get('verdict')}")
           print("\n### Ultimi lanci pump.fun visti dallo stream")
           for l in (d["launches"].get("launches") or [])[:10]:
               t5 = l.get("t5") or {}

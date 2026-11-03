@@ -165,3 +165,29 @@ def test_event_study_groups_with_enough_launches(db):
     assert g["n"] == 32 and g["p_migrated"] == 0.0 and g["baseline"] == "t+5m"  # sold at 3.3 minutes
     assert g["end_median_pct"] > 0  # the later small buy lifts the price above the dump minute's close
     assert forward(1.0, []) == (0.0, 0.0, 0.0)
+
+
+def test_rules_lab_counts_only_out_of_sample_and_never_claims_small_samples():
+    from datetime import timedelta
+
+    from mci.research.rules_lab import REGISTERED_AT, evaluate, net_pct, trade_return
+
+    assert abs(net_pct(0.0) - ((1 / 1.03) * 0.9875 ** 2 - 0.01 - 1) * 100) < 1e-9
+    assert trade_return({"first_passage": "half_first"}, "E1") == net_pct(-60.0)
+    assert trade_return({"first_passage": "neither", "ret_end_240m": 10.0}, "E1") == net_pct(10.0)
+    assert trade_return({"ret_end_60m": None}, "E2") is None
+    good = {"n_trades": 120, "drawdown_from_peak_pct": 60, "sniper_pct": 2, "holders_net": 50, "top10_net_pct": 20,
+            "creator_sold": False, "buyers_last_60s": 9}
+    win = {"first_passage": "2x_first", "ret_end_60m": 50.0, "ret_end_240m": 80.0}
+    before = [(REGISTERED_AT - timedelta(hours=1), good, win)] * 500
+    after = [(REGISTERED_AT + timedelta(hours=1), good, win)] * 40
+    rep = evaluate({"t+5m": before + after, "t+15m": after})
+    r1 = next(r for r in rep["results"] if r["rule"] == "R1" and r["exit"] == "E1")
+    assert r1["n_in_sample"] == 500 and r1["n_oos"] == 40 and r1["verdict"].startswith("dati insufficienti")
+    many = [(REGISTERED_AT + timedelta(minutes=i), good, win) for i in range(400)]
+    rep = evaluate({"t+5m": many, "t+15m": many})
+    r1 = next(r for r in rep["results"] if r["rule"] == "R1" and r["exit"] == "E1")
+    assert r1["n_oos"] == 400 and r1["verdict"].startswith("promettente") and r1["q"] < 0.05
+    lose = {"first_passage": "half_first", "ret_end_60m": -70.0, "ret_end_240m": -90.0}
+    rep = evaluate({"t+5m": [(REGISTERED_AT + timedelta(minutes=i), good, lose) for i in range(400)]})
+    assert all(r["verdict"] == "non funziona" for r in rep["results"] if r["horizon"] == "t+5m")

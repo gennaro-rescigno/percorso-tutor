@@ -251,6 +251,7 @@ class Worker:
         from mci.research.promotion import experiment_report
 
         from mci.research.events import event_study
+        from mci.research.rules_lab import run_rules_lab
 
         rep = await asyncio.to_thread(run_research)  # CPU-heavy: never block the stream and the monitors
         try:
@@ -258,10 +259,17 @@ class Worker:
         except Exception as e:  # the journal study must never stop the main research report
             log.warning("studio degli eventi non riuscito: %s", e)
             ev = None
+        try:
+            lab_rules = await asyncio.to_thread(run_rules_lab)
+        except Exception as e:
+            log.warning("laboratorio delle regole non riuscito: %s", e)
+            lab_rules = None
         with session_scope() as s:
             repo.set_state(s, "research_report", rep)
             if ev is not None:
                 repo.set_state(s, "event_study", ev)
+            if lab_rules is not None:
+                repo.set_state(s, "rules_lab", lab_rules)
             repo.set_state(s, "experiments_report", {e.mode: experiment_report(s, e.mode) for e in self.experiments})
 
     async def netcosts_once(self) -> None:

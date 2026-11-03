@@ -13,6 +13,29 @@ function AucCell({ v }: { v: any }) {
   return <span className={v.informative ? "" : "muted"}>{v.auc?.toFixed(3)}{ci}{v.informative ? " ✓" : ""}</span>;
 }
 
+function RulesLab({ lab }: { lab: any }) {
+  if (!lab) return null;
+  const pct = (v: number | null) => v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+  return (
+    <div className="card section">
+      <h2>Laboratorio delle regole (fissate il {fmtTime(lab.registered_at)}, provate su ogni lancio)</h2>
+      <div className="note">{lab.note} Costi inclusi: latenza {(lab.costs?.latency * 100).toFixed(0)}%, commissione {(lab.costs?.fee_per_side * 100).toFixed(2)}% per lato,
+        priority fee {(lab.costs?.priority_round_trip * 100).toFixed(0)}%, stop riempito a {lab.costs?.stop_fill_pct}%. Nessuna regola cambia il bot da sola.</div>
+      <table><thead><tr><th>Regola</th><th>Uscita</th><th className="num">Operazioni fuori campione</th><th className="num">Media</th><th className="num">IC 95%</th>
+        <th className="num">Vincenti</th><th className="num">Media in campione (solo informativa)</th><th>Verdetto</th></tr></thead>
+        <tbody>{(lab.results ?? []).map((r: any) => (
+          <tr key={r.rule + r.exit}><td><b>{r.rule}</b> <span className="muted">{r.description}</span></td><td title={lab.exits?.[r.exit]}>{r.exit}</td>
+            <td className="num">{fmtNum(r.n_oos)}</td><td className="num">{pct(r.mean_oos_pct)}</td>
+            <td className="num">{r.ci_oos ? `${pct(r.ci_oos[0])} / ${pct(r.ci_oos[1])}` : "–"}</td>
+            <td className="num">{r.win_oos != null ? fmtPctPlain(r.win_oos) : "–"}</td>
+            <td className="num muted">{pct(r.mean_in_sample_pct)} (n={fmtNum(r.n_in_sample)})</td>
+            <td><Status level={r.verdict.startsWith("promettente") ? "good" : r.verdict === "non funziona" ? "critical" : "warning"} label={r.verdict} /></td></tr>
+        ))}</tbody></table>
+      <div className="muted">{Object.entries(lab.exits ?? {}).map(([k, v]: any) => `${k}: ${v}`).join(" · ")}</div>
+    </div>
+  );
+}
+
 function EventStudy({ ev }: { ev: any }) {
   if (!ev) return <div className="card section"><h2>Cosa succede dopo ogni evento</h2><div className="muted">Lo studio parte dopo la prima ora di diario.</div></div>;
   const pct = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
@@ -71,6 +94,7 @@ export default function Research() {
         <Kpi label="Candele dallo stream" value={fmtNum(d.stream_candles)} />
         <Kpi label="Eventi nel diario" value={fmtNum(d.token_events)} sub="fatti on-chain di ogni lancio" />
       </div>
+      <RulesLab lab={data?.rules_lab} />
       <EventStudy ev={data?.event_study} />
       {!r && <div className="warn-box">Il primo rapporto viene calcolato dopo l'avvio e poi ogni ora: servono almeno 4 ore di raccolta per i primi esiti.</div>}
       {r && (

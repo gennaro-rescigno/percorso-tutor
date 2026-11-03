@@ -408,7 +408,9 @@ def create_app() -> FastAPI:
             rep = repo.get_state(s, "research_report")
             counts = repo.get_state(s, "dataset_counts")
             events = repo.get_state(s, "event_study")
+            rules_lab = repo.get_state(s, "rules_lab")
         return {"report": rep, "dataset": counts or dataset_counts(), "index_note": NOTE, "event_study": events,
+                "rules_lab": rules_lab,
                 "rules": [{"code": r.code, "mode": r.mode, "description": r.description} for r in RULES.values()]}
 
     @app.get("/api/launches")

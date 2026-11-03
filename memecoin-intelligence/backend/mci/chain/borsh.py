@@ -61,7 +61,10 @@ class Reader:
 def b58decode(s: str) -> bytes:
     n = 0
     for ch in s:
-        n = n * 58 + B58_ALPHABET.index(ch)
+        i = B58_ALPHABET.find(ch)
+        if i < 0:
+            raise ValueError(f"invalid base58 character {ch!r}")
+        n = n * 58 + i
     body = n.to_bytes((n.bit_length() + 7) // 8, "big") if n else b""
     pad = len(s) - len(s.lstrip("1"))
     return b"\0" * pad + body

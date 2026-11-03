@@ -354,7 +354,10 @@ class Scanner:
                     self._fail("rugcheck", e)
             # own on-chain checks (security, curve state, chain-stream features, wallets): free, budgeted
             if self.onchain is not None:
-                await self._enrich_onchain(c, sol_usd, wallet_budget)
+                try:
+                    await self._enrich_onchain(c, sol_usd, wallet_budget)
+                except Exception:  # isolation: the on-chain layer can never stop the scanner
+                    log.exception("on-chain enrichment failed for %s", c.address)
                 wallet_budget = max(wallet_budget - 5, 0)
             # sell probe (honeypot / exit impact), cached 5 min
             if c.due("sell_probe", 300) and snap.price_native:
@@ -379,7 +382,10 @@ class Scanner:
             if (self.onchain is not None and sim_budget > 0 and snap.sell_route_ok and c.due("sell_sim", 1800)
                     and c.score is not None and not c.score.excluded and snap.price_native):
                 sim_budget -= 1
-                await self._sell_simulation(c)
+                try:
+                    await self._sell_simulation(c)
+                except Exception:
+                    log.exception("sell simulation failed for %s", c.address)
             # GeckoTerminal rotation. Candles first (strategies need them), then pool windows
             # (unique buyers, m15) and trades (wash metrics). The public API is rate limited per IP
             # (shared IPs on GitHub runners): on the first 429 we stop calling it for a while.
@@ -450,7 +456,13 @@ class Scanner:
             except BudgetExceeded:
                 return False  # budget for this minute used up: retry next cycle (not a failure)
             except SourceUnavailable as e:
-                self._fail("solana_rpc", e)
+                if "rpc error" in str(e):  # the request was invalid (e.g. odd address): the RPC itself is fine
+                    log.info("on-chain step %s rejected for %s: %s", name, c.address, e)
+                else:
+                    self._fail("solana_rpc", e)
+                return False
+            except Exception:  # malformed data must never break the scan cycle
+                log.exception("on-chain step %s failed for %s", name, c.address)
                 return False
 
         if c.due("onchain_sec", 900) and self._sec_budget > 0:

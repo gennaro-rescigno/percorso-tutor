@@ -415,3 +415,37 @@ async def test_curve_experiment_opens_a_virtual_position(db):
     assert stats["signals"] == 1
     await exp.monitor_positions()  # priced from the stream, no external call
     await client.aclose()
+
+
+async def test_scanner_onchain_enrichment_path(db):
+    """The scanner's on-chain step on a curve candidate: own security, stream price/candles, indices."""
+    from mci.config import get_settings
+    from mci.scanner.service import Scanner, TrackedToken
+
+    mint = b58encode(b"\x07" * 32)
+    tr = LaunchTracker()
+    _synthetic_launch(tr, mint, time.time())
+    rpc, client = _rpc_with_accounts({mint: live("mint_new_mayhem")["result"]["value"]})
+    svc = OnchainService(rpc, tr)
+    sc = Scanner(get_settings(), None, None, None, None, None, onchain=svc)  # type: ignore[arg-type]
+    snap = TokenSnapshot(chain="solana", token_address=mint, observed_at=utcnow(), bonding_curve=True,
+                         price_native=1e-9, dex_id="pumpfun")
+    tt = TrackedToken(mint, snap, utcnow(), "pumpportal")
+    sc._sec_budget = 10
+    await sc._enrich_onchain(tt, 150.0, wallet_budget=0)
+    s = tt.snapshot
+    assert s.sources["onchain_security"] == "rpc" and s.mint_authority_revoked is True
+    assert s.sources["price"] == "chain_stream" and s.price_native == tr.price(mint)[0]
+    assert tt.candle_source.get("1m") == "stream" and len(tt.candles["1m"]) >= 3
+    assert s.onchain["curve"]["unique_buyers"] == 40 and s.onchain["risk"]["value"] is not None
+    assert s.onchain["opportunity"]["value"] is not None
+    # unknown non-pump token: not watched (the stream only carries pump.fun trades)
+    other = TrackedToken("DEXTOKEN", TokenSnapshot(chain="solana", token_address="DEXTOKEN", observed_at=utcnow(),
+                                                   bonding_curve=False), utcnow(), "dexscreener")
+    await sc._enrich_onchain(other, 150.0, wallet_budget=0)
+    assert "DEXTOKEN" not in tr.watch
+    # malformed address ending in "pump" (invalid base58): logged and skipped, never raised
+    bad = TrackedToken("BAD0Ipump", TokenSnapshot(chain="solana", token_address="BAD0Ipump", observed_at=utcnow(),
+                                                  bonding_curve=True), utcnow(), "x")
+    await sc._enrich_onchain(bad, 150.0, wallet_budget=0)
+    await client.aclose()

@@ -84,7 +84,7 @@ def test_transaction_facts_priority_and_jito():
 
 
 def test_funding_is_never_invented():
-    w = live("wallet_funding_busy")
+    w = live("funding_busy_address")
     assert funding_transfer(w["oldest_tx"], w["wallet"]) is None
     d = live("early_txs_normal")
     tx = d["txs"][0]

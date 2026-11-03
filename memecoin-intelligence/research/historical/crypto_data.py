@@ -99,13 +99,13 @@ def _symbol_daily_raw(sym: str) -> pd.DataFrame | None:
     return df[["symbol", "date", "open", "high", "low", "close", "quote_volume"]].drop_duplicates("date")
 
 
-def load_daily(max_workers: int = 24) -> pd.DataFrame:
-    """All USDT pairs, daily, cached as one parquet file."""
-    out = DATA / "binance_daily.parquet"
+def load_daily(max_workers: int = 24, only: list[str] | None = None) -> pd.DataFrame:
+    """All USDT pairs (or only the given ones), daily, cached as one parquet file."""
+    out = DATA / ("binance_daily.parquet" if not only else "binance_daily_" + "_".join(sorted(only))[:80] + ".parquet")
     if out.exists():
         return pd.read_parquet(out)
     DATA.mkdir(parents=True, exist_ok=True)
-    syms = usdt_symbols()
+    syms = sorted(only) if only else usdt_symbols()
     print(f"coppie USDT (senza stablecoin né token a leva): {len(syms)}", flush=True)
     frames = []
     with cf.ThreadPoolExecutor(max_workers=max_workers) as ex:

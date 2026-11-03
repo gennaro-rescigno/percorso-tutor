@@ -74,8 +74,8 @@ def _symbol_daily(sym: str) -> pd.DataFrame | None:
         return None
 
 
-def _symbol_daily_raw(sym: str, market: str = "spot") -> pd.DataFrame | None:
-    keys = [k for k in list_prefixes(f"data/{market}/monthly/klines/{sym}/1d/") if k.endswith(".zip")]
+def _symbol_daily_raw(sym: str, market: str = "spot", interval: str = "1d") -> pd.DataFrame | None:
+    keys = [k for k in list_prefixes(f"data/{market}/monthly/klines/{sym}/{interval}/") if k.endswith(".zip")]
     frames = []
     for k in keys:
         try:
@@ -94,7 +94,9 @@ def _symbol_daily_raw(sym: str, market: str = "spot") -> pd.DataFrame | None:
     df = df.astype({"open_time": "int64", "open": float, "high": float, "low": float, "close": float,
                     "volume": float, "quote_volume": float})
     ot = df.open_time.where(df.open_time < 10**14, df.open_time // 1000)  # 2025+ files are in microseconds
-    df["date"] = pd.to_datetime(ot, unit="ms", utc=True).dt.normalize()
+    df["date"] = pd.to_datetime(ot, unit="ms", utc=True)
+    if interval == "1d":
+        df["date"] = df["date"].dt.normalize()
     df["symbol"] = sym
     return df[["symbol", "date", "open", "high", "low", "close", "quote_volume"]].drop_duplicates("date")
 
@@ -194,6 +196,27 @@ def load_futures_daily(max_workers: int = 24) -> pd.DataFrame:
                 frames.append(df)
             if i % 50 == 0:
                 print(f"  {i}/{len(syms)}", flush=True)
+    data = pd.concat(frames, ignore_index=True).sort_values(["symbol", "date"])
+    data.to_parquet(out)
+    return data
+
+
+def load_futures_bars(symbols: list[str], interval: str = "4h", max_workers: int = 16) -> pd.DataFrame:
+    """Candles of the given USDT perpetuals at any Binance interval (e.g. 4h), cached per interval."""
+    out = DATA / f"binance_futures_{interval}_{len(symbols)}.parquet"
+    if out.exists():
+        return pd.read_parquet(out)
+    DATA.mkdir(parents=True, exist_ok=True)
+
+    def one(sym: str) -> pd.DataFrame | None:
+        try:
+            return _symbol_daily_raw(sym, "futures/um", interval)
+        except Exception as e:
+            print(f"  {sym!r}: saltata ({type(e).__name__})", flush=True)
+            return None
+
+    with cf.ThreadPoolExecutor(max_workers=max_workers) as ex:
+        frames = [df for df in ex.map(one, sorted(symbols)) if df is not None]
     data = pd.concat(frames, ignore_index=True).sort_values(["symbol", "date"])
     data.to_parquet(out)
     return data

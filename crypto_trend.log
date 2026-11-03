@@ -37,63 +37,56 @@ coppie USDT (senza stablecoin né token a leva): 698
   550/698
   600/698
   650/698
-Traceback (most recent call last):
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_trend.py", line 196, in <module>
-    main()
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_trend.py", line 153, in main
-    d = load_daily()
-        ^^^^^^^^^^^^
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_data.py", line 103, in load_daily
-    for i, df in enumerate(ex.map(_symbol_daily, syms)):
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
-    yield _result_or_cancel(fs.pop())
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
-    return fut.result(timeout)
-           ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 449, in result
-    return self.__get_result()
-           ^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
-    raise self._exception
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/concurrent/futures/thread.py", line 59, in run
-    result = self.fn(*self.args, **self.kwargs)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_data.py", line 69, in _symbol_daily
-    keys = [k for k in list_prefixes(f"data/spot/monthly/klines/{sym}/1d/") if k.endswith(".zip")]
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_data.py", line 44, in list_prefixes
-    xml = _get(f"{BUCKET}?delimiter=/&prefix={prefix}&marker={marker}").decode()
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_data.py", line 32, in _get
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 215, in urlopen
-    return opener.open(url, data, timeout)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 515, in open
-    response = self._open(req, data)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 532, in _open
-    result = self._call_chain(self.handle_open, protocol, protocol +
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 492, in _call_chain
-    result = func(*args)
-             ^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 1405, in https_open
-    return self.do_open(http.client.HTTPSConnection, req,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/urllib/request.py", line 1357, in do_open
-    h.request(req.get_method(), req.selector, req.data, headers,
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/http/client.py", line 1386, in request
-    self._send_request(method, url, body, headers, encode_chunked)
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/http/client.py", line 1397, in _send_request
-    self.putrequest(method, url, **skips)
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/http/client.py", line 1235, in putrequest
-    self._output(self._encode_request(request))
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/http/client.py", line 1315, in _encode_request
-    return request.encode('ascii')
-           ^^^^^^^^^^^^^^^^^^^^^^^
-UnicodeEncodeError: 'ascii' codec can't encode characters in position 69-72: ordinal not in range(128)
+Dati: 697 coppie USDT, dal 2017-08-17 al 2026-10-31 (803,352 candele giornaliere).
+/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/crypto_trend.py:102: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  m10 = top10.where(month_start, np.nan).ffill().fillna(False).astype(bool)
+
+## Tutte le strategie: dentro il campione (2018-2021) e fuori campione (2022 - fine dati)
+| strategia | IS_CAGR_% | IS_Sharpe | IS_maxDD_% | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | OOS_vol_% | OOS_finale_x |
+|---|---|---|---|---|---|---|---|---|---|
+| BH-BTC | 35.46 | 0.788 | -81.18 | 11.31 | 0.4644 | [-0.51, 1.36] | -66.93 | 50.34 | 1.679 |
+| BH-TOP10 | 17.27 | 0.6557 | -88.81 | -33.28 | -0.215 | [-0.99, 0.76] | -91.19 | 70.58 | 0.1414 |
+| TF-BTC-50 | 75.09 | 1.34 | -60.13 | 20.04 | 0.7145 | [-0.27, 1.72] | -51.2 | 33.29 | 2.419 |
+| TF-10-50 | 60.37 | 1.172 | -42.64 | -7.602 | -0.03018 | [-1.13, 0.92] | -68.27 | 36.85 | 0.6823 |
+| TF-BTC-100 | 55.54 | 1.084 | -60.22 | 20.78 | 0.7437 | [-0.24, 1.67] | -36.8 | 32.37 | 2.491 |
+| TF-10-100 | 34.11 | 0.8086 | -57.29 | -16.64 | -0.2552 | [-1.16, 0.70] | -77.85 | 39.93 | 0.4147 |
+| TF-BTC-200 | 21.41 | 0.6355 | -64.41 | 27.34 | 0.8883 | [-0.04, 1.72] | -32.1 | 33.44 | 3.217 |
+| TF-10-200 | 28.61 | 0.7335 | -62.08 | -17.44 | -0.2707 | [-1.19, 0.72] | -62.68 | 40.38 | 0.396 |
+| XM-7 | 14 | 0.6969 | -92.14 | -66.63 | -0.7812 | [-1.60, 0.07] | -99.68 | 89.25 | 0.004953 |
+| XMF-7 | 108.9 | 1.298 | -66.56 | -33.85 | -0.2868 | [-1.13, 0.50] | -90.61 | 66.7 | 0.1355 |
+| XM-28 | 45.17 | 0.9118 | -92.56 | -68.62 | -0.7312 | [-1.53, 0.10] | -99.66 | 95.81 | 0.00368 |
+| XMF-28 | 132.8 | 1.415 | -62.94 | -29.31 | -0.1481 | [-0.99, 0.65] | -84.08 | 70.07 | 0.1869 |
+| XM-90 | 42.09 | 0.8799 | -87.5 | -72.37 | -0.8218 | [-1.62, 0.02] | -99.82 | 97.76 | 0.001991 |
+| XMF-90 | 137.7 | 1.482 | -51.85 | -29.03 | -0.1446 | [-0.97, 0.59] | -83.93 | 69.66 | 0.1905 |
+| DON | 47.27 | 1.172 | -34.29 | 3.725 | 0.2711 | [-0.68, 1.27] | -43.79 | 26.32 | 1.193 |
+
+## Walk-forward: il parametro scelto solo sul 2018-2021, giudicato dopo
+| famiglia | scelto | OOS_CAGR_% | OOS_Sharpe | OOS_Sharpe_IC95 | OOS_maxDD_% | verdetto |
+|---|---|---|---|---|---|---|
+| TF-BTC | TF-BTC-50 | 20.04 | 0.7145 | [-0.27, 1.72] | -51.2 | non regge |
+| TF-10 | TF-10-50 | -7.602 | -0.03018 | [-1.13, 0.92] | -68.27 | non regge |
+| XM | XM-28 | -68.62 | -0.7312 | [-1.53, 0.10] | -99.66 | non regge |
+| XMF | XMF-90 | -29.03 | -0.1446 | [-0.97, 0.59] | -83.93 | non regge |
+| DON | DON | 3.725 | 0.2711 | [-0.68, 1.27] | -43.79 | non regge |
+| riferimento | BH-BTC | 11.31 | 0.4644 | [-0.51, 1.36] | -66.93 | - |
+| riferimento | BH-TOP10 | -33.28 | -0.215 | [-0.99, 0.76] | -91.19 | - |
+
+## Rendimento anno per anno (%)
+| strategia | 2018 | 2019 | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 |
+|---|---|---|---|---|---|---|---|---|---|
+| BH-BTC | -73 | 94.31 | 302 | 59.79 | -64.21 | 155.6 | 121.3 | -6.335 | -11.48 |
+| BH-TOP10 | -77.97 | 13.77 | 124.8 | 235.8 | -89.19 | 54.88 | 70.12 | -36.31 | -22.09 |
+| TF-BTC-50 | -43.46 | 80.37 | 311 | 124.5 | -50.55 | 138 | 75.7 | 3.035 | 13.54 |
+| TF-10-50 | -28.86 | 49.54 | 83.15 | 239.9 | -53.82 | 17.08 | 34.65 | -7.371 | 1.182 |
+| TF-BTC-100 | -46.5 | 133 | 166.1 | 76.64 | -21.14 | 81.38 | 63.43 | 3.797 | 2.677 |
+| TF-10-100 | -16.9 | 57.14 | 5.133 | 135.8 | -61.62 | -7.089 | 52.46 | -16.92 | -8.192 |
+| TF-BTC-200 | -35.14 | 56.84 | 173.2 | -21.77 | 0 | 93.72 | 80.75 | -17.76 | 11.73 |
+| TF-10-200 | -11.17 | 13.25 | 31.61 | 106.8 | -46.39 | 13.91 | 29.22 | -36.82 | -20.58 |
+| XM-7 | -80.22 | -12.47 | 231.4 | 194.5 | -91.16 | -17.86 | -22.71 | -74.17 | -65.84 |
+| XMF-7 | -29.31 | -7.538 | 348 | 551.3 | -40.75 | -45.2 | -22.32 | -45.92 | -0.6383 |
+| XM-28 | -83.33 | 6.356 | 277.2 | 564.8 | -92.84 | -10.32 | 74.52 | -68.32 | -89.64 |
+| XMF-28 | -36.55 | 4.077 | 437.3 | 729.8 | -37.03 | -47.63 | 17.89 | -28.86 | -32.44 |
+| XM-90 | -77.93 | 44.69 | 140.3 | 431.8 | -95.58 | -2.952 | 18.09 | -64.66 | -88.88 |
+| XMF-90 | -10.38 | 64.97 | 140 | 802.4 | -34.22 | -43.77 | 20.2 | -34.51 | -34.56 |
+| DON | -10.98 | 49.84 | 67.15 | 111.2 | -37.81 | 40.23 | 50.6 | -0.6318 | -8.561 |
+

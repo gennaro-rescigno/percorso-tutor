@@ -156,3 +156,10 @@ def test_copy_never_acts_before_the_trade_could_have_been_seen():
     sim.seen.clear()
     c.buy(w(1), 0.2, c.created + 31, c.slot + 11)
     assert sim.copies[MINT].entry_due == c.created + 34
+    # a constant drift of the on-chain clock (here 30 s) is not a delay: only the excess above it counts
+    sim.lag_floor = lambda: 30.0
+    sim.clock = lambda: c.created + 32 + 31.0
+    sim.copies.clear()
+    sim.seen.clear()
+    c.buy(w(1), 0.2, c.created + 32, c.slot + 12)
+    assert sim.copies[MINT].entry_due == c.created + 32 + 3

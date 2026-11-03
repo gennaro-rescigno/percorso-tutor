@@ -77,6 +77,8 @@ class Worker:
         # wallet ledger (who really earns on the curves) and the copy experiment that tests following them
         self.ledger = WalletLedger()
         self.copy_sims = build_sims()
+        for sim in self.copy_sims:
+            sim.lag_floor = self.tracker.lag_floor
         self.tracker.listeners = [self.ledger, *self.copy_sims]
         try:
             self.ledger.load(copy_store.load_wallet_days(days=4))

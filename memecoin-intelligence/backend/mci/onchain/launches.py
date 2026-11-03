@@ -126,7 +126,7 @@ def lag_quantiles(lags) -> dict[str, float] | None:
         return None
     xs = sorted(lags)
     q = lambda p: round(xs[min(len(xs) - 1, int(p * len(xs)))], 2)  # noqa: E731
-    return {"n": len(xs), "p50": q(0.5), "p90": q(0.9), "p99": q(0.99)}
+    return {"n": len(xs), "min": round(xs[0], 2), "p01": q(0.01), "p50": q(0.5), "p90": q(0.9), "p99": q(0.99)}
 
 
 def _dt(ts: float) -> datetime:
@@ -245,6 +245,14 @@ class LaunchTracker:
             mayhem=ev.get("is_mayhem_mode"),
             launch_price=(float(vsol) / float(vtok)) if vsol and vtok else None,
         ))
+
+    def lag_floor(self) -> float:
+        """Smallest recent arrival delay (1st percentile): mostly the drift of the on-chain clock, which lags the
+        wall clock; what lies above it is the real network delay of a trade."""
+        if len(self.lags) < 50:
+            return 0.0
+        xs = sorted(self.lags)
+        return xs[max(0, int(0.01 * len(xs)) - 1)]
 
     def watch_mint(self, mint: str) -> None:
         """Aggregate trades (candles, price) of a tracked token created before the stream saw its launch."""

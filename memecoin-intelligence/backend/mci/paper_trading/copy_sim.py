@@ -106,6 +106,7 @@ class CopySim:
         self.closed: list[dict[str, Any]] = []
         self.stats = {"signals": 0, "filled": 0, "closed": 0, "skipped_busy": 0}
         self.clock = time.time
+        self.lag_floor = lambda: 0.0  # set by the worker to the tracker's measured clock drift
 
     def set_wallets(self, chosen: list[tuple[str, dict]], at: float) -> None:
         self.wallets = {w: st for w, st in chosen}
@@ -139,12 +140,14 @@ class CopySim:
                 c.exit_due, c.exit_reason = self._due(ts), "il wallet copiato vende"
 
     def _due(self, ts: float) -> float:
-        """When the copy can act: the planned delay after the block time, but never before we could have seen the
-        trade (its arrival here) plus the time to land our own transaction. Without this a short delay would cheat."""
+        """When the copy can act, in block-time units: the planned delay, but never less than the real delay with
+        which the trade reached us (arrival minus the on-chain clock drift) plus the time to land our own
+        transaction. Without this a short delay would cheat."""
         now = self.clock()
         if now - ts > 3600:  # replaying old data (tests, history): no live arrival time to respect
             return ts + self.delay
-        return max(ts + self.delay, now + EXEC_LATENCY_S)
+        real_lag = max(0.0, (now - ts) - self.lag_floor())
+        return ts + max(self.delay, real_lag + EXEC_LATENCY_S)
 
     def _settle(self, c: Copy, ts: float, prev: tuple | None, after: tuple[int, int]) -> None:
         """Fill a due entry or exit at the curve state at the due time (before this trade, or after it if same second)."""

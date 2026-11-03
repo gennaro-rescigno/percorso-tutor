@@ -98,6 +98,11 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/)" = 200
           curl -fsS http://localhost:8080/data/overview.json | python3 -c "import sys,json; d=json.load(sys.stdin); assert d['worker']['worker_alive'], d['worker']; print('overview pubblica ok, capitale', d['summary']['equity_sol'])"
           curl -sI http://localhost:8080/data/overview.json | grep -i -E 'cache-control|x-frame'
+          echo "--- dati on-chain gratuiti (lo stream pubblico Solana può rifiutare gli IP condivisi di GitHub)"
+          echo "lanci registrati: $(q 'select count(*) from pump_launches') · per fonte: $(q "select string_agg(source||'='||n, ', ') from (select source, count(*) n from pump_launches group by source) x")"
+          echo "operazioni iniziali: $(q 'select count(*) from pump_trades') · istantanee feature: $(q 'select count(*) from feature_snapshots') · candele stream: $(q "select count(*) from candles where source='stream'")"
+          curl -fsS http://localhost:8080/data/system.json | python3 -c "import sys,json; d=json.load(sys.stdin); print('stream:', d.get('chain_stream')); print('lanci:', d.get('launch_tracker')); print('rpc:', {k: (d.get('rpc') or {}).get(k) for k in ('calls','cache_hits','budget_refused','failed')}); print('on-chain:', d.get('onchain'))" || true
+          for f in experiments research launches state; do curl -fsS -o /dev/null -w "$f.json %{http_code} %{size_download} byte\n" "http://localhost:8080/data/$f.json"; done
           echo "--- memoria e CPU usate dai servizi"
           sudo docker stats --no-stream --format 'table {{.Name}}\t{{.MemUsage}}\t{{.CPUPerc}}'
 

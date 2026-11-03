@@ -276,7 +276,18 @@ slancio forte, ritracciamento, sopravvissuti con liquidità, sopravvissuti senza
 positive**, dal −4% al −43% per operazione; le due migliori (ritracciamento e slancio forte, 1 ora) sono intorno a
 zero con intervalli molto larghi. Una settimana non basta per escludere tutto, ma niente indica un vantaggio.
 
-### 9.7 Conclusione onesta (3 novembre 2026)
+### 9.7 Un modello che impara quando entrare per 5-10 minuti (loopholetape, 1,26 milioni di momenti, 547.350 token)
+
+Modello ad alberi (gradient boosting) con 24 caratteristiche note al momento della decisione, allenato solo sui
+giorni passati e giudicato su quelli successivi (`loop_model`). Al primo passaggio le selezioni a 10 minuti
+risultavano molto positive (+22% / +92%): **era un errore dello studio**. Il 71% dei token non aveva più dati 10
+minuti dopo (erano morti) e lo studio li scartava, lasciando solo i sopravvissuti. La verifica (`loop_model2`)
+li conta al loro valore finale e allena il modello sulla prima metà dei giorni, giudicandolo solo sulla seconda:
+**tutte le selezioni perdono**, dal −7% al −10% per operazione a 5 e a 10 minuti, con il diploma tagliato del 30% o
+del 50%. Il modello guarda soprattutto la riserva della curva e il calo dal massimo; prevede bene l'ordine dei
+risultati (correlazione 0,61), ma anche i token migliori secondo lui restano in media sotto zero dopo i costi.
+
+### 9.8 Conclusione onesta (3 novembre 2026)
 
 | Famiglia di strategie | Dati | Risultato |
 |---|---|---|
@@ -286,6 +297,7 @@ zero con intervalli molto larghi. Una settimana non basta per escludere tutto, m
 | Regole sui token già quotati | 28.721 token, set | nessuna positiva |
 | Copiare i wallet migliori con 1-10 s di ritardo | 4.163 copie, giu-lug | perde (−5% / −6%) |
 | Copiare i wallet migliori **nello stesso istante** | stesse occasioni | **+9%**, ma richiede velocità da infrastruttura a pagamento |
+| Modello che sceglie quando entrare per 5-10 minuti | 1,26 milioni di momenti, set-ott | perde (−7% / −10%) dopo la correzione |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i

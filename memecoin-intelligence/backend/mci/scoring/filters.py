@@ -59,6 +59,14 @@ def evaluate_filters(s: TokenSnapshot, cfg: FilterConfig | None = None, for_trad
         fail("FREEZE_AUTHORITY_ACTIVE", "freeze authority attiva: i wallet possono essere congelati (honeypot)")
     elif s.freeze_authority_revoked is None:
         pending.append("freeze_authority")
+    blocking = [x for x in (s.onchain_findings or []) if x.get("blocking")]
+    if blocking:
+        fail("ONCHAIN_SECURITY", "controllo on-chain: " + "; ".join(str(x.get("message")) for x in blocking[:3]))
+    if s.bonding_curve and s.mayhem:
+        fail("MAYHEM_CURVE", "curva 'mayhem' di pump.fun: prezzo mosso da un agente, dinamica non organica")
+    if s.sell_sim_ok is False:
+        fail("SELL_SIM_FAILED", "la vendita simulata on-chain di un holder reale fallisce"
+             + (f" ({s.sell_sim_detail})" if s.sell_sim_detail else ""))
     if s.dangerous_extensions:
         fail("DANGEROUS_EXTENSION", "estensioni Token-2022 pericolose: " + ", ".join(s.dangerous_extensions))
     danger = [r.get("name") for r in s.rugcheck_risks if (r.get("level") or "") == "danger"]

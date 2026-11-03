@@ -1,0 +1,27 @@
+{
+ "tip_accounts": {
+  "jsonrpc": "2.0",
+  "result": [
+   "Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY",
+   "DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh",
+   "HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe",
+   "DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL",
+   "96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5",
+   "ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49",
+   "3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT",
+   "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt"
+  ],
+  "id": 1
+ },
+ "tip_floor": [
+  {
+   "time": "2026-11-02T23:46:36+00:00",
+   "landed_tips_25th_percentile": 1.006e-06,
+   "landed_tips_50th_percentile": 5e-06,
+   "landed_tips_75th_percentile": 1.01185e-05,
+   "landed_tips_95th_percentile": 0.0007590301999999987,
+   "landed_tips_99th_percentile": 0.0023745250000000106,
+   "ema_landed_tips_50th_percentile": 5.312267620947463e-06
+  }
+ ]
+}

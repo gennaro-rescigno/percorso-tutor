@@ -99,13 +99,14 @@ class RugCheckCollector:
         if snap.pair_address:
             extra.add(snap.pair_address)
 
-        if "mintAuthority" in rep:
+        if "mintAuthority" in rep and snap.sources.get("mint_authority") != "onchain":
             snap.mint_authority_revoked = not bool(rep.get("mintAuthority"))
             snap.sources["mint_authority"] = "rugcheck"
-        if "freezeAuthority" in rep:
+        if "freezeAuthority" in rep and snap.sources.get("freeze_authority") != "onchain":
             snap.freeze_authority_revoked = not bool(rep.get("freezeAuthority"))
             snap.sources["freeze_authority"] = "rugcheck"
-        snap.token_program = rep.get("tokenProgram") or snap.token_program
+        if snap.sources.get("onchain_security") != "rpc":
+            snap.token_program = rep.get("tokenProgram") or snap.token_program
         if rep.get("creator"):
             snap.deployer = rep.get("creator")
         if isinstance(rep.get("rugged"), bool):

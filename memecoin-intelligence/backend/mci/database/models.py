@@ -12,6 +12,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     DateTime,
     Float,
@@ -264,3 +265,82 @@ class AlertLog(Base):
 
     key: Mapped[str] = mapped_column(String(128), primary_key=True)
     last_sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# ----------------------------------------------------------------------------- on-chain data collection (free)
+class PumpLaunch(Base):
+    """Every pump.fun launch seen on the public chain stream (or PumpPortal when the stream is down)."""
+
+    __tablename__ = "pump_launches"
+
+    mint: Mapped[str] = mapped_column(String(64), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    slot: Mapped[int | None] = mapped_column(BigInteger)
+    signature: Mapped[str | None] = mapped_column(String(100))
+    creator: Mapped[str | None] = mapped_column(String(64), index=True)
+    name: Mapped[str | None] = mapped_column(String(128))
+    symbol: Mapped[str | None] = mapped_column(String(64))
+    uri: Mapped[str | None] = mapped_column(String(300))
+    mayhem: Mapped[bool | None] = mapped_column(Boolean)
+    token_program: Mapped[str | None] = mapped_column(String(64))
+    quote_mint: Mapped[str | None] = mapped_column(String(64))
+    source: Mapped[str] = mapped_column(String(16), default="stream")
+    complete_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    stats: Mapped[dict | None] = mapped_column(JSON)  # trades, buyers, volume, peak price... (updated)
+
+
+class PumpTradeRow(Base):
+    """Early trades of each launch (first minutes), decoded from the official pump.fun TradeEvent."""
+
+    __tablename__ = "pump_trades"
+    __table_args__ = (Index("ix_pump_trades_mint_ts", "mint", "ts"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    mint: Mapped[str] = mapped_column(String(64))
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    slot: Mapped[int | None] = mapped_column(BigInteger)
+    signature: Mapped[str | None] = mapped_column(String(100))
+    wallet: Mapped[str] = mapped_column(String(64), index=True)
+    is_buy: Mapped[bool] = mapped_column(Boolean)
+    sol_lamports: Mapped[int] = mapped_column(BigInteger)
+    token_amount: Mapped[int] = mapped_column(BigInteger)
+    v_sol: Mapped[int | None] = mapped_column(BigInteger)
+    v_tokens: Mapped[int | None] = mapped_column(BigInteger)
+    mayhem: Mapped[bool | None] = mapped_column(Boolean)
+
+
+class WalletProfile(Base):
+    """What the bot learned about a wallet from public RPC data (cached; facts only)."""
+
+    __tablename__ = "wallet_profiles"
+
+    address: Mapped[str] = mapped_column(String(64), primary_key=True)
+    checked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    n_signatures: Mapped[int | None] = mapped_column(Integer)  # capped at the page size
+    history_capped: Mapped[bool | None] = mapped_column(Boolean)  # True: older history not fetched
+    first_tx_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    funder: Mapped[str | None] = mapped_column(String(64), index=True)
+    funded_lamports: Mapped[int | None] = mapped_column(BigInteger)
+    funded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_hub: Mapped[bool | None] = mapped_column(Boolean)  # very high activity: exchange / service
+    data: Mapped[dict | None] = mapped_column(JSON)
+
+
+class FeatureSnapshot(Base):
+    """Point-in-time feature store: only data available at ``observed_at`` (no look-ahead)."""
+
+    __tablename__ = "feature_snapshots"
+    __table_args__ = (UniqueConstraint("token_address", "horizon", name="uq_feature_token_horizon"),
+                      Index("ix_feature_time", "observed_at"))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token_address: Mapped[str] = mapped_column(String(64), index=True)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    horizon: Mapped[str] = mapped_column(String(16))  # t+1m | t+5m | t+15m (since launch)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    price: Mapped[float | None] = mapped_column(Float)  # SOL per token at observed_at
+    features: Mapped[dict] = mapped_column(JSON)
+    risk: Mapped[dict | None] = mapped_column(JSON)
+    opportunity: Mapped[dict | None] = mapped_column(JSON)
+    labels: Mapped[dict | None] = mapped_column(JSON)  # filled later by the labeler (future outcome)
+    labeled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

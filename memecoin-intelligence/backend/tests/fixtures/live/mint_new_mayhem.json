@@ -1,0 +1,50 @@
+{
+ "mint": "7SHruMKRr1DGKNe4FBQDBsYK7pEHwMPQb1chbzW1pump",
+ "result": {
+  "context": {
+   "apiVersion": "4.3.2",
+   "slot": 464685114
+  },
+  "value": {
+   "data": {
+    "parsed": {
+     "info": {
+      "decimals": 6,
+      "extensions": [
+       {
+        "extension": "metadataPointer",
+        "state": {
+         "authority": null,
+         "metadataAddress": "7SHruMKRr1DGKNe4FBQDBsYK7pEHwMPQb1chbzW1pump"
+        }
+       },
+       {
+        "extension": "tokenMetadata",
+        "state": {
+         "additionalMetadata": [],
+         "mint": "7SHruMKRr1DGKNe4FBQDBsYK7pEHwMPQb1chbzW1pump",
+         "name": "SUPER NYAN CAT",
+         "symbol": "NCUBED",
+         "updateAuthority": null,
+         "uri": "https://ipfs.io/ipfs/bafkreihvjghaxlq2iyp2lltoy5gxfwm5ylybohywq7tdcats4hwnvqepaa"
+        }
+       }
+      ],
+      "freezeAuthority": null,
+      "isInitialized": true,
+      "mintAuthority": null,
+      "supply": "2000000000000000"
+     },
+     "type": "mint"
+    },
+    "program": "spl-token-2022",
+    "space": 418
+   },
+   "executable": false,
+   "lamports": 2773680,
+   "owner": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+   "rentEpoch": 18446744073709551615,
+   "space": 418
+  }
+ }
+}

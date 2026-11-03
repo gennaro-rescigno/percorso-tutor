@@ -62,6 +62,15 @@ class Settings(BaseSettings):
     pumpportal_ws_url: str = "wss://pumpportal.fun/api/data"
     pumpportal_enabled: bool = True
     solana_rpc_url: str = "https://api.mainnet-beta.solana.com"
+    solana_rpc_rps: float = 2.0  # public endpoint: 100 requests / 10 s per IP; we stay far below
+    # free real-time pump.fun data: public Solana WebSocket, logsSubscribe on the pump program (no key, no cost)
+    solana_ws_url: str = "wss://api.mainnet-beta.solana.com"
+    chain_stream_enabled: bool = True
+    onchain_enabled: bool = True  # own on-chain security checks, curve state, wallet intelligence
+    experiments_enabled: bool = True  # shadow experiments x_safe and x_curve (virtual portfolios)
+    # PumpPortal trade subscriptions now require an API key funded with SOL (paid): disabled, replaced by the
+    # free chain stream. New-token events (free) are still used.
+    pumpportal_trades_enabled: bool = False
     coingecko_base_url: str = "https://api.coingecko.com/api/v3"
     kraken_base_url: str = "https://api.kraken.com"
 

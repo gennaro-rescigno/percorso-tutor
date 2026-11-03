@@ -17,6 +17,8 @@ from typing import Any
 
 from sqlalchemy import delete, func, select
 
+from mci.chain.rpc_pool import RpcPool
+from mci.chain.stream import PumpStream
 from mci.collectors.dexscreener import DexScreenerCollector
 from mci.collectors.fx import SolPriceFeed
 from mci.collectors.geckoterminal import GeckoTerminalCollector
@@ -30,13 +32,18 @@ from mci.database import repo
 from mci.database.models import TokenSnapshotRow
 from mci.database.session import init_engine, session_scope
 from mci.domain import utcnow
+from mci.execution import network_costs
 from mci.execution.costs import CostModel
 from mci.execution.paper import PaperExecutor
 from mci.paper_trading.engine import TradingEngine
+from mci.onchain.launches import LaunchTracker
+from mci.onchain.service import OnchainService
+from mci.paper_trading.experiments import CurveExperiment, SafeRulesExperiment
 from mci.paper_trading.lab import LabEngine
+from mci.research import feature_store as fs
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
-from mci.secrets_store import JUPITER_KEY, jupiter_key, write_secret
+from mci.secrets_store import JUPITER_KEY, jupiter_key, read_secret, write_secret
 from mci.telegram.bot import TelegramBot, TelegramNotifier, build_daily_report, next_daily_report_time
 from mci.telegram.client import TelegramClient
 from mci.utils.http import SourceUnavailable
@@ -58,7 +65,22 @@ class Worker:
         self.rpc = SolanaRpc(s.solana_rpc_url)
         self.fx = SolPriceFeed(s.coingecko_base_url, s.kraken_base_url)
         reddit = RedditCollector(s.reddit_client_id, s.reddit_client_secret.get_secret_value(), s.reddit_user_agent)
-        self.scanner = Scanner(s, self.dex, self.gecko, self.rug, self.jup, self.fx, reddit if reddit.available else None)
+        # free on-chain layer: launch tracker fed by the public chain stream, RPC pool with budgets
+        self.tracker = LaunchTracker()
+        extra = [u for u in read_secret(s, "rpc_urls").splitlines() if u.strip().startswith("http")]
+        self.rpc_pool = RpcPool([s.solana_rpc_url] + extra, rps=s.solana_rpc_rps)
+        self.onchain = OnchainService(self.rpc_pool, self.tracker) if s.onchain_enabled else None
+        self.scanner = Scanner(s, self.dex, self.gecko, self.rug, self.jup, self.fx, reddit if reddit.available else None,
+                               onchain=self.onchain)
+        self.stream = (PumpStream(s.solana_ws_url, self.tracker.on_events, on_state=self._stream_state)
+                       if s.chain_stream_enabled else None)
+        with session_scope() as db:
+            last_alive = repo.get_state(db, "stream_last_alive")
+            for a, b in repo.get_state(db, "stream_gaps") or []:
+                self.tracker.gaps.append((a, b))
+        if last_alive:  # the worker was down: no data between the last heartbeat and now
+            self.tracker.gaps.append((float(last_alive), time.time()))
+        self._chain_ticks = 0
         # GeckoTerminal pace learned before a restart (otherwise every update starts too fast and gets 429s)
         with session_scope() as db:
             saved_pace = repo.get_state(db, "gecko_calls_per_minute")
@@ -72,6 +94,8 @@ class Worker:
         self.notifier = TelegramNotifier(self.tg, s, self.mode)
         self.engine = TradingEngine(s, self.scanner, self.executor, get_profile(s.risk_profile), self.costs, self.notifier)
         self.lab = LabEngine(s, self.scanner, self.costs) if s.lab_enabled else None
+        self.experiments = ([SafeRulesExperiment(s, self.scanner, self.costs), CurveExperiment(s, self.scanner, self.costs)]
+                            if s.experiments_enabled and s.lab_enabled else [])
         self.bot = TelegramBot(self.tg, s, self.mode, status_provider=self.status)
         self.bot.on_jupiter_key = self.set_jupiter_key
         self.pump = PumpPortalListener(s.pumpportal_ws_url, self.scanner.on_pumpportal_event) if s.pumpportal_enabled else None
@@ -106,6 +130,10 @@ class Worker:
             "sol_eur": fxp.eur if fxp else None,
             "sol_usd": fxp.usd if fxp else None,
             "pumpportal_connected": bool(self.pump and self.pump.connected),
+            "chain_stream": self.stream.health() if self.stream else {"enabled": False},
+            "onchain": self.onchain.health() if self.onchain else {"enabled": False},
+            "experiments": [{"mode": e.mode, "candidates": getattr(e, "last_candidates", None)} for e in self.experiments],
+            "network_costs": {"priority_fee_sol": self.costs.priority_fee_sol, "jito_tip_sol": self.costs.jito_tip_sol},
             "telegram_enabled": self.tg.enabled,
             "telegram_sent": self.tg.sent,
             "telegram_failed": self.tg.failed,
@@ -141,20 +169,77 @@ class Worker:
         except Exception:
             log.exception("laboratorio: %s non riuscito (portafoglio principale non coinvolto)", name)
 
+    async def _experiment_step(self, name: str, fn: Callable[[Any], Awaitable[Any]]) -> None:
+        """Run one step of every shadow experiment in isolation (never affects the main portfolio)."""
+        for e in self.experiments:
+            try:
+                await fn(e)
+            except Exception:
+                log.exception("esperimento %s: %s non riuscito (portafoglio principale non coinvolto)", e.mode, name)
+
     async def scan_once(self) -> None:
         candidates = await self.scanner.run_cycle()
-        if self.pump:
+        if self.pump and self.s.pumpportal_trades_enabled:
             curve = [c.address for c in candidates if c.snapshot.bonding_curve]
             await self.pump.subscribe_trades(curve[:20])
         await self.engine.on_scan(candidates)
         await self.engine.flush_alerts()
         await self._lab_step("scan", lambda: self.lab.on_scan(candidates))
+        await self._experiment_step("scan", lambda e: e.on_scan(candidates))
         self._heartbeat()
 
     async def monitor_once(self) -> None:
         await self.engine.monitor_positions()
         await self.engine.flush_alerts()
         await self._lab_step("monitor", lambda: self.lab.monitor_positions())
+        await self._experiment_step("monitor", lambda e: e.monitor_positions())
+
+    # ------------------------------------------------------------------ free chain data
+    def _stream_state(self, up: bool) -> None:
+        (self.tracker.stream_up if up else self.tracker.stream_down)()
+
+    async def chaindata_once(self) -> None:
+        """Persist launches / early trades / stream candles and write the point-in-time feature snapshots."""
+        rows = self.tracker.drain()
+        fs.persist_stream(rows)
+        fs.write_feature_snapshots(self.tracker.due_horizons(), self.tracker)
+        self._chain_ticks += 1
+        if self._chain_ticks % 40 == 0:
+            self.tracker.evict()
+        cutoff = time.time() - 8 * 86400
+        with session_scope() as s:
+            repo.set_state(s, "stream_last_alive", time.time())
+            if self._chain_ticks % 4 == 1:
+                repo.set_state(s, "stream_gaps", [[a, b] for a, b in self.tracker.gaps if b >= cutoff])
+
+    def _gaps(self) -> list[tuple[float, float]]:
+        gaps = list(self.tracker.gaps)
+        if self.tracker._gap_open is not None:
+            gaps.append((self.tracker._gap_open, time.time()))
+        return gaps
+
+    async def labels_once(self) -> None:
+        n = fs.label_due(self._gaps())
+        if n:
+            log.info("etichettati %s snapshot del feature store", n)
+
+    async def research_once(self) -> None:
+        from mci.research.evaluate import run_research
+        from mci.research.promotion import experiment_report
+
+        rep = run_research()
+        with session_scope() as s:
+            repo.set_state(s, "research_report", rep)
+            repo.set_state(s, "experiments_report", {e.mode: experiment_report(s, e.mode) for e in self.experiments})
+            repo.set_state(s, "dataset_counts", fs.dataset_counts())
+
+    async def netcosts_once(self) -> None:
+        m = await network_costs.measure(self.rpc_pool)
+        eff = network_costs.effective_priority_fee(self.s.priority_fee_sol, m)
+        m["effective_priority_fee_sol"] = eff
+        self.costs.priority_fee_sol = eff  # shared by every engine: only ever >= the configured fee
+        with session_scope() as s:
+            repo.set_state(s, "network_costs", m)
 
     async def equity_once(self) -> None:
         fxp = await self.fx.get()
@@ -164,6 +249,11 @@ class Worker:
             self.lab.mark_to_market(fxp.eur if fxp else None, fxp.usd if fxp else None, record=True)
 
         await self._lab_step("equity", lab_equity)
+
+        async def exp_equity(e) -> None:
+            e.mark_to_market(fxp.eur if fxp else None, fxp.usd if fxp else None, record=True)
+
+        await self._experiment_step("equity", exp_equity)
         prev = self.engine.last_equity_notified
         if prev and abs(eq / prev - 1) >= 0.03:
             await self.notifier.notify("capital", {"equity": eq, "prev": prev, "sol_eur": fxp.eur if fxp else None})
@@ -186,6 +276,9 @@ class Worker:
                 p = build_daily_report(self.s, self.mode, fxp.eur if fxp else None, self.status()["market_state"])
                 await self.notifier.notify("daily", p)
                 self.retention()
+                kept = fs.retention()
+                with session_scope() as s:
+                    repo.log_event(s, "system", f"retention dati on-chain: {kept}")
             except Exception:
                 log.exception("daily report failed")
 
@@ -321,6 +414,8 @@ class Worker:
         self._stop.set()
         if self.pump:
             self.pump.stop()
+        if self.stream:
+            self.stream.stop()
 
     async def run(self) -> None:
         loop = asyncio.get_running_loop()
@@ -343,14 +438,24 @@ class Worker:
             asyncio.create_task(self._loop("outcomes", 600, self.outcomes_once)),
             asyncio.create_task(self.daily_loop()),
             asyncio.create_task(self.telegram_loop()),
+            asyncio.create_task(self._loop("chaindata", 15, self.chaindata_once)),
+            asyncio.create_task(self._loop("labels", 600, self.labels_once)),
+            asyncio.create_task(self._loop("research", 6 * 3600, self.research_once)),
+            asyncio.create_task(self._loop("netcosts", 600, self.netcosts_once)),
         ]
         if self.pump:
             tasks.append(asyncio.create_task(self.pump.run()))
+        if self.stream:
+            tasks.append(asyncio.create_task(self.stream.run()))
         await self._stop.wait()
         for t in tasks:
             t.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
-        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg):
+        try:
+            fs.persist_stream(self.tracker.drain())  # do not lose the last seconds of chain data
+        except Exception:
+            log.exception("final chain data flush failed")
+        for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg, self.rpc_pool):
             try:
                 await c.close()
             except Exception:

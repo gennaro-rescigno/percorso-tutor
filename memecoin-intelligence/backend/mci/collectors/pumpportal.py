@@ -56,6 +56,8 @@ def event_to_snapshot(ev: dict[str, Any], observed_at: datetime | None = None) -
     if ev.get("txType") == "create":
         snap.created_at = snap.observed_at
         snap.deployer = ev.get("traderPublicKey")
+        if isinstance(ev.get("is_mayhem_mode"), bool):
+            snap.mayhem = ev["is_mayhem_mode"]
     mc_sol = fnum(ev.get("marketCapSol"))
     vsol = fnum(ev.get("vSolInBondingCurve"))
     vtok = fnum(ev.get("vTokensInBondingCurve"))

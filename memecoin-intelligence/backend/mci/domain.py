@@ -106,12 +106,18 @@ class TokenSnapshot:
     rugcheck_score_norm: float | None = None  # 0 (good) .. 100 (bad)
     rugcheck_risks: list[dict[str, Any]] = field(default_factory=list)
     rugged_flag: bool | None = None
+    # own on-chain checks (mci.chain.tokens): [{code, severity, message, blocking}]
+    onchain_findings: list[dict[str, Any]] = field(default_factory=list)
+    metadata_mutable: bool | None = None
+    mayhem: bool | None = None  # pump.fun "mayhem mode" curve (agent-driven price, not organic)
 
     # executability (from real quotes)
     sell_route_ok: bool | None = None
     sell_impact_pct: float | None = None
     buy_impact_pct: float | None = None
     quote_probe_sol: float | None = None
+    sell_sim_ok: bool | None = None  # on-chain simulation of a real holder's sell (None = not verified)
+    sell_sim_detail: str | None = None
 
     # market quality
     wash_score: float | None = None  # 0 (clean) .. 1 (wash trading)
@@ -129,6 +135,10 @@ class TokenSnapshot:
     has_profile: bool | None = None
     boosts_active: int | None = None
     social_metrics: dict[str, Any] = field(default_factory=dict)
+
+    # on-chain intelligence from the free chain stream + RPC: {"curve": features, "wallets": analysis,
+    # "deployer": history, "risk": index, "opportunity": index}
+    onchain: dict[str, Any] = field(default_factory=dict)
 
     sources: dict[str, str] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)

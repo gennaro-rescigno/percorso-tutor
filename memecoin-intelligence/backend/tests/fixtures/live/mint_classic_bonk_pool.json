@@ -1,0 +1,30 @@
+{
+ "mint": "6UpQcMAb5xMzxc7ZfPaVMgx3KqsvKZdT5U718BzD5We2",
+ "result": {
+  "context": {
+   "apiVersion": "4.3.2",
+   "slot": 464686982
+  },
+  "value": {
+   "data": {
+    "parsed": {
+     "info": {
+      "decimals": 6,
+      "freezeAuthority": "E5GXVzJbuN7iPJAfNB23SMXgQLXWGkqRWgvsq4Dg156o",
+      "isInitialized": true,
+      "mintAuthority": "E5GXVzJbuN7iPJAfNB23SMXgQLXWGkqRWgvsq4Dg156o",
+      "supply": "1434036298552"
+     },
+     "type": "mint"
+    },
+    "program": "spl-token",
+    "space": 82
+   },
+   "executable": false,
+   "lamports": 1397127094,
+   "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+   "rentEpoch": 18446744073709551615,
+   "space": 82
+  }
+ }
+}

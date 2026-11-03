@@ -36,7 +36,8 @@ from mci.utils.http import SourceUnavailable
 
 log = logging.getLogger(__name__)
 
-STRATEGY_NAMES = {"A": "Early Entry", "B": "Momentum", "C": "Pullback", "D": "Accumulazione", "E": "Revival"}
+STRATEGY_NAMES = {"A": "Early Entry", "B": "Momentum", "C": "Pullback", "D": "Accumulazione", "E": "Revival",
+                  "O": "Curva organica (sperimentale)"}
 # A signal is computed on candles; if their last price is far from the live market price, the data is stale or
 # in another unit and the signal is not trustworthy (missing/unverifiable data never becomes a positive signal).
 MAX_REFERENCE_DIVERGENCE = 0.20

@@ -68,6 +68,9 @@ class Report:
         self.lines.append(text)
 
     def table(self, df, floatfmt: str = "{:.4g}") -> None:
+        if df is None or len(df) == 0:
+            self("_(nessuna riga: dati insufficienti per questa tabella)_\n")
+            return
         cols = list(df.columns)
         self("| " + " | ".join(str(c) for c in cols) + " |")
         self("|" + "---|" * len(cols))

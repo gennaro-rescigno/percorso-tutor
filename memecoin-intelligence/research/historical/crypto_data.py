@@ -74,8 +74,8 @@ def _symbol_daily(sym: str) -> pd.DataFrame | None:
         return None
 
 
-def _symbol_daily_raw(sym: str) -> pd.DataFrame | None:
-    keys = [k for k in list_prefixes(f"data/spot/monthly/klines/{sym}/1d/") if k.endswith(".zip")]
+def _symbol_daily_raw(sym: str, market: str = "spot") -> pd.DataFrame | None:
+    keys = [k for k in list_prefixes(f"data/{market}/monthly/klines/{sym}/1d/") if k.endswith(".zip")]
     frames = []
     for k in keys:
         try:
@@ -110,6 +110,81 @@ def load_daily(max_workers: int = 24, only: list[str] | None = None) -> pd.DataF
     frames = []
     with cf.ThreadPoolExecutor(max_workers=max_workers) as ex:
         for i, df in enumerate(ex.map(_symbol_daily, syms)):
+            if df is not None:
+                frames.append(df)
+            if i % 50 == 0:
+                print(f"  {i}/{len(syms)}", flush=True)
+    data = pd.concat(frames, ignore_index=True).sort_values(["symbol", "date"])
+    data.to_parquet(out)
+    return data
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# USDT-margined perpetual futures (data/futures/um): daily candles + funding paid between longs and shorts.
+# Many Solana memecoins have a Binance perpetual without a spot pair (1000BONK, WIF, POPCAT, GOAT, FARTCOIN, ...).
+
+
+def futures_symbols() -> list[str]:
+    syms = [p.rstrip("/").split("/")[-1] for p in list_prefixes("data/futures/um/monthly/klines/")]
+    keep = []
+    for s in syms:
+        if not s.endswith("USDT") or "_" in s:  # quarterly contracts (BTCUSDT_240329) are not perpetuals
+            continue
+        base = s[:-4]
+        if not base or base in STABLE or LEVERAGED.search(base):
+            continue
+        keep.append(s)
+    return sorted(set(keep))
+
+
+def _funding_daily(sym: str) -> pd.Series:
+    """Sum of the funding rates per daily candle. A funding at time T belongs to the candle (T-1ms)'s day, so the
+    00:00 UTC funding is paid by whoever held through the previous candle (positive = longs pay shorts)."""
+    keys = [k for k in list_prefixes(f"data/futures/um/monthly/fundingRate/{sym}/") if k.endswith(".zip")]
+    frames = []
+    for k in keys:
+        try:
+            z = zipfile.ZipFile(io.BytesIO(_get(f"{FILES}/{urllib.parse.quote(k)}")))
+            with z.open(z.namelist()[0]) as f:
+                df = pd.read_csv(f, header=None)
+        except Exception:
+            continue
+        if not str(df.iloc[0, 0]).isdigit():
+            df = df.iloc[1:]
+        frames.append(pd.DataFrame({"t": df.iloc[:, 0].astype("int64"), "rate": df.iloc[:, -1].astype(float)}))
+    if not frames:
+        return pd.Series(dtype=float)
+    f = pd.concat(frames).drop_duplicates("t")
+    t = f.t.where(f.t < 10**14, f.t // 1000)
+    day = pd.to_datetime(t - 1, unit="ms", utc=True).dt.normalize()
+    return f.rate.groupby(day.values).sum()
+
+
+def _futures_daily(sym: str) -> pd.DataFrame | None:
+    try:
+        df = _symbol_daily_raw(sym, "futures/um")
+        if df is None:
+            return None
+        fund = _funding_daily(sym)
+        df["funding"] = df.date.map(fund).astype(float)
+        df["has_funding"] = bool(len(fund))
+        return df
+    except Exception as e:
+        print(f"  {sym!r}: saltata ({type(e).__name__})", flush=True)
+        return None
+
+
+def load_futures_daily(max_workers: int = 24) -> pd.DataFrame:
+    """All USDT perpetuals (delisted included), daily, with the daily funding sum; cached as one parquet file."""
+    out = DATA / "binance_futures_daily.parquet"
+    if out.exists():
+        return pd.read_parquet(out)
+    DATA.mkdir(parents=True, exist_ok=True)
+    syms = futures_symbols()
+    print(f"perpetui USDT: {len(syms)}", flush=True)
+    frames = []
+    with cf.ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for i, df in enumerate(ex.map(_futures_daily, syms)):
             if df is not None:
                 frames.append(df)
             if i % 50 == 0:

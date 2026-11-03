@@ -191,3 +191,21 @@ def test_rules_lab_counts_only_out_of_sample_and_never_claims_small_samples():
     lose = {"first_passage": "half_first", "ret_end_60m": -70.0, "ret_end_240m": -90.0}
     rep = evaluate({"t+5m": [(REGISTERED_AT + timedelta(minutes=i), good, lose) for i in range(400)]})
     assert all(r["verdict"] == "non funziona" for r in rep["results"] if r["horizon"] == "t+5m")
+
+
+def test_curves_quoted_in_another_token_have_no_sol_price_or_reserve_facts():
+    tr, j = LaunchTracker(), Journal()
+    tr.journal = j
+    tr.stream_up()
+    usdc = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+    tr.on_events([pump.CreateEvent(name="U", symbol="U", uri="", mint=MINT, bonding_curve="BC", user="DEV",
+                                   creator="DEV", timestamp=1_800_000_000, slot=1, virtual_sol_reserves=V0,
+                                   virtual_token_reserves=T0, real_token_reserves=R0, quote_mint=usdc)])
+    tr.on_events([pump.TradeEvent(mint=MINT, sol_amount=5 * 10**9, token_amount=10**12, is_buy=True, user=w(3),
+                                  timestamp=1_800_000_010, virtual_sol_reserves=V0 + 5 * 10**10,
+                                  virtual_token_reserves=T0 // 2, real_sol_reserves=5 * 10**10,
+                                  real_token_reserves=R0 // 2, slot=5, quote_mint=usdc)])
+    st = tr.get(MINT)
+    assert st.price is None and st.launch_price is None and not st.bars
+    ev = j.drain()
+    assert kinds(ev) == ["create"] and ev[0]["detail"]["quote"] == usdc[:8]

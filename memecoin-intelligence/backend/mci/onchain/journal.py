@@ -16,6 +16,9 @@ Events (kind -> value):
   complete        curve completed: migration to PumpSwap (value: seconds from launch)
   dead            no trade for 30 minutes (value: last price / peak)
   copy            the normalized name was already used by an earlier launch we saw (value: earlier uses)
+
+Curves quoted in another token (USDC, tokenized stocks, other coins: about a fifth of the launches in October
+2026) get only the 'create' and 'copy' facts: their amounts and reserves are not in SOL.
 """
 
 from __future__ import annotations
@@ -26,6 +29,8 @@ from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
+
+from mci.chain.pump import NATIVE_QUOTES
 
 V0_SOL = 30.0
 WHALE_SOL = 2.0
@@ -114,8 +119,9 @@ class Journal:
             self._drop_oldest()
         self.states[st.mint] = _J(st.created_ts, st.creator, bool(st.mayhem), st.slot)
         nn = norm_name(st.name)
+        native = not st.quote_mint or st.quote_mint in NATIVE_QUOTES
         detail = {"name": (st.name or "")[:40], "symbol": (st.symbol or "")[:16], "mayhem": bool(st.mayhem),
-                  "uri_kind": uri_kind(st.uri)}
+                  "uri_kind": uri_kind(st.uri), "quote": "SOL" if native else st.quote_mint[:8]}
         self._emit(st.mint, st.created_ts, "create", None, st.launch_price, detail, 0.0)
         prior = self.names.get(nn, 0) if nn else 0
         if prior:
@@ -124,8 +130,8 @@ class Journal:
 
     def on_trade(self, mint: str, t: Any) -> None:
         j = self.states.get(mint)
-        if j is None:
-            return
+        if j is None or not getattr(t, "native", True):
+            return  # curves quoted in another token: amounts and reserves are not SOL, no fact is comparable
         p = t.price or 0.0
         ts = float(t.ts)
         age = ts - j.created_ts

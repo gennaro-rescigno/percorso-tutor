@@ -17,9 +17,10 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from mci.chain.pump import NATIVE_QUOTES
 from mci.onchain.launches import LaunchState, LaunchTracker, progress_pct
 
-FEATURE_VERSION = 2  # v2: completeness from the measured stream coverage (>= 97% of the window)
+FEATURE_VERSION = 3  # v2: completeness from the measured stream coverage; v3: quote_native (non-SOL curves have no SOL price)
 # the public stream drops connections every few seconds; with redundant connections real gaps are short.
 # A window counts as complete when data were received for at least 97% of it (the coverage is stored too).
 MIN_COVERAGE = 0.97
@@ -81,6 +82,7 @@ def curve_features(st: LaunchState, at: float, tracker: LaunchTracker | None = N
         "stream_coverage": round(coverage, 4) if coverage is not None else None,
         "age_s": round(age_s, 1),
         "mayhem": bool(st.mayhem),
+        "quote_native": not st.quote_mint or st.quote_mint in NATIVE_QUOTES,
         "n_trades": len(tr),
         "n_buys": sum(1 for t in organic if t.is_buy),
         "n_sells": sum(1 for t in organic if not t.is_buy),

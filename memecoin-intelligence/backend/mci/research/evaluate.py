@@ -25,7 +25,7 @@ MIN_POSITIVES = 30
 BOOTSTRAP = 100
 MAX_ROWS = 30_000  # most recent observations used (memory and CPU bound on a small server)
 CI_SAMPLE = 8_000  # bootstrap confidence intervals on a random subsample (point AUC uses every row)
-EXCLUDE = {"version", "complete", "source", "price", "age_s", "deployer_observed_days", "stream_coverage"}
+EXCLUDE = {"version", "complete", "source", "price", "age_s", "deployer_observed_days", "stream_coverage", "quote_native"}
 
 
 def _rankdata(a: np.ndarray) -> np.ndarray:

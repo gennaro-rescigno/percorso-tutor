@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
-from mci.chain.pump import CompleteEvent, CreateEvent, TradeEvent, price_sol
+from mci.chain.pump import NATIVE_QUOTES, CompleteEvent, CreateEvent, TradeEvent, price_sol
 from mci.domain import Candle
 
 PUMP_TOTAL_SUPPLY_RAW = 10**15  # 1,000,000,000 tokens with 6 decimals
@@ -37,10 +37,11 @@ class TradeLite:
     rtok: int
     agent: bool
     sig: str | None
+    native: bool = True  # False: the curve is quoted in another token (USDC, stocks...): reserves are not SOL
 
     @property
     def price(self) -> float | None:
-        return price_sol(self.vsol, self.vtok)
+        return price_sol(self.vsol, self.vtok) if self.native else None
 
 
 @dataclass
@@ -192,7 +193,8 @@ class LaunchTracker:
             signature=ev.signature, creator=ev.creator or ev.user, name=ev.name[:128], symbol=ev.symbol[:64],
             uri=ev.uri[:300], mayhem=ev.is_mayhem_mode, token_program=ev.token_program, quote_mint=ev.quote_mint,
             total_supply=ev.token_total_supply or PUMP_TOTAL_SUPPLY_RAW, initial_real_tokens=ev.real_token_reserves,
-            launch_price=price_sol(ev.virtual_sol_reserves or 0, ev.virtual_token_reserves or 0),
+            launch_price=(price_sol(ev.virtual_sol_reserves or 0, ev.virtual_token_reserves or 0)
+                          if not ev.quote_mint or ev.quote_mint in NATIVE_QUOTES else None),
         )
         if st is not None:  # seen first from PumpPortal: keep the trades already collected
             new.trades, new.n_trades, new.n_buys = st.trades, st.n_trades, st.n_buys
@@ -240,7 +242,7 @@ class LaunchTracker:
         self.stats["trades"] += 1
         t = TradeLite(int(ev.timestamp), ev.slot, ev.user, ev.is_buy, ev.sol_amount, ev.token_amount,
                       ev.virtual_sol_reserves, ev.virtual_token_reserves, ev.real_token_reserves, ev.agent,
-                      ev.signature)
+                      ev.signature, not ev.quote_mint or ev.quote_mint in NATIVE_QUOTES)
         st.n_trades += 1
         if t.is_buy:
             st.n_buys += 1

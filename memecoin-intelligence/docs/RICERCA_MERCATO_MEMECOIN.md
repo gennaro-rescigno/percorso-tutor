@@ -379,6 +379,29 @@ massimo 10 posizioni da un decimo del capitale, stop a −15%, costi 0,15-0,30% 
 - Confronto con il trend BTC·ETH·SOL (sezione 10): +31% annuo, perdita massima −42%, 141 operazioni, verificato su
   6 monete su 7 con costi doppi e ritardo. Le operazioni brevi su molte monete rendono meno e sono meno solide.
 
+**Verifica di robustezza di H2 (`crypto_daily2`, varianti decise prima di guardare i risultati).** Positive fuori
+campione **6 varianti su 17**:
+
+| Variante (tenuta 3 giorni) | 2018-2021 | 2022-2026 | Perdita massima 2022-2026 |
+|---|---|---|---|
+| H2 originale | +24,1% | +11,7% | −51% |
+| 8 soglie vicine (prezzo +5/10/15%, volume 2/3/5 volte) | da +4,7% a +39% | 7 negative su 8 (da −29,6% a +2,2%) | da −45% a −88% |
+| filtro BTC a 100 giorni invece di 50 | +29,5% | −5,5% | −51% |
+| stop a −10% / −25% | −0,9% / +36% | −2,0% / +6,0% | −62% / −64% |
+| costi doppi | +9,2% | **−2,4%** | −64% |
+| entrata un giorno dopo | +60,6% | **−2,2%** | −48% |
+| solo memecoin (130 operazioni) | +2,0% | +12,0% | −17% |
+| senza memecoin | +21,4% | +10,3% | −49% |
+
+Anno per anno (H2 originale): 2018 +0,4%, 2019 −3,3%, 2020 −1,8%, 2021 +149%, 2022 −4,6%, 2023 +24%, 2024 +42%,
+2025 −44%, 2026 +81%.
+
+**Verdetto: H2 non è robusta.** Cambiando di poco le soglie diventa negativa, con costi doppi o un giorno di
+ritardo perde, e il risultato dipende da pochi anni di euforia (2021, 2024, 2026) con un −44% nel 2025. Non viene
+aggiunta al bot. Il sottoinsieme "solo memecoin" è positivo ma conta solo 130 operazioni, era quasi piatto nel
+2018-2021 e usa un elenco di memecoin scritto oggi (conoscendo già quali sono sopravvissute): non è una prova.
+L'unica regola che ha superato tutte le verifiche resta il trend di sezione 10.
+
 ## 11. Fonti principali
 
 - Arrow Algo, *Solana Memecoin Trading: What 1,411 Launches Showed* — https://arrowalgo.com/solana-memecoin-trading/

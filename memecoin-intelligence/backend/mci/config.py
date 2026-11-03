@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     pumpportal_ws_url: str = "wss://pumpportal.fun/api/data"
     pumpportal_enabled: bool = True
     solana_rpc_url: str = "https://api.mainnet-beta.solana.com"
-    solana_rpc_rps: float = 2.0  # public endpoint: 100 requests / 10 s per IP; we stay far below
+    solana_rpc_rps: float = 4.0  # public endpoint: 100 requests / 10 s per IP (40 per method): well below
     # free real-time pump.fun data: public Solana WebSocket, logsSubscribe on the pump program (no key, no cost)
     solana_ws_url: str = "wss://api.mainnet-beta.solana.com"
     chain_stream_enabled: bool = True

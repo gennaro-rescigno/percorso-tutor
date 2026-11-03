@@ -160,6 +160,16 @@ class TelegramBot:
             await self.client.send(reply, chat_id=chat)
         return len(updates)
 
+    @staticmethod
+    def _chain_line(st: dict[str, Any]) -> str:
+        cs = st.get("chain_stream") or {}
+        if cs.get("enabled") is False:
+            return ""
+        launches = ((st.get("onchain") or {}).get("launches") or {})
+        state = "connesso" if cs.get("connected") else "NON connesso"
+        return (f"Stream blockchain (gratuito): {state}, {cs.get('trades', 0)} operazioni decodificate, "
+                f"lanci ultima ora: {launches.get('launches_1h', 'n/d')}\n")
+
     async def _jupiter_key(self, chat: int, msg: dict[str, Any], text: str) -> str:
         from mci.secrets_store import JUPITER_KEY_RE
 
@@ -218,6 +228,7 @@ class TelegramBot:
                 return (f"📟 <b>STATO – {tag}</b>\nUltimo ciclo scanner: {st.get('last_cycle') or 'n/d'}\n"
                         f"Token monitorati: {st.get('tracked', 'n/d')}\nFonti: {src_txt}\n"
                         f"Jupiter: {'chiave attiva (1 richiesta/s)' if st.get('jupiter_key') else 'senza chiave (0,5 richieste/s)'}\n"
+                        f"{self._chain_line(st)}"
                         f"In pausa: {'sì' if summ['paused'] else 'no'} — kill switch: {'ATTIVO' if summ['kill_switch'] else 'no'}\n"
                         f"Capitale: {fm._sol_eur(summ['equity_sol'], sol_eur)}")
             if cmd == "/balance":

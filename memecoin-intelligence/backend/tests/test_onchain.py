@@ -132,6 +132,9 @@ def test_mayhem_agent_trades_are_not_organic():
     assert st is not None and st.mayhem is True
     f = curve_features(st, st.created_ts + 900, tr)
     assert f["agent_trade_share"] == 1.0 and f["unique_buyers"] == 0
+    snap = TokenSnapshot(chain="solana", token_address=d["mint"], observed_at=utcnow(), bonding_curve=True, mayhem=True)
+    assert opportunity_index(snap, f).value is None  # never an opportunity reading on an agent-driven curve
+    assert "MAYHEM_CURVE" in risk_index(snap, f).blocking
 
 
 def test_due_horizons_never_backfill_after_long_downtime():

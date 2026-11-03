@@ -22,31 +22,33 @@ import numpy as np
 
 MIN_ROWS = 300
 MIN_POSITIVES = 30
-BOOTSTRAP = 200
+BOOTSTRAP = 100
+MAX_ROWS = 30_000  # most recent observations used (memory and CPU bound on a small server)
+CI_SAMPLE = 8_000  # bootstrap confidence intervals on a random subsample (point AUC uses every row)
 EXCLUDE = {"version", "complete", "source", "price", "age_s", "deployer_observed_days"}
+
+
+def _rankdata(a: np.ndarray) -> np.ndarray:
+    """Average ranks with ties (same algorithm as scipy.stats.rankdata), vectorized."""
+    sorter = np.argsort(a, kind="mergesort")
+    inv = np.empty(sorter.size, dtype=np.intp)
+    inv[sorter] = np.arange(sorter.size)
+    s = a[sorter]
+    obs = np.r_[True, s[1:] != s[:-1]]
+    dense = obs.cumsum()[inv]
+    count = np.r_[np.nonzero(obs)[0], len(obs)]
+    return 0.5 * (count[dense] + count[dense - 1] + 1)
 
 
 def auc(scores: np.ndarray, y: np.ndarray) -> float | None:
     """Mann-Whitney AUC with tie correction."""
-    pos, neg = scores[y == 1], scores[y == 0]
-    if len(pos) == 0 or len(neg) == 0:
+    n_pos = int((y == 1).sum())
+    n_neg = len(y) - n_pos
+    if n_pos == 0 or n_neg == 0:
         return None
-    allv = np.concatenate([pos, neg])
-    order = allv.argsort(kind="mergesort")
-    ranks = np.empty(len(allv), dtype=float)
-    ranks[order] = np.arange(1, len(allv) + 1)
-    # average ranks for ties
-    vals = allv[order]
-    i = 0
-    while i < len(vals):
-        j = i
-        while j + 1 < len(vals) and vals[j + 1] == vals[i]:
-            j += 1
-        if j > i:
-            ranks[order[i:j + 1]] = (i + j + 2) / 2
-        i = j + 1
-    rp = ranks[: len(pos)].sum()
-    return float((rp - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
+    ranks = _rankdata(np.asarray(scores, dtype=float))
+    rp = ranks[y == 1].sum()
+    return float((rp - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
 
 
 def auc_ci(scores: np.ndarray, y: np.ndarray, rng: np.random.Generator) -> tuple[float | None, float | None, float | None]:
@@ -54,15 +56,23 @@ def auc_ci(scores: np.ndarray, y: np.ndarray, rng: np.random.Generator) -> tuple
     if a is None:
         return None, None, None
     n = len(y)
+    base = np.arange(n) if n <= CI_SAMPLE else rng.choice(n, CI_SAMPLE, replace=False)
     boots = []
     for _ in range(BOOTSTRAP):
-        idx = rng.integers(0, n, n)
+        idx = base[rng.integers(0, len(base), len(base))]
         b = auc(scores[idx], y[idx])
         if b is not None:
             boots.append(b)
     if len(boots) < BOOTSTRAP // 2:
         return a, None, None
-    return a, float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))
+    lo, hi = float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))
+    if len(base) < n:
+        # bootstrap on a subsample: keep its spread (conservative: wider than the full sample's) around the
+        # full-sample estimate, so the interval always contains the reported AUC
+        sub = auc(scores[base], y[base])
+        if sub is not None:
+            lo, hi = a - (sub - lo), a + (hi - sub)
+    return a, max(lo, 0.0), min(hi, 1.0)
 
 
 def _fit_logistic(x: np.ndarray, y: np.ndarray, l2: float = 1.0, iters: int = 300, lr: float = 0.1) -> np.ndarray:
@@ -184,7 +194,7 @@ def evaluate_rows(rows: list[dict[str, Any]], seed: int = 7) -> dict[str, Any]:
     return out
 
 
-def run_research(horizon: str = "t+5m", days: int = 30) -> dict[str, Any]:
+def run_research(horizon: str = "t+5m", days: int = 7) -> dict[str, Any]:
     from sqlalchemy import select
 
     from mci.database.models import FeatureSnapshot
@@ -198,7 +208,8 @@ def run_research(horizon: str = "t+5m", days: int = 30) -> dict[str, Any]:
                 for r in s.scalars(select(FeatureSnapshot).where(FeatureSnapshot.horizon == horizon,
                                                                   FeatureSnapshot.observed_at >= since,
                                                                   FeatureSnapshot.labels.is_not(None))
-                                   .order_by(FeatureSnapshot.observed_at.asc())).all()]
+                                   .order_by(FeatureSnapshot.observed_at.desc()).limit(MAX_ROWS)).all()]
+    rows.reverse()  # time order for the walk-forward
     rep = evaluate_rows(rows)
     rep["horizon"] = horizon
     rep["generated_at"] = utcnow().isoformat()

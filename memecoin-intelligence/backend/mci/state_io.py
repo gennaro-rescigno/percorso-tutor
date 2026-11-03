@@ -63,7 +63,8 @@ def _secret_values() -> list[str]:
             s.dashboard_password, s.api_secret_key]
     out = [v.get_secret_value() for v in vals if len(v.get_secret_value()) >= 8]
     stored = read_secret(s, JUPITER_KEY)
-    return out + ([stored] if len(stored) >= 8 else [])
+    rpc_urls = [u.strip() for u in read_secret(s, "rpc_urls").splitlines() if len(u.strip()) >= 8]
+    return out + ([stored] if len(stored) >= 8 else []) + rpc_urls
 
 
 def scrub(text: str, secrets_: list[str] | None = None) -> str:
@@ -195,9 +196,14 @@ def export_static(out_dir: str | Path, max_tokens: int = 30, candle_points: int 
     save("/overview", "overview.json")
     scanner = save("/scanner?sort=score&limit=300&include_excluded=true", "scanner.json") or {"tokens": []}
     positions = save("/positions?status=all", "positions.json") or {"positions": []}
-    for name in ("performance", "risk", "signals", "logs?limit=500", "config/options", "backtests", "lab"):
-        save(f"/{name}", name.split("?")[0].replace("/", "_") + ".json")
+    launches_body: dict = {}
+    for name in ("performance", "risk", "signals", "logs?limit=500", "config/options", "backtests", "lab",
+                 "experiments", "research", "system", "launches"):
+        body = save(f"/{name}", name.split("?")[0].replace("/", "_") + ".json")
+        if name == "launches" and body:
+            launches_body = body
     wanted = [t["address"] for t in scanner["tokens"] if t.get("status") != "excluded"][:max_tokens]
+    wanted += [x["mint"] for x in launches_body.get("launches", [])[:30]]
     wanted += [p["token"] for p in positions["positions"]]
 
     def trim(body: dict) -> dict:

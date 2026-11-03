@@ -206,6 +206,9 @@ class Worker:
         self._chain_ticks += 1
         if self._chain_ticks % 40 == 0:
             self.tracker.evict()
+            counts = await asyncio.to_thread(fs.dataset_counts)
+            with session_scope() as s:
+                repo.set_state(s, "dataset_counts", counts)
         cutoff = time.time() - 8 * 86400
         with session_scope() as s:
             repo.set_state(s, "stream_last_alive", time.time())
@@ -227,11 +230,10 @@ class Worker:
         from mci.research.evaluate import run_research
         from mci.research.promotion import experiment_report
 
-        rep = run_research()
+        rep = await asyncio.to_thread(run_research)  # CPU-heavy: never block the stream and the monitors
         with session_scope() as s:
             repo.set_state(s, "research_report", rep)
             repo.set_state(s, "experiments_report", {e.mode: experiment_report(s, e.mode) for e in self.experiments})
-            repo.set_state(s, "dataset_counts", fs.dataset_counts())
 
     async def netcosts_once(self) -> None:
         m = await network_costs.measure(self.rpc_pool)

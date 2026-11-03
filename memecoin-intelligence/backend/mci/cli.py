@@ -247,12 +247,22 @@ def cmd_publish_static(args: argparse.Namespace) -> int:
                 shutil.copytree(item, out / item.name, dirs_exist_ok=True)
             else:
                 shutil.copy2(item, out / item.name)
+    from mci.state_io import export_state
+
+    rounds = 0
     while True:
         try:
             tmp = Path(tempfile.mkdtemp(dir=out, prefix=".data-"))
             export_static(tmp)
-            tmp.chmod(0o755)
             live = out / "data"
+            # essential bot state (portfolios, positions, orders, signals, results; secrets scrubbed), refreshed
+            # hourly: a daily GitHub workflow copies it off the server (free off-box backup, see docs)
+            if rounds % 60 == 0 or not (live / "state.json").exists():
+                export_state(tmp / "state.json")
+            else:
+                shutil.copy2(live / "state.json", tmp / "state.json")
+            rounds += 1
+            tmp.chmod(0o755)
             if live.exists():
                 live.rename(out / f".old-{time.time_ns()}")
             tmp.rename(live)

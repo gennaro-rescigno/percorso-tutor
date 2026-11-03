@@ -23,6 +23,8 @@ Telegram e mostra tutto in una dashboard web. Architettura pronta per il trading
 |---|---|
 | **[GUIDA_PASSO_PASSO.md](GUIDA_PASSO_PASSO.md)** | **come mettere tutto online gratis: Telegram, Oracle, DuckDNS, Dune** |
 | [RESEARCH_REPORT.md](RESEARCH_REPORT.md) | ricerca: tassi base, casi studio, pattern testabili, fonti con affidabilità e limiti |
+| [docs/EVOLUZIONE_IMPLEMENTATA.md](docs/EVOLUZIONE_IMPLEMENTATA.md) | **cosa fa ora il bot**: stream blockchain gratuito, sicurezza propria, wallet, feature store, esperimenti, ricerca |
+| [docs/EVOLUZIONE_FASE1_FASE2.md](docs/EVOLUZIONE_FASE1_FASE2.md) | audit, ricerca e roadmap dell'evoluzione |
 | [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) | API utilizzate, limiti, cosa succede quando non rispondono |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | architettura, struttura del codice, scelte tecniche |
 | [docs/SCORING.md](docs/SCORING.md) | filtri di esclusione, pesi dello score, spiegazioni |

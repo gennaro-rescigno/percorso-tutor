@@ -283,3 +283,34 @@ def test_stored_key_is_private_and_scrubbed_from_exports(db, tmp_path, monkeypat
     monkeypatch.setenv("MCI_JUPITER_API_KEY", "env-key-0123456789")  # .env wins over the stored key
     reset_settings_cache()
     assert jupiter_key(get_settings()) == "env-key-0123456789"
+
+
+def test_onchain_dashboard_endpoints(client):
+    """Experiments, research, launches, system and the token page with chain-stream data."""
+    import sys
+    from pathlib import Path as _P
+
+    sys.path.insert(0, str(_P(__file__).parent))
+    from test_onchain import normal_launch
+
+    from mci.research import feature_store as fs
+
+    tr, mint = normal_launch()
+    st = tr.get(mint)
+    fs.persist_stream(tr.drain(now=st.created_ts + 3600))
+    fs.write_feature_snapshots([(st, "t+5m", st.created_ts + 300)], tr)
+    h = _login(client)
+    exp = client.get("/api/experiments", headers=h).json()
+    assert {e["mode"] for e in exp["experiments"]} == {"x_safe", "x_curve"}
+    assert all(e["gate"]["promotable"] is False for e in exp["experiments"])
+    assert any(r["mode"] == "enforce" for r in exp["rules"]) and any(r["mode"] == "shadow" for r in exp["rules"])
+    res = client.get("/api/research", headers=h).json()
+    assert res["dataset"]["launches"] == 1 and res["dataset"]["feature_snapshots"] == 1
+    la = client.get("/api/launches", headers=h).json()
+    assert la["launches"][0]["mint"] == mint and la["launches"][0]["t5"]["unique_buyers"] == 7
+    sysr = client.get("/api/system", headers=h).json()
+    assert sysr["dataset"]["early_trades"] == 13 and "rpc" in sysr
+    # a launch seen only on the chain stream still has a token page (stream candles + feature snapshots)
+    tok = client.get(f"/api/tokens/{mint}", headers=h).json()
+    assert tok["token"]["status"] == "solo stream" and tok["candles"] and tok["feature_snapshots"][0]["horizon"] == "t+5m"
+    assert client.get("/api/tokens/UNKNOWN", headers=h).status_code == 404

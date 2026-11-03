@@ -95,6 +95,7 @@ class Scanner:
         lim = self._gecko_limiter()
         self._gecko_max_rate = lim.rate if lim else 0.0
         self.on_gecko_rate_change: Callable[[float], None] | None = None  # worker persists the learned pace
+        self._sec_budget = 10
 
     # ------------------------------------------------------------------ helpers
     def _ok(self, name: str) -> None:
@@ -336,8 +337,10 @@ class Scanner:
                 c.snapshot.price_divergence_pct = abs(c.snapshot.price_usd - jp) / jp * 100
 
         gecko_budget = 6
-        wallet_budget = 20  # new wallet lookups per cycle (RPC budget is shared with security checks)
-        sim_budget = 2  # sell simulations per cycle (Jupiter + RPC)
+        # per-cycle caps keep the added latency of the free public RPC to a few seconds per scan
+        wallet_budget = 10  # new wallet lookups per cycle (RPC budget is shared with security checks)
+        sim_budget = 1  # sell simulations per cycle (Jupiter + RPC)
+        self._sec_budget = 10  # new security checks per cycle (then cached 15 minutes)
         for c in candidates:
             snap = c.snapshot
             # security (RugCheck), cached 15 min
@@ -352,7 +355,7 @@ class Scanner:
             # own on-chain checks (security, curve state, chain-stream features, wallets): free, budgeted
             if self.onchain is not None:
                 await self._enrich_onchain(c, sol_usd, wallet_budget)
-                wallet_budget = max(wallet_budget - 10, 0)
+                wallet_budget = max(wallet_budget - 5, 0)
             # sell probe (honeypot / exit impact), cached 5 min
             if c.due("sell_probe", 300) and snap.price_native:
                 probe_sol = 0.1
@@ -450,8 +453,10 @@ class Scanner:
                 self._fail("solana_rpc", e)
                 return False
 
-        if c.due("onchain_sec", 900) and await guarded("security", lambda: oc.security(snap)):
-            c.mark("onchain_sec")
+        if c.due("onchain_sec", 900) and self._sec_budget > 0:
+            self._sec_budget -= 1
+            if await guarded("security", lambda: oc.security(snap)):
+                c.mark("onchain_sec")
         pumpish = snap.bonding_curve or c.address.endswith("pump") or (snap.dex_id or "") in ("pumpfun", "pump")
         if pumpish and snap.bonding_curve is not False and c.due("curve_state", 120) \
                 and await guarded("curve", lambda: oc.curve_state(snap)):
@@ -483,7 +488,7 @@ class Scanner:
                     snap.trades_per_trader = wm.trades_per_trader
         if f is not None and f.get("complete") and wallet_budget > 0 and c.due("wallets", 600):
             async def run_wallets() -> None:
-                w = await oc.analyze_wallets(snap, max_new=min(10, wallet_budget))
+                w = await oc.analyze_wallets(snap, max_new=min(5, wallet_budget))
                 if w:
                     snap.onchain["wallets"] = w
                     if w["coverage"] >= 0.7:
@@ -619,3 +624,5 @@ class Scanner:
             stale = tt.first_seen < cutoff and (tt.score is None or tt.score.total < 40)
             if dead or stale:
                 del self.tokens[addr]
+                if self.onchain is not None:
+                    self.onchain.tracker.watch.discard(addr)

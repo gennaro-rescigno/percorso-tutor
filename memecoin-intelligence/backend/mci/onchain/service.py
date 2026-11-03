@@ -117,7 +117,8 @@ class OnchainService:
         """Point-in-time curve features of a launch observed on the chain stream (None if not observed)."""
         st = self.tracker.get(snap.token_address)
         if st is None or st.source == "trade":
-            self.tracker.watch_mint(snap.token_address)
+            if snap.bonding_curve or snap.token_address.endswith("pump"):
+                self.tracker.watch_mint(snap.token_address)  # candles and live price from the stream
             return None
         f = curve_features(st, time.time(), self.tracker)
         if st.mayhem is not None:

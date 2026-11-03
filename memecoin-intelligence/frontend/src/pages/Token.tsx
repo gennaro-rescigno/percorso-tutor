@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { usePoll } from "../api";
 import { TimeLine } from "../components/charts";
+import { OnchainSection } from "../components/onchain";
 import { ErrorBox, Kpi, ScoreBars } from "../components/ui";
 import { fmtNum, fmtPct, fmtPctPlain, fmtPrice, fmtTime, fmtUsd } from "../format";
 
@@ -34,8 +35,8 @@ export default function TokenPage() {
           <TimeLine data={priceSeries} x="ts" y="close" name="Prezzo" fmt={(v) => fmtPrice(v)} />
         </div>
         <div className="card">
-          <h2>Volume per minuto (USD)</h2>
-          <TimeLine data={candles} x="ts" y="volume" name="Volume" fmt={(v) => fmtUsd(v)} area />
+          <h2>Volume per minuto ({data?.candles?.[0]?.unit ?? "USD"})</h2>
+          <TimeLine data={candles} x="ts" y="volume" name="Volume" fmt={(v) => (data?.candles?.[0]?.unit === "SOL" ? `${fmtNum(v, 2)} SOL` : fmtUsd(v))} area />
         </div>
         <div className="card">
           <h2>Liquidità (USD)</h2>
@@ -46,6 +47,7 @@ export default function TokenPage() {
           <TimeLine data={data?.history ?? []} x="ts" y="mcap_usd" name="Market cap" fmt={(v) => fmtUsd(v)} />
         </div>
       </div>
+      <OnchainSection snap={s} launch={data?.launch} features={data?.feature_snapshots ?? []} />
       <div className="grid cols-2 section">
         <div className="card">
           <h2>Score dettagliato</h2>

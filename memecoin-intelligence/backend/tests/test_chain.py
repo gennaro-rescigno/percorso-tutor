@@ -156,3 +156,14 @@ async def test_rpc_pool_failover_cache_and_budget():
     assert h["endpoints"][0]["rate_limited"] == 1 and h["budget_refused"] == 1
     assert "example" not in json.dumps(h)  # endpoint URLs (may contain keys) are never exposed
     await client.aclose()
+
+
+def test_decoder_layouts_match_the_official_idl():
+    from mci.chain.pump import check_idl
+
+    idl = live("pump_idl_layouts")
+    assert check_idl(idl) == []
+    broken = json.loads(json.dumps(idl))
+    t = next(x for x in broken["types"] if x["name"] == "TradeEvent")
+    t["type"]["fields"][1], t["type"]["fields"][2] = t["type"]["fields"][2], t["type"]["fields"][1]
+    assert any("TradeEvent" in p for p in check_idl(broken))

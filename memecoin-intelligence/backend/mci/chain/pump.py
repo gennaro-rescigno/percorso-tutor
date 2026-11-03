@@ -26,6 +26,70 @@ TOKEN_DECIMALS = 6
 LAMPORTS = 1_000_000_000
 
 
+# Field layouts (name, type) our decoders rely on, in order: a prefix of the official IDL layouts. Fields
+# appended later by pump.fun are ignored; any change inside this prefix is caught by scripts/contract_check.py
+# (weekly GitHub workflow) and by tests/test_chain.py.
+TRADE_EVENT_LAYOUT = [
+    ("mint", "pubkey"), ("sol_amount", "u64"), ("token_amount", "u64"), ("is_buy", "bool"), ("user", "pubkey"),
+    ("timestamp", "i64"), ("virtual_sol_reserves", "u64"), ("virtual_token_reserves", "u64"),
+    ("real_sol_reserves", "u64"), ("real_token_reserves", "u64"), ("fee_recipient", "pubkey"),
+    ("fee_basis_points", "u64"), ("fee", "u64"), ("creator", "pubkey"), ("creator_fee_basis_points", "u64"),
+    ("creator_fee", "u64"), ("track_volume", "bool"), ("total_unclaimed_tokens", "u64"),
+    ("total_claimed_tokens", "u64"), ("current_sol_volume", "u64"), ("last_update_timestamp", "i64"),
+    ("ix_name", "string"), ("mayhem_mode", "bool"), ("cashback_fee_basis_points", "u64"), ("cashback", "u64"),
+    ("buyback_fee_basis_points", "u64"), ("buyback_fee", "u64"), ("shareholders", "vec<Shareholder>"),
+    ("quote_mint", "pubkey"),
+]
+CREATE_EVENT_LAYOUT = [
+    ("name", "string"), ("symbol", "string"), ("uri", "string"), ("mint", "pubkey"), ("bonding_curve", "pubkey"),
+    ("user", "pubkey"), ("creator", "pubkey"), ("timestamp", "i64"), ("virtual_token_reserves", "u64"),
+    ("virtual_sol_reserves", "u64"), ("real_token_reserves", "u64"), ("token_total_supply", "u64"),
+    ("token_program", "pubkey"), ("is_mayhem_mode", "bool"), ("is_cashback_enabled", "bool"), ("quote_mint", "pubkey"),
+]
+COMPLETE_EVENT_LAYOUT = [("user", "pubkey"), ("mint", "pubkey"), ("bonding_curve", "pubkey"), ("timestamp", "i64")]
+BONDING_CURVE_LAYOUT = [
+    ("virtual_token_reserves", "u64"), ("virtual_quote_reserves", "u64"), ("real_token_reserves", "u64"),
+    ("real_quote_reserves", "u64"), ("token_total_supply", "u64"), ("complete", "bool"), ("creator", "pubkey"),
+    ("is_mayhem_mode", "bool"), ("is_cashback_coin", "bool"), ("quote_mint", "pubkey"), ("creator_fee_bps", "u64"),
+    ("can_edit_creator_fee", "bool"), ("is_holder_reward", "bool"), ("creator_fee", "u64"), ("protocol_fees", "u64"),
+    ("depth", "u8"), ("initial_virtual_quote_reserves", "u64"),
+]
+LAYOUTS = {"TradeEvent": (TRADE_EVENT, TRADE_EVENT_LAYOUT), "CreateEvent": (CREATE_EVENT, CREATE_EVENT_LAYOUT),
+           "CompleteEvent": (COMPLETE_EVENT, COMPLETE_EVENT_LAYOUT),
+           "BondingCurve": (BONDING_CURVE_DISC, BONDING_CURVE_LAYOUT)}
+
+
+def _idl_type(t) -> str:
+    if isinstance(t, str):
+        return t
+    if isinstance(t, dict) and "vec" in t:
+        inner = t["vec"]
+        name = inner.get("defined", {}).get("name") if isinstance(inner, dict) else inner
+        return f"vec<{name}>"
+    return str(t)
+
+
+def check_idl(idl: dict) -> list[str]:
+    """Differences between the official IDL and the layouts our decoders rely on (empty list = compatible)."""
+    problems = []
+    types = {t["name"]: t for t in idl.get("types", [])}
+    discs = {e["name"]: bytes(e["discriminator"]) for e in idl.get("events", []) + idl.get("accounts", [])}
+    for name, (disc, layout) in LAYOUTS.items():
+        if discs.get(name) != disc:
+            problems.append(f"{name}: discriminatore cambiato ({discs.get(name, b'').hex()} != {disc.hex()})")
+        t = types.get(name)
+        if not t:
+            problems.append(f"{name}: tipo assente dall'IDL")
+            continue
+        fields = [(f["name"], _idl_type(f["type"])) for f in t["type"]["fields"]]
+        if fields[: len(layout)] != layout:
+            for i, (want, got) in enumerate(zip(layout, fields[: len(layout)] + [None] * len(layout))):
+                if want != got:
+                    problems.append(f"{name}: campo {i} atteso {want}, trovato {got}")
+                    break
+    return problems
+
+
 def price_sol(virtual_sol: int, virtual_tokens: int) -> float | None:
     """SOL per whole token implied by the constant-product virtual reserves (SOL 9 decimals, token 6)."""
     if virtual_sol <= 0 or virtual_tokens <= 0:

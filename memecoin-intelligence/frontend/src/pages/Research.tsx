@@ -1,0 +1,104 @@
+import { usePoll } from "../api";
+import { Column, DataTable, ErrorBox, Kpi, Status } from "../components/ui";
+import { fmtNum, fmtPctPlain, fmtTime } from "../format";
+
+const LABEL: Record<string, string> = {
+  hit_2x_first: "raddoppia prima di dimezzarsi (4 h)",
+  rug_60m: "crollo ≥ 80% entro 60 min",
+};
+
+function AucCell({ v }: { v: any }) {
+  if (!v) return <span className="muted">dati insufficienti</span>;
+  const ci = v.ci ? ` [${v.ci[0].toFixed(2)}–${v.ci[1].toFixed(2)}]` : "";
+  return <span className={v.informative ? "" : "muted"}>{v.auc?.toFixed(3)}{ci}{v.informative ? " ✓" : ""}</span>;
+}
+
+export default function Research() {
+  const { data, error } = usePoll<any>("/research", 120000);
+  const r = data?.report;
+  const d = data?.dataset ?? {};
+  const cols: Column<any>[] = [
+    { key: "feature", label: "Caratteristica", render: (x) => <span className="mono">{x.feature}</span> },
+    { key: "n", label: "Osservazioni", num: true },
+    { key: "hit_2x_first", label: "AUC vs raddoppio", num: true, value: (x) => x.hit_2x_first?.auc, render: (x) => <AucCell v={x.hit_2x_first} /> },
+    { key: "rug_60m", label: "AUC vs crollo", num: true, value: (x) => x.rug_60m?.auc, render: (x) => <AucCell v={x.rug_60m} /> },
+  ];
+  const rules = Object.entries(r?.shadow_rules ?? {}) as [string, any][];
+  return (
+    <>
+      <h1 style={{ fontSize: 20, marginTop: 0 }}>Ricerca – cosa dicono i dati reali</h1>
+      <ErrorBox error={error} />
+      <div className="note">
+        Ogni lancio pump.fun visto sulla blockchain viene fotografato a 1, 5 e 15 minuti dalla creazione (solo dati disponibili
+        in quel momento), poi dopo 4 ore si registra cosa è successo davvero. Qui si misura quali caratteristiche anticipano
+        un buon esito o un crollo. <b>AUC 0,5 = nessuna informazione</b>; una caratteristica è segnata ✓ solo se
+        l'intervallo di confidenza al 95% esclude 0,5. Nessuna regola viene cambiata automaticamente.
+      </div>
+      <div className="grid kpis section">
+        <Kpi label="Lanci registrati" value={fmtNum(d.launches)} sub={`ultime 24 h: ${fmtNum(d.launches_24h)}`} />
+        <Kpi label="Istantanee feature" value={fmtNum(d.feature_snapshots)} sub={`con esito: ${fmtNum(d.labeled)}`} />
+        <Kpi label="Operazioni iniziali salvate" value={fmtNum(d.early_trades)} />
+        <Kpi label="Wallet analizzati" value={fmtNum(d.wallet_profiles)} />
+        <Kpi label="Candele dallo stream" value={fmtNum(d.stream_candles)} />
+      </div>
+      {!r && <div className="warn-box">Il primo rapporto viene calcolato dopo l'avvio e poi ogni 6 ore: servono almeno 4 ore di raccolta per i primi esiti.</div>}
+      {r && (
+        <>
+          <div className="card section">
+            <h2>Verdetto</h2>
+            <p><b>{r.verdict}</b></p>
+            <div className="muted">Rapporto del {fmtTime(r.generated_at)} · orizzonte {r.horizon} · osservazioni usabili {fmtNum(r.rows_usable)} su {fmtNum(r.rows_total)}
+              {" "}(minimo per conclusioni: {r.min_rows} osservazioni e {r.min_positives} casi positivi)</div>
+            {r.base_rates && (
+              <table style={{ marginTop: 8 }}><tbody>
+                {Object.entries(r.base_rates).map(([k, v]: any) => (
+                  <tr key={k}><td>{LABEL[k] ?? k}</td><td className="num">{fmtNum(v.positives)} casi</td><td className="num">{fmtPctPlain(v.rate)}</td></tr>
+                ))}
+              </tbody></table>
+            )}
+          </div>
+          <div className="card section">
+            <h2>Gli indici di rischio e opportunità funzionano?</h2>
+            <table><tbody>
+              {Object.entries(r.indices ?? {}).map(([k, v]: any) => (
+                <tr key={k}><td>{k}</td><td>vs {LABEL[v.target] ?? v.target}</td>
+                  <td className="num">{v.auc != null ? `AUC ${v.auc.toFixed(3)}${v.ci ? ` [${v.ci[0].toFixed(2)}–${v.ci[1].toFixed(2)}]` : ""}` : v.verdict}</td>
+                  <td className="num muted">n = {fmtNum(v.n)}</td></tr>
+              ))}
+            </tbody></table>
+            <div className="note">{data?.index_note}</div>
+          </div>
+          {r.walk_forward && (
+            <div className="card section">
+              <h2>Test fuori campione (walk-forward)</h2>
+              <table><tbody>
+                {Object.entries(r.walk_forward).map(([k, v]: any) => (
+                  <tr key={k}><td>{LABEL[k] ?? k}</td>
+                    <td><Status level={v.verdict === "informativo fuori campione" ? "good" : "warning"} label={v.verdict} /></td>
+                    <td className="num">{v.mean_auc != null ? `AUC media ${v.mean_auc.toFixed(3)}` : ""}</td>
+                    <td className="num muted">{v.beats_base_rate_folds ? `batte il tasso base in ${v.beats_base_rate_folds} periodi` : ""}</td></tr>
+                ))}
+              </tbody></table>
+              <div className="note">Il modello è addestrato solo sul passato e provato sul periodo successivo: se non batte il tasso base, non serve.</div>
+            </div>
+          )}
+          {rules.length > 0 && (
+            <div className="card section">
+              <h2>Regole shadow sui dati reali</h2>
+              <table><thead><tr><th>Regola</th><th className="num">Scatta</th><th className="num">Crolli se scatta</th><th className="num">Crolli altrimenti</th><th className="num">Raddoppi se scatta</th><th className="num">Raddoppi altrimenti</th></tr></thead>
+                <tbody>{rules.map(([k, v]) => (
+                  <tr key={k}><td className="mono">{k}</td><td className="num">{fmtNum(v.fires)}</td>
+                    <td className="num">{fmtPctPlain(v.rug_rate_if_fires)}</td><td className="num">{fmtPctPlain(v.rug_rate_otherwise)}</td>
+                    <td className="num">{fmtPctPlain(v.win_rate_if_fires)}</td><td className="num">{fmtPctPlain(v.win_rate_otherwise)}</td></tr>
+                ))}</tbody></table>
+            </div>
+          )}
+          <div className="card section">
+            <h2>Caratteristiche una per una</h2>
+            <DataTable rows={r.features ?? []} columns={cols} initialSort={{ key: "hit_2x_first", desc: true }} empty="Nessuna caratteristica con dati sufficienti" />
+          </div>
+        </>
+      )}
+    </>
+  );
+}

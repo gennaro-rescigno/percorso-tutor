@@ -162,6 +162,9 @@ def blocking_codes(snap: TokenSnapshot) -> list[str]:
 
 def opportunity_index(snap: TokenSnapshot, f: dict[str, Any] | None = None,
                       w: dict[str, Any] | None = None) -> IndexResult:
+    if (f and f.get("mayhem")) or (snap.bonding_curve and snap.mayhem):
+        # agent-driven curve: buyer counts and pressure are not organic, an opportunity reading would be fiction
+        return IndexResult(None, 0.0, [Factor("curva mayhem", True, None, "dinamica non organica: indice non calcolato")])
     f = f if (f and f.get("complete")) else {}
     w = w if (w and (w.get("coverage") or 0) >= 0.7) else {}
     factors: list[Factor] = []

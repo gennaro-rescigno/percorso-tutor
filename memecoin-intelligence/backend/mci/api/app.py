@@ -189,22 +189,59 @@ def create_app() -> FastAPI:
                 })
         return {"tokens": out}
 
+    def _launch_only_detail(s, address: str) -> dict[str, Any]:
+        """A pump.fun launch seen on the chain stream but never tracked by the scanner (e.g. it died early)."""
+        from mci.database.models import FeatureSnapshot, PumpLaunch
+
+        launch = s.get(PumpLaunch, address)
+        if launch is None:
+            raise HTTPException(404, "token non trovato")
+        fsnaps = s.scalars(select(FeatureSnapshot).where(FeatureSnapshot.token_address == address)
+                           .order_by(FeatureSnapshot.observed_at)).all()
+        last = fsnaps[-1] if fsnaps else None
+        candles = [{"ts": c.ts, "o": c.open, "h": c.high, "l": c.low, "c": c.close, "v": c.volume, "unit": "SOL"}
+                   for c in repo.load_candles(s, address, "1m", currency="sol")]
+        snap = {"token_address": address, "symbol": launch.symbol, "mayhem": launch.mayhem, "bonding_curve": True,
+                "price_native": (launch.stats or {}).get("last_price"), "sources": {}, "onchain": {}}
+        if last is not None:
+            snap["onchain"] = {"curve": last.features,
+                               "risk": {**(last.risk or {}), "factors": [], "note": "valori dell'istantanea " + last.horizon},
+                               "opportunity": {**(last.opportunity or {}), "factors": [], "note": "valori dell'istantanea " + last.horizon}}
+        return {
+            "token": {"address": address, "symbol": launch.symbol, "name": launch.name, "dex": "pumpfun", "pair": None,
+                      "deployer": launch.creator, "created_at": _iso(launch.created_at),
+                      "first_seen_at": _iso(launch.created_at), "status": "solo stream"},
+            "snapshot": snap, "score": None, "history": [], "candles": candles, "signals": [], "positions": [],
+            "launch": {"created_at": _iso(launch.created_at), "creator": launch.creator, "mayhem": launch.mayhem,
+                       "source": launch.source, "complete_at": _iso(launch.complete_at), "stats": launch.stats},
+            "feature_snapshots": [{"horizon": f.horizon, "observed_at": _iso(f.observed_at), "features": f.features,
+                                   "risk": f.risk, "opportunity": f.opportunity, "labels": f.labels} for f in fsnaps],
+        }
+
     @app.get("/api/tokens/{address}")
     def token_detail(address: str, _: str = Depends(require_user)) -> dict[str, Any]:
         with session_scope() as s:
             t = s.scalar(select(Token).where(Token.address == address))
             if not t:
-                raise HTTPException(404, "token non trovato")
+                return _launch_only_detail(s, address)
             snaps = s.scalars(select(TokenSnapshotRow).where(TokenSnapshotRow.token_id == t.id)
                               .order_by(desc(TokenSnapshotRow.observed_at)).limit(400)).all()
             history = [{"ts": _iso(r.observed_at), "price_usd": r.price_usd, "price_sol": r.price_native,
                         "liquidity_usd": r.liquidity_usd, "mcap_usd": r.market_cap_usd, "volume_h1": r.volume_h1,
                         "holders": r.holders, "score": r.score} for r in reversed(snaps)]
             candles = []
+            since = int((utcnow() - timedelta(hours=24)).timestamp())
             if t.pair_address:
-                since = int((utcnow() - timedelta(hours=24)).timestamp())
                 candles = [{"ts": c.ts, "o": c.open, "h": c.high, "l": c.low, "c": c.close, "v": c.volume}
                            for c in repo.load_candles(s, t.pair_address, "1m", since_ts=since)]
+            if not candles:  # bonding-curve tokens: candles from the free chain stream (volume in SOL)
+                candles = [{"ts": c.ts, "o": c.open, "h": c.high, "l": c.low, "c": c.close, "v": c.volume, "unit": "SOL"}
+                           for c in repo.load_candles(s, address, "1m", currency="sol", since_ts=since)]
+            from mci.database.models import FeatureSnapshot, PumpLaunch
+
+            launch = s.get(PumpLaunch, address)
+            fsnaps = s.scalars(select(FeatureSnapshot).where(FeatureSnapshot.token_address == address)
+                               .order_by(FeatureSnapshot.observed_at)).all()
             sigs = s.scalars(select(SignalRow).where(SignalRow.token_address == address)
                              .order_by(desc(SignalRow.created_at)).limit(20)).all()
             positions = s.scalars(select(Position).where(Position.token_address == address)).all()
@@ -218,6 +255,12 @@ def create_app() -> FastAPI:
                              "rejection": r.rejection_reason, "price_1h": r.price_1h,
                              "reference_price": r.reference_price, "max_gain_24h": r.max_gain_24h} for r in sigs],
                 "positions": [perf.position_dict(p) for p in positions],
+                "launch": None if launch is None else {
+                    "created_at": _iso(launch.created_at), "creator": launch.creator, "mayhem": launch.mayhem,
+                    "source": launch.source, "complete_at": _iso(launch.complete_at), "stats": launch.stats},
+                "feature_snapshots": [{"horizon": f.horizon, "observed_at": _iso(f.observed_at), "features": f.features,
+                                       "risk": f.risk, "opportunity": f.opportunity, "labels": f.labels}
+                                      for f in fsnaps],
             }
 
     # ------------------------------------------------------------------ positions / signals
@@ -303,6 +346,131 @@ def create_app() -> FastAPI:
                 "stats": repo.get_state(s, "lab_stats") or {"signals": 0, "by_strategy": {}},
                 "last_scan_at": repo.get_state(s, "lab_last_scan_at"),
             }
+
+    # ------------------------------------------------------------------ shadow experiments
+    def _virtual_portfolio(s, mode: str, sol_eur: float | None, positions: int = 300) -> dict[str, Any]:
+        from mci.database.models import EquitySnapshot
+        from mci.paper_trading.lab import state_prefix
+
+        pre = state_prefix(mode)
+        summ = perf.summary(s, mode, settings.initial_capital_sol, sol_eur)
+        summ["paused"] = False
+        eq = s.scalars(select(EquitySnapshot).where(EquitySnapshot.mode == mode).order_by(EquitySnapshot.ts)).all()
+        step = max(1, len(eq) // 600)
+        rows = s.scalars(select(Position).where(Position.mode == mode).order_by(Position.opened_at.desc())
+                         .limit(positions)).all()
+        return {
+            "mode": mode, "started_at": repo.get_state(s, f"{pre}_started_at"), "summary": summ,
+            "equity_curve": [{"ts": _iso(r.ts), "equity": r.equity_sol} for r in eq[::step]],
+            "by_strategy": perf.strategy_stats(s, mode),
+            "positions": [perf.position_dict(p, sol_eur) for p in rows],
+            "skipped": repo.get_state(s, f"{pre}_skipped") or {},
+            "stats": repo.get_state(s, f"{pre}_stats") or {"signals": 0, "by_strategy": {}},
+            "last_scan_at": repo.get_state(s, f"{pre}_last_scan_at"),
+        }
+
+    @app.get("/api/experiments")
+    def experiments(_: str = Depends(require_user)) -> dict[str, Any]:
+        from mci.paper_trading.experiments import EXPERIMENTS
+        from mci.research.promotion import experiment_report
+        from mci.scoring.risk_opportunity import RULES
+
+        with session_scope() as s:
+            sol_eur = _worker_status(s).get("sol_eur")
+            out = []
+            for mode, meta in EXPERIMENTS.items():
+                d = _virtual_portfolio(s, mode, sol_eur, positions=150)
+                d.update(meta)
+                d["gate"] = experiment_report(s, mode)
+                out.append(d)
+            base = perf.summary(s, "lab", settings.initial_capital_sol, sol_eur)
+            return {"enabled": settings.experiments_enabled and settings.lab_enabled, "experiments": out,
+                    "baseline": {"mode": "lab", "summary": base, "by_strategy": perf.strategy_stats(s, "lab")},
+                    "rules": [{"code": r.code, "mode": r.mode, "description": r.description} for r in RULES.values()]}
+
+    # ------------------------------------------------------------------ research / data / system
+    @app.get("/api/research")
+    def research(_: str = Depends(require_user)) -> dict[str, Any]:
+        from mci.research.feature_store import dataset_counts
+        from mci.scoring.risk_opportunity import NOTE, RULES
+
+        with session_scope() as s:
+            rep = repo.get_state(s, "research_report")
+            counts = repo.get_state(s, "dataset_counts")
+        return {"report": rep, "dataset": counts or dataset_counts(), "index_note": NOTE,
+                "rules": [{"code": r.code, "mode": r.mode, "description": r.description} for r in RULES.values()]}
+
+    @app.get("/api/launches")
+    def launches(limit: int = 150, _: str = Depends(require_user)) -> dict[str, Any]:
+        """Most recent pump.fun launches seen on the free chain stream, with their t+5m indices."""
+        from mci.database.models import FeatureSnapshot, PumpLaunch
+
+        with session_scope() as s:
+            rows = s.scalars(select(PumpLaunch).order_by(desc(PumpLaunch.created_at)).limit(min(limit, 500))).all()
+            mints = [r.mint for r in rows]
+            fsn = {}
+            if mints:
+                for f in s.scalars(select(FeatureSnapshot).where(FeatureSnapshot.token_address.in_(mints),
+                                                                 FeatureSnapshot.horizon == "t+5m")).all():
+                    fsn[f.token_address] = f
+            out = []
+            for r in rows:
+                f = fsn.get(r.mint)
+                ff = (f.features if f else None) or {}
+                out.append({
+                    "mint": r.mint, "symbol": r.symbol, "name": r.name, "created_at": _iso(r.created_at),
+                    "creator": r.creator, "mayhem": r.mayhem, "source": r.source, "complete_at": _iso(r.complete_at),
+                    "stats": r.stats or {},
+                    "t5": None if not f else {
+                        "complete": ff.get("complete"), "unique_buyers": ff.get("unique_buyers"),
+                        "buy_pressure": ff.get("buy_pressure"), "sniper_pct": ff.get("sniper_pct"),
+                        "top10_net_pct": ff.get("top10_net_pct"), "creator_sold": ff.get("creator_sold"),
+                        "risk": (f.risk or {}).get("value"), "opportunity": (f.opportunity or {}).get("value"),
+                        "labels": f.labels},
+                })
+            st = _worker_status(s)
+        return {"launches": out, "stream": st.get("chain_stream"), "tracker": (st.get("onchain") or {}).get("launches")}
+
+    @app.get("/api/system")
+    def system(_: str = Depends(require_user)) -> dict[str, Any]:
+        from mci.research.feature_store import dataset_counts
+
+        with session_scope() as s:
+            st = _worker_status(s)
+            costs = repo.get_state(s, "network_costs")
+            db_size = None
+            try:
+                if settings.database_url.startswith("postgresql"):
+                    from sqlalchemy import text
+
+                    db_size = s.execute(text("select pg_database_size(current_database())")).scalar()
+                elif settings.database_url.startswith("sqlite"):
+                    db_size = Path(settings.database_url.split("///", 1)[-1]).stat().st_size
+            except Exception:
+                db_size = None
+            gaps = repo.get_state(s, "stream_gaps") or []
+            counts = repo.get_state(s, "dataset_counts")
+            errors = s.scalars(select(Event).where(Event.level == "error").order_by(desc(Event.ts)).limit(20)).all()
+        now = utcnow().timestamp()
+        oc = st.get("onchain") or {}
+        return {
+            "worker": {k: st.get(k) for k in ("mode", "started_at", "last_cycle", "cycle", "tracked", "heartbeat",
+                                              "worker_alive", "jupiter_key", "pumpportal_connected", "market_state")},
+            "sources": st.get("sources") or {},
+            "chain_stream": st.get("chain_stream"),
+            "launch_tracker": oc.get("launches"),
+            "rpc": oc.get("rpc"),
+            "wallets": oc.get("wallets"),
+            "onchain": {k: oc.get(k) for k in ("security_checks", "curve_reads", "wallet_analyses", "errors",
+                                               "rugcheck_disagreements")},
+            "network_costs": costs,
+            "costs_in_use": st.get("network_costs"),
+            "dataset": counts or dataset_counts(),
+            "db_size_bytes": db_size,
+            "stream_gaps_24h": [[a, b] for a, b in gaps if b >= now - 86400][-30:],
+            "recent_errors": [{"ts": _iso(e.ts), "category": e.category, "message": e.message[:300]} for e in errors],
+            "experiments": st.get("experiments"),
+        }
 
     # ------------------------------------------------------------------ risk
     @app.get("/api/risk")

@@ -1,0 +1,21 @@
+name: memecoin contract check
+# Ogni settimana confronta l'IDL ufficiale di pump.fun con i formati che il bot decodifica.
+# Se pump.fun cambia un campo, questo workflow fallisce (GitHub avvisa per email) PRIMA che il bot legga dati sbagliati.
+# Gratuito, sola lettura.
+on:
+  schedule:
+    - cron: "41 6 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  idl:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: memecoin-intelligence/backend }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Official pump.fun IDL vs decoder layouts
+        run: python memecoin-intelligence/backend/scripts/contract_check.py | tee -a "$GITHUB_STEP_SUMMARY"

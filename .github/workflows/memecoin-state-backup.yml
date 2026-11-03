@@ -1,0 +1,55 @@
+name: memecoin state backup
+# Backup GRATUITO fuori dal server: ogni giorno copia lo stato essenziale del bot (portafogli, posizioni, ordini,
+# segnali, risultati di Laboratorio/esperimenti/ricerca; nessun segreto: vengono rimossi prima della pubblicazione)
+# dalla dashboard pubblica della VPS al branch "bot-state". Se la VPS si rompe, il nuovo server riparte da qui
+# (mci state-import). Sola lettura sulla VPS.
+on:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: state-backup
+  cancel-in-progress: false
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download the state from the VPS
+        run: |
+          ip=$(curl -fsS -H "Authorization: Bearer $HCLOUD_TOKEN" "https://api.hetzner.cloud/v1/servers?name=memecoin-bot" \
+            | python3 -c "import sys,json; s=json.load(sys.stdin)['servers']; print(s[0]['public_net']['ipv4']['ip'] if s else '')")
+          [ -n "$ip" ] || { echo "::error::nessun server memecoin-bot su Hetzner"; exit 1; }
+          mkdir -p /tmp/state && cd /tmp/state
+          curl -fsS -m 120 "http://$ip:8080/data/state.json" -o state.json
+          curl -fsS -m 60 "http://$ip:8080/data/research.json" -o research.json || true
+          curl -fsS -m 60 "http://$ip:8080/data/experiments.json" -o experiments.json || true
+          python3 - <<'PY'
+          import json
+          d = json.load(open("state.json"))
+          need = {"system_state", "positions", "orders", "fills", "signals", "equity_snapshots", "events"}
+          missing = need - set(d)
+          assert not missing, f"stato incompleto: {missing}"
+          print({k: len(v) for k, v in d.items() if isinstance(v, list)})
+          PY
+      - name: Publish to the bot-state branch
+        run: |
+          cd /tmp/state
+          git init -q -b bot-state
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # keep the previous day too (one older copy), without growing the repository history
+          if git fetch -q --depth 1 origin bot-state 2>/dev/null; then
+            git show FETCH_HEAD:state.json > state-previous.json 2>/dev/null || true
+          fi
+          printf '# bot-state\n\nBackup giornaliero dello stato essenziale del bot (senza segreti). Ripristino: `mci state-import --file state.json` su un database vuoto.\n' > README.md
+          git add -A
+          git commit -q -m "state backup $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f origin bot-state
+          echo "backup pubblicato sul branch bot-state" >> "$GITHUB_STEP_SUMMARY"

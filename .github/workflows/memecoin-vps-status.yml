@@ -25,7 +25,7 @@ jobs:
           IP: ${{ steps.vps.outputs.ip }}
         run: |
           mkdir -p /tmp/d
-          for f in meta overview positions logs signals scanner lab; do
+          for f in meta overview positions logs signals scanner lab system experiments research launches; do
             curl -fsS -m 20 "http://$IP:8080/data/$f.json" -o "/tmp/d/$f.json" || echo "{}" > "/tmp/d/$f.json"
           done
           # details of the highest-scoring tokens (why they were or were not bought)
@@ -34,7 +34,8 @@ jobs:
           python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
           import json
           from datetime import datetime, timezone
-          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner", "lab")}
+          d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner", "lab",
+                                                               "system", "experiments", "research", "launches")}
           gen = d["meta"].get("generated_at")
           age = (datetime.now(timezone.utc) - datetime.fromisoformat(gen.replace("Z", "+00:00"))).total_seconds() if gen else None
           ov = d["overview"]; s = ov.get("summary", {}); w = ov.get("worker", {})
@@ -79,6 +80,39 @@ jobs:
                   print(f"  - segnali non simulabili: {lab['skipped']}")
           else:
               print("- dati del Laboratorio non ancora pubblicati")
+          sy = d["system"]
+          print("\n### Dati on-chain gratuiti (stream blockchain + RPC)")
+          if sy:
+              cs = sy.get("chain_stream") or {}
+              lt = sy.get("launch_tracker") or {}
+              rpc = sy.get("rpc") or {}
+              print(f"- stream: connesso={cs.get('connected')} · messaggi {cs.get('messages')} · operazioni decodificate {cs.get('trades')} · "
+                    f"lanci {cs.get('creates')} · fallite scartate {cs.get('skipped_failed')} · riconnessioni {cs.get('reconnects')} · "
+                    f"errori handler {cs.get('handler_errors')} · ultimo errore {cs.get('last_error')}")
+              print(f"- lanci: ultima ora {lt.get('launches_1h')} · 24 h {lt.get('launches_24h')} · in memoria {lt.get('in_memory')} · "
+                    f"interruzioni 24 h {lt.get('gaps_24h')} · gap aperto {lt.get('stream_gap_open')}")
+              print(f"- RPC: chiamate {rpc.get('calls')} · cache {rpc.get('cache_hits')} · rinviate per budget {rpc.get('budget_refused')} · "
+                    f"fallite {rpc.get('failed')} · endpoint {rpc.get('endpoints')}")
+              print(f"- on-chain: {sy.get('onchain')} · wallet {sy.get('wallets')}")
+              print(f"- costi di rete misurati: {sy.get('network_costs')} · in uso {sy.get('costs_in_use')}")
+              print(f"- dataset: {sy.get('dataset')} · database {sy.get('db_size_bytes')} byte")
+              for e in (sy.get("recent_errors") or [])[:8]:
+                  print(f"  - errore {e.get('ts')} {e.get('category')}: {e.get('message')}")
+          else:
+              print("- non ancora pubblicati")
+          print("\n### Esperimenti shadow")
+          for e in (d["experiments"].get("experiments") or []):
+              es = e.get("summary") or {}
+              g = e.get("gate") or {}
+              print(f"- {e.get('mode')} ({e.get('title')}): chiuse {es.get('total_trades')} · aperte {es.get('open_positions')} · "
+                    f"ROI {100*(es.get('roi') or 0):+.2f}% · segnali {(e.get('stats') or {}).get('signals')} · scartati {e.get('skipped')} · {g.get('status')}")
+          r = (d["research"].get("report") or {})
+          print(f"\n### Ricerca\n- {r.get('verdict')} · osservazioni usabili {r.get('rows_usable')} · tassi base {r.get('base_rates')} · dataset {d['research'].get('dataset')}")
+          print("\n### Ultimi lanci pump.fun visti dallo stream")
+          for l in (d["launches"].get("launches") or [])[:10]:
+              t5 = l.get("t5") or {}
+              print(f"- {l.get('created_at')} {l.get('symbol')} mayhem={l.get('mayhem')} fonte={l.get('source')} · stats {l.get('stats')} · "
+                    f"t+5m acquirenti {t5.get('unique_buyers')} pressione {t5.get('buy_pressure')} rischio {t5.get('risk')} opportunità {t5.get('opportunity')} esito {t5.get('labels')}")
           print("\n### Token con il punteggio più alto")
           for t in sorted(d["scanner"].get("tokens", []), key=lambda t: -(t.get("score") or 0))[:8]:
               age = t.get("age_hours")

@@ -106,7 +106,8 @@ def write_feature_snapshots(items: list[tuple[LaunchState, str, float]], tracker
         o = opportunity_index(snap, f, None)
         rows.append({"token_address": st.mint, "observed_at": snap.observed_at, "horizon": horizon,
                      "version": FEATURE_VERSION, "price": f.get("price"), "features": f,
-                     "risk": {"value": r.value, "coverage": r.coverage, "shadow_hits": r.shadow_hits},
+                     "risk": {"value": r.value, "coverage": r.coverage, "shadow_hits": r.shadow_hits,
+                              "blocking": r.blocking},
                      "opportunity": {"value": o.value, "coverage": o.coverage}})
     with session_scope() as s:
         keys = {(r["token_address"], r["horizon"]) for r in rows}

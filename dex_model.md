@@ -1,0 +1,24 @@
+# Studio storico: un modello portabile per i token quotati, tenuta 1 e 4 ore
+
+Pre-registrazione (testo originale):
+
+```
+(written before looking at any result):
+  * features, all unit-free so they exist for any token on any DEX: age since listing (h), return over 5 minutes,
+    1 hour and 6 hours, return since listing, distance from the highest price so far, 1-hour volume / liquidity,
+    5-minute volume / 1-hour volume (acceleration), buys / (buys + sells) in the last hour (count), log of the
+    trades in the last hour, market cap / liquidity;
+  * targets: net return of a 0.1 SOL trade held 1 and 4 hours, exit at the first observation at or after that time;
+    costs: 3% latency, 1% pool fee per side, 1% priority fees; a token with no later observation is valued at its
+    last observation (optimistic) and, as a second reading, at -100% (pessimistic): both are reported;
+  * model: scikit-learn HistGradientBoostingRegressor (fixed settings), target clipped to [-100%, +300%];
+    A: walk-forward by day (first 14 days for training, retrained every 3 days); B: trained once on all of A;
+  * selections, one trade per token and day (first selected moment): every moment (reference), predicted > 0,
+    top 5%, top 1% of the training predictions;
+  * verdict "positive" only with q (Benjamini-Hochberg over all tests) < 0.05 and both halves of A positive; a rule
+    is "portable" only if it is also positive on B (the other period).
+```
+A (giugno-luglio): 1,002,433 momenti di decisione di 5,067 token, 1 giorni.
+B non disponibile: ValueError: NaTType does not support strftime
+_(nessuna riga: dati insufficienti per questa tabella)_
+

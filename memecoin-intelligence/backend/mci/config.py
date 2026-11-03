@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     # free real-time pump.fun data: public Solana WebSocket, logsSubscribe on the pump program (no key, no cost)
     solana_ws_url: str = "wss://api.mainnet-beta.solana.com"
     chain_stream_enabled: bool = True
+    # the public node drops each subscription every ~20 s: redundant connections keep the data continuous
+    chain_stream_connections: int = 2
     onchain_enabled: bool = True  # own on-chain security checks, curve state, wallet intelligence
     experiments_enabled: bool = True  # shadow experiments x_safe and x_curve (virtual portfolios)
     # PumpPortal trade subscriptions now require an API key funded with SOL (paid): disabled, replaced by the

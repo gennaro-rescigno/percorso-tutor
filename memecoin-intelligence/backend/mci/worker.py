@@ -72,7 +72,8 @@ class Worker:
         self.onchain = OnchainService(self.rpc_pool, self.tracker) if s.onchain_enabled else None
         self.scanner = Scanner(s, self.dex, self.gecko, self.rug, self.jup, self.fx, reddit if reddit.available else None,
                                onchain=self.onchain)
-        self.stream = (PumpStream(s.solana_ws_url, self.tracker.on_events, on_state=self._stream_state)
+        self.stream = (PumpStream(s.solana_ws_url, self.tracker.on_events, on_state=self._stream_state,
+                                  connections=s.chain_stream_connections)
                        if s.chain_stream_enabled else None)
         with session_scope() as db:
             last_alive = repo.get_state(db, "stream_last_alive")
@@ -213,13 +214,24 @@ class Worker:
         with session_scope() as s:
             repo.set_state(s, "stream_last_alive", time.time())
             if self._chain_ticks % 4 == 1:
-                repo.set_state(s, "stream_gaps", [[a, b] for a, b in self.tracker.gaps if b >= cutoff])
+                repo.set_state(s, "stream_gaps", self._persisted_gaps())
 
     def _gaps(self) -> list[tuple[float, float]]:
         gaps = list(self.tracker.gaps)
         if self.tracker._gap_open is not None:
             gaps.append((self.tracker._gap_open, time.time()))
         return gaps
+
+    def _persisted_gaps(self) -> list[list[float]]:
+        """Gaps of the last 8 days, merged (with frequent drops the raw list would be long)."""
+        cutoff = time.time() - 8 * 86400
+        merged: list[list[float]] = []
+        for a, b in sorted(g for g in self.tracker.gaps if g[1] >= cutoff):
+            if merged and a <= merged[-1][1] + 0.5:
+                merged[-1][1] = max(merged[-1][1], b)
+            else:
+                merged.append([a, b])
+        return merged
 
     async def labels_once(self) -> None:
         n = fs.label_due(self._gaps())

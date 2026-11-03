@@ -198,7 +198,9 @@ def test_compute_labels_first_passage_and_gaps():
     lab = compute_labels(1.0, t0, bars, None, None, [])
     assert lab["first_passage"] == "2x_first" and lab["hit_2x_first"] and not lab["rug_60m"]
     assert lab["ret_max_60m"] == 110.0 and lab["ret_min_60m"] == -60.0
-    assert compute_labels(1.0, t0, bars, None, None, [(t0 + 100, t0 + 200)])["incomplete"] is True
+    short = compute_labels(1.0, t0, bars, None, None, [(t0 + 100, t0 + 200)])  # 100 s of 4 h: still usable
+    assert short["incomplete"] is False and short["stream_coverage"] > 0.99
+    assert compute_labels(1.0, t0, bars, None, None, [(t0 + 100, t0 + 1200)])["incomplete"] is True
     dead = compute_labels(1.0, t0, [], None, None, [])
     assert dead["ret_end_60m"] == 0.0 and dead["dead_60m"] and dead["first_passage"] == "neither"
     assert compute_labels(None, t0, bars, None, None, [])["no_price"] is True
@@ -482,3 +484,33 @@ async def test_stream_reconnects_after_the_server_drops_it():
         await asyncio.wait_for(task, timeout=5)
     assert len(connections) >= 2 and stream.stats["reconnects"] >= 1
     assert states[:2] == [True, False] and len(got) >= 1
+
+
+
+def test_interval_coverage_merges_overlapping_gaps():
+    from mci.onchain.launches import interval_coverage
+
+    assert interval_coverage(0, 100, []) == 1.0
+    assert interval_coverage(0, 100, [(10, 20), (15, 30), (90, 200)]) == pytest.approx(0.7)
+    assert interval_coverage(0, 100, [(-50, 5)]) == pytest.approx(0.95)
+    tr, mint = normal_launch()
+    st = tr.get(mint)
+    tr.gaps.append((st.created_ts + 100, st.created_ts + 105))  # 5 s of 300 s = 98.3% coverage
+    f = curve_features(st, st.created_ts + 300, tr)
+    assert f["complete"] is True and f["stream_coverage"] == pytest.approx(0.9833, abs=1e-3)
+
+
+def test_redundant_connections_are_deduplicated():
+    got = []
+    stream = PumpStream("wss://example", got.extend, connections=2)
+    t = live("early_txs_normal")["txs"][0]
+    stream.handle_raw(_ws_message(t))
+    stream.handle_raw(_ws_message(t))  # the same transaction from the second connection
+    assert len(got) == 1 and stream.stats["duplicates"] == 1
+    states = []
+    stream.on_state = states.append
+    stream._set_up(0, True)
+    stream._set_up(1, True)
+    stream._set_up(0, False)  # one connection still up: no gap
+    stream._set_up(1, False)
+    assert states == [True, False]

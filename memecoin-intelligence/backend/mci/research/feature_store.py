@@ -17,8 +17,8 @@ from sqlalchemy import bindparam, delete, insert, select, update
 from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, PumpTradeRow, WalletProfile
 from mci.database.session import session_scope
 from mci.domain import TokenSnapshot, utcnow
-from mci.onchain.curve_features import FEATURE_VERSION, curve_features
-from mci.onchain.launches import LaunchState, LaunchTracker
+from mci.onchain.curve_features import FEATURE_VERSION, MIN_COVERAGE, curve_features
+from mci.onchain.launches import LaunchState, LaunchTracker, interval_coverage
 from mci.onchain.wallets import deployer_history
 from mci.scoring.risk_opportunity import opportunity_index, risk_index
 
@@ -124,8 +124,10 @@ def compute_labels(p0: float | None, observed_ts: int, bars: list[tuple[int, flo
                    gaps: list[tuple[float, float]], window_min: int = LABEL_WINDOW_MIN) -> dict[str, Any]:
     """Outcome after the snapshot. ``bars`` = (ts, high, low, close) of the stream candles AFTER observed_ts."""
     end = observed_ts + window_min * 60
-    incomplete = any(a <= end and b >= observed_ts for a, b in gaps)
-    lab: dict[str, Any] = {"window_min": window_min, "incomplete": incomplete, "bars": len(bars)}
+    cov = interval_coverage(observed_ts, end, gaps)
+    incomplete = cov < MIN_COVERAGE
+    lab: dict[str, Any] = {"window_min": window_min, "incomplete": incomplete, "stream_coverage": round(cov, 4),
+                           "bars": len(bars)}
     if not p0 or p0 <= 0:
         lab["no_price"] = True
         return lab

@@ -99,6 +99,24 @@ def progress_pct(st: LaunchState) -> float | None:
     return max(0.0, min(100.0, (init - st.last.rtok) / init * 100))
 
 
+def interval_coverage(start: float, end: float, gaps: list[tuple[float, float]]) -> float:
+    """Share of [start, end] NOT covered by the (possibly overlapping) gap intervals."""
+    if end <= start:
+        return 1.0 if not any(a <= start <= b for a, b in gaps) else 0.0
+    clipped = sorted((max(a, start), min(b, end)) for a, b in gaps if b > start and a < end)
+    missing, cur_a, cur_b = 0.0, None, None
+    for a, b in clipped:
+        if cur_b is None or a > cur_b:
+            if cur_b is not None:
+                missing += cur_b - cur_a
+            cur_a, cur_b = a, b
+        else:
+            cur_b = max(cur_b, b)
+    if cur_b is not None:
+        missing += cur_b - cur_a
+    return max(0.0, 1.0 - missing / (end - start))
+
+
 def _dt(ts: float) -> datetime:
     return datetime.fromtimestamp(ts, tz=timezone.utc)
 
@@ -132,9 +150,14 @@ class LaunchTracker:
 
     def covered(self, start: float, end: float) -> bool:
         """True when the stream was connected for the whole [start, end] interval."""
-        if self._gap_open is not None and self._gap_open <= end:
-            return False
-        return not any(a <= end and b >= start for a, b in self.gaps)
+        return self.coverage(start, end) >= 1.0
+
+    def coverage(self, start: float, end: float, now: float | None = None) -> float:
+        """Share of [start, end] during which at least one stream connection was up (1.0 = no data missing)."""
+        gaps = list(self.gaps)
+        if self._gap_open is not None:
+            gaps.append((self._gap_open, now or time.time()))
+        return interval_coverage(start, end, gaps)
 
     # ------------------------------------------------------------------ events
     def on_events(self, events: list[Any]) -> None:

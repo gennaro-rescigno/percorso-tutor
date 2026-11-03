@@ -19,14 +19,18 @@ from typing import Any
 
 from mci.onchain.launches import LaunchState, LaunchTracker, progress_pct
 
-FEATURE_VERSION = 1
+FEATURE_VERSION = 2  # v2: completeness from the measured stream coverage (>= 97% of the window)
+# the public stream drops connections every few seconds; with redundant connections real gaps are short.
+# A window counts as complete when data were received for at least 97% of it (the coverage is stored too).
+MIN_COVERAGE = 0.97
 
 
 def curve_features(st: LaunchState, at: float, tracker: LaunchTracker | None = None) -> dict[str, Any]:
     tr = [t for t in st.trades if t.ts <= at]
     age_s = max(at - st.created_ts, 0.0)
     complete = st.source == "stream" and not (st.early_truncated and (not tr or tr[-1].ts <= at))
-    if tracker is not None and not tracker.covered(st.created_ts, at):
+    coverage = tracker.coverage(st.created_ts, at) if tracker is not None else None
+    if coverage is not None and coverage < MIN_COVERAGE:
         complete = False
     organic = [t for t in tr if not t.agent]
     creator = st.creator
@@ -74,6 +78,7 @@ def curve_features(st: LaunchState, at: float, tracker: LaunchTracker | None = N
     f: dict[str, Any] = {
         "version": FEATURE_VERSION,
         "complete": complete,
+        "stream_coverage": round(coverage, 4) if coverage is not None else None,
         "age_s": round(age_s, 1),
         "mayhem": bool(st.mayhem),
         "n_trades": len(tr),

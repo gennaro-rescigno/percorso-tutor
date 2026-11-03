@@ -92,6 +92,7 @@ class RpcPool:
         self._client = client or httpx.AsyncClient(timeout=timeout_s)
         self._id = 0
         self.stats: dict[str, Any] = {"calls": 0, "cache_hits": 0, "budget_refused": 0, "failed": 0, "by_method": {}}
+        self.last_errors: dict[str, str] = {}  # method -> last failure (shown on the system health page)
 
     async def close(self) -> None:
         if self._own:
@@ -191,6 +192,7 @@ class RpcPool:
                     continue
                 ep.stats["ok"] += 1  # the endpoint works; the request itself is invalid
                 self.stats["failed"] += 1
+                self.last_errors[method] = f"rpc error {code}: {msg}"[:200]
                 raise SourceUnavailable("solana_rpc", f"rpc error {code}: {msg}")
             ep.stats["ok"] += 1
             ep.strikes = 0
@@ -199,6 +201,7 @@ class RpcPool:
                 self._cache_put(key, ttl, result)
             return result
         self.stats["failed"] += 1
+        self.last_errors[method] = last[:200]
         raise SourceUnavailable("solana_rpc", last)
 
     def health(self) -> dict[str, Any]:
@@ -206,6 +209,7 @@ class RpcPool:
             **{k: v for k, v in self.stats.items() if k != "by_method"},
             "by_method": dict(self.stats["by_method"]),
             "budget_left": {m: self.budget_left(m) for m in self.budgets},
+            "last_errors": dict(self.last_errors),
             "endpoints": [{"name": e.name, "available": e.available, **e.stats} for e in self.endpoints],
         }
 

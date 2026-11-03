@@ -1,0 +1,71 @@
+# Studio storico: i wallet che guadagnano continuano a guadagnare? Copiarli conviene? (jocry, giu-lug 2026)
+
+Pre-registrazione (testo originale):
+
+```
+(same rules as the live copy experiment, mci/paper_trading/copy_sim.py):
+  * a position = a wallet's trades in one token; result in SOL with 1.25% fee per side; tokens not sold are valued
+    at the token's last price in the corpus; sales beyond the bought tokens flag a transfer (insider); the creator's
+    own trades are excluded; positions under 0.01 SOL are ignored;
+  * a position is KNOWN at its end (last sale if fully sold, otherwise the token's last trade);
+  * every UTC day D, leaders = top 50 by t-statistic among wallets whose positions that ended in the 3 days before D
+    satisfy: >= 8 positions (<= 600), >= 50% winners, >= +1 SOL, >= +10% average, <= 50% held under 60 s,
+    <= 50% entered in the first 20 s, no transfer sale, <= 50% on mayhem tokens; control = 50 random wallets with
+    the same activity filters (no profit filter);
+  * copies: every first buy of a token by a chosen wallet during day D; entry at the curve price `delay` seconds
+    later (3 s and 10 s); exit at the price `delay` seconds after the wallet's first sale, at the latest 60 minutes
+    after the entry; prices = last trade at or before the moment (the curve does not move without trades);
+    costs: 1.25% fee and 0.5% own price impact per side, 0.001 SOL priority fees on 0.1 SOL;
+  * persistence test (no copying): Spearman correlation of a wallet's average return between consecutive,
+    non-overlapping 3-day windows, and next-window return of the previous window's top decile;
+  * verdict per variant: bootstrap 95% interval above zero AND above the control, in both halves of the period.
+```
+trades/trades-00000.parquet: fatto
+trades/trades-00001.parquet: fatto
+trades/trades-00002.parquet: fatto
+trades/trades-00003.parquet: fatto
+trades/trades-00004.parquet: fatto
+trades/trades-00005.parquet: fatto
+trades/trades-00006.parquet: fatto
+trades/trades-00007.parquet: fatto
+trades/trades-00008.parquet: fatto
+trades/trades-00009.parquet: fatto
+trades/trades-00010.parquet: fatto
+trades/trades-00011.parquet: fatto
+trades/trades-00012.parquet: fatto
+trades/trades-00013.parquet: fatto
+trades/trades-00014.parquet: fatto
+trades/trades-00015.parquet: fatto
+trades/trades-00016.parquet: fatto
+trades/trades-00017.parquet: fatto
+Operazioni nel corpus: 33,581,765; usabili dopo la pulizia documentata: 23,396,637 (69.7%).
+Posizioni: 5,766,481 di 573,934 wallet.
+
+## 1. Chi guadagna sulle curve (tutto il periodo)
+- wallet in guadagno: 27.9%; guadagno totale dei vincenti 193,625 SOL, perdita totale dei perdenti 356,049 SOL
+- il miglior 1% dei wallet (5,739) prende il 59.8% dei guadagni
+
+## 2. Persistenza: chi guadagna in 3 giorni guadagna nei 3 successivi?
+| finestra | wallet | spearman | top10%_poi_media_% | altri_poi_media_% |
+|---|---|---|---|---|
+| 2026-06-06 | 162 | 0.6389 | 4.774 | 6.37 |
+| 2026-06-09 | 251 | 0.5758 | -0.2106 | -9.946 |
+| 2026-06-12 | 309 | 0.4814 | -0.205 | -14.36 |
+| 2026-06-15 | 144 | 0.6196 | 5.525 | -12.76 |
+| 2026-06-18 | 219 | 0.5468 | -0.3939 | -8.828 |
+| 2026-06-21 | 316 | 0.5448 | 7.414 | -0.8133 |
+| 2026-06-24 | 255 | 0.6757 | 5.274 | -4.55 |
+| 2026-06-27 | 205 | 0.3421 | 11.58 | 0.4081 |
+| 2026-06-30 | 137 | 0.2165 | 5.081 | -1.504 |
+| 2026-07-03 | 1005 | 0.2915 | 2.433 | -5.24 |
+| 2026-07-06 | 2711 | 0.2832 | 9.893 | -6.217 |
+
+
+## 3. Copiare i migliori dal giorno dopo (fuori campione)
+| gruppo | ritardo_s | copie | giorni | media_% | IC95_basso_% | IC95_alto_% | p | mediana_% | vincenti_% | 1a_metà_% | 2a_metà_% | q_BH | verdetto |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| controllo | 3 | 7618 | 34 | -9.084 | -10.09 | -8.082 | 1 | -10.5 | 24.63 | -10.07 | -8.175 | 1 | controllo |
+| controllo | 10 | 7618 | 34 | -9.073 | -9.973 | -8.175 | 1 | -8.503 | 23.17 | -9.357 | -8.812 | 1 | controllo |
+| migliori | 3 | 4163 | 34 | -5.943 | -7.22 | -4.705 | 1 | -11.92 | 27.79 | -4.323 | -6.808 | 1 | non dimostrata |
+| migliori | 10 | 4163 | 34 | -6.517 | -7.732 | -5.274 | 1 | -9.778 | 26.76 | -4.244 | -7.73 | 1 | non dimostrata |
+

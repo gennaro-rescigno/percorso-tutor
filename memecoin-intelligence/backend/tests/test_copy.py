@@ -141,3 +141,18 @@ def test_wallet_days_and_copy_trades_are_persisted_and_reported(db):
     assert rep["variants"]["x_copy_3s"]["verdict"].startswith("dati insufficienti")
     info = refresh(build_sims(), {"a": _st()}, now=1_800_000_000)
     assert info["leaders"][0]["wallet"] == "a" and info["eligible"] == 1
+
+
+def test_copy_never_acts_before_the_trade_could_have_been_seen():
+    sim = CopySim("x_copy_3s", 3, "leaders")
+    sim.set_wallets([(w(1), _st())], 0)
+    tr = setup(sim)
+    c = Curve(tr)
+    sim.clock = lambda: c.created + 30 + 4.0  # the stream delivered the leader's buy 4 s after its block time
+    c.buy(w(1), 1.0, c.created + 30, c.slot + 10)
+    assert sim.copies[MINT].entry_due == c.created + 30 + 4.5  # arrival + landing time, not the planned 3 s
+    sim.clock = lambda: c.created + 30 + 1.0  # fast arrival: the planned delay applies
+    sim.copies.clear()
+    sim.seen.clear()
+    c.buy(w(1), 0.2, c.created + 31, c.slot + 11)
+    assert sim.copies[MINT].entry_due == c.created + 34

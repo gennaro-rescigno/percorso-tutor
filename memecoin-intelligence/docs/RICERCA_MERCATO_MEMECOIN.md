@@ -257,9 +257,14 @@ perché i raddoppi restano pochi e le perdite degli altri pesano di più. Le reg
   ritardo** e −6,5% con 10 secondi, contro −9,1% copiando 50 wallet a caso. La selezione aiuta (circa +3 punti
   rispetto al caso, con intervalli separati), ma non rende positivo il risultato: il vantaggio di quei wallet sta nei
   primi secondi e nel momento esatto della vendita, che un seguace in ritardo non ottiene.
-- Uno studio di approfondimento (`jocry_copy2`) misura quanto vale la velocità (copia perfetta e 1 secondo), i wallet
-  "lenti", l'uscita fissa e il consenso di più wallet. Dal vivo, l'esperimento di copia del bot verifica lo stesso su
-  novembre.
+- **Il vantaggio dura meno di un secondo** (studio `jocry_copy2`, stesse 4.163 occasioni): la copia perfetta, allo
+  stesso prezzo del wallet copiato, renderebbe **+9,1%** a copia (stabile, sopra il controllo); con **1 secondo** di
+  ritardo diventa **−5,4%**. Nessuna variante realizzabile è positiva: wallet "lenti" −5,4%, uscita fissa dopo 2 minuti
+  −4,2%, consenso di due wallet −10,5%. Copiare i migliori è una gara di velocità che si vince solo nello stesso
+  blocco, cioè con infrastruttura veloce a pagamento (gRPC dedicato, bundle Jito), esclusa dai vincoli della demo, e
+  anche così contro molti altri bot che fanno la stessa cosa.
+- Dal vivo, l'esperimento di copia del bot resta attivo come verifica su novembre (con il ritardo reale dello stream:
+  una copia non può partire prima che l'operazione sia arrivata al bot).
 
 ### 9.6 Cosa ne segue per il bot
 

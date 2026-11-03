@@ -9,7 +9,7 @@ PRE-REGISTERED on 2026-11-03 (before any result):
   * control group: 50 random wallets with the same activity filters but NO profit filter: if the leaders do not
     beat the control, the selection is luck;
   * a copy buys 0.1 SOL when a followed wallet makes its first buy of a token, `delay` seconds later (3 s and
-    10 s variants), at the curve state at that moment (pump.fun constant product, 1.25% fee, 0.0005 SOL
+    10 s variants; never before the trade reached us + 0.5 s to land our own transaction), at the curve state at that moment (pump.fun constant product, 1.25% fee, 0.0005 SOL
     priority fee per transaction); it sells when the wallet sells (same delay), after 60 minutes at the latest,
     when the token dies (30 minutes without trades) or, if the curve completes, at the last curve price minus 30%;
   * one copy per token and variant at a time; curves quoted in another token are never copied;
@@ -30,6 +30,7 @@ FEE = 0.0125
 STAKE_SOL = 0.1
 PRIO_SOL = 0.0005
 MAX_HOLD_S = 3600
+EXEC_LATENCY_S = 0.5  # sending and landing our own transaction after we see the leader's (at least one slot)
 DEAD_AFTER_S = 1800
 MIGRATION_HAIRCUT = 0.30
 TOP_N = 50
@@ -104,6 +105,7 @@ class CopySim:
         self.seen: set[tuple[str, str]] = set()
         self.closed: list[dict[str, Any]] = []
         self.stats = {"signals": 0, "filled": 0, "closed": 0, "skipped_busy": 0}
+        self.clock = time.time
 
     def set_wallets(self, chosen: list[tuple[str, dict]], at: float) -> None:
         self.wallets = {w: st for w, st in chosen}
@@ -129,12 +131,20 @@ class CopySim:
                 self.seen.add((t.wallet, mint))
                 self.stats["signals"] += 1
                 if c is None:
-                    self.copies[mint] = Copy(mint, t.wallet, ts, ts + self.delay)
+                    self.copies[mint] = Copy(mint, t.wallet, ts, self._due(ts))
                 else:
                     self.stats["skipped_busy"] += 1
             elif not t.is_buy and c is not None and c.leader == t.wallet and c.entry_ts is not None \
                     and c.exit_due is None:
-                c.exit_due, c.exit_reason = ts + self.delay, "il wallet copiato vende"
+                c.exit_due, c.exit_reason = self._due(ts), "il wallet copiato vende"
+
+    def _due(self, ts: float) -> float:
+        """When the copy can act: the planned delay after the block time, but never before we could have seen the
+        trade (its arrival here) plus the time to land our own transaction. Without this a short delay would cheat."""
+        now = self.clock()
+        if now - ts > 3600:  # replaying old data (tests, history): no live arrival time to respect
+            return ts + self.delay
+        return max(ts + self.delay, now + EXEC_LATENCY_S)
 
     def _settle(self, c: Copy, ts: float, prev: tuple | None, after: tuple[int, int]) -> None:
         """Fill a due entry or exit at the curve state at the due time (before this trade, or after it if same second)."""

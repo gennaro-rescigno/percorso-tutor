@@ -18,7 +18,7 @@ from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, PumpTrad
 from mci.database.session import session_scope
 from mci.domain import TokenSnapshot, utcnow
 from mci.onchain.curve_features import FEATURE_VERSION, MIN_COVERAGE, curve_features
-from mci.onchain.launches import LaunchState, LaunchTracker, interval_coverage
+from mci.onchain.launches import EXTRA_HORIZONS, LaunchState, LaunchTracker, interval_coverage
 from mci.onchain.wallets import deployer_history
 from mci.scoring.risk_opportunity import opportunity_index, risk_index
 
@@ -102,10 +102,12 @@ def write_feature_snapshots(items: list[tuple[LaunchState, str, float]], tracker
     rows = []
     for st, horizon, at in items:
         f = curve_features(st, at, tracker)
+        if horizon in EXTRA_HORIZONS and (f.get("n_trades", 0) < 5 or f.get("mayhem") or not f.get("quote_native", True)):
+            continue  # extra decision points only where a trade could be considered at all
         snap = _mini_snapshot(st, at, f)
         dep = None
         try:
-            dep = deployer_history(st.creator, snap.created_at, exclude_mint=st.mint)
+            dep = _deployer_cached(st, snap)
         except Exception:
             log.exception("deployer history failed")
         if dep is not None:
@@ -131,6 +133,23 @@ def write_feature_snapshots(items: list[tuple[LaunchState, str, float]], tracker
     return len(new)
 
 
+_DEP_CACHE: dict[str, tuple[float, Any]] = {}
+
+
+def _deployer_cached(st: LaunchState, snap: TokenSnapshot) -> Any:
+    """The creator's record changes slowly: one database query per launch every 15 minutes is enough."""
+    import time as _t
+
+    hit = _DEP_CACHE.get(st.mint)
+    if hit is not None and _t.time() - hit[0] < 900:
+        return hit[1]
+    dep = deployer_history(st.creator, snap.created_at, exclude_mint=st.mint)
+    if len(_DEP_CACHE) > 20_000:
+        _DEP_CACHE.clear()
+    _DEP_CACHE[st.mint] = (_t.time(), dep)
+    return dep
+
+
 def compute_labels(p0: float | None, observed_ts: int, bars: list[tuple[int, float, float, float]],
                    complete_at: datetime | None, created_at: datetime | None,
                    gaps: list[tuple[float, float]], window_min: int = LABEL_WINDOW_MIN) -> dict[str, Any]:
@@ -147,7 +166,7 @@ def compute_labels(p0: float | None, observed_ts: int, bars: list[tuple[int, flo
     def ret(x: float) -> float:
         return round((x / p0 - 1) * 100, 2)
 
-    for w in (60, window_min):
+    for w in (5, 10, 60, window_min):
         sub = [b for b in bars if b[0] < observed_ts + w * 60]
         key = f"{w}m"
         if sub:
@@ -211,6 +230,9 @@ def retention(now: datetime | None = None) -> dict[str, int]:
             WalletProfile.checked_at < now - timedelta(days=30))).rowcount
         out["feature_snapshots"] = s.execute(delete(FeatureSnapshot).where(
             FeatureSnapshot.observed_at < now - timedelta(days=90))).rowcount
+        out["feature_snapshots_extra"] = s.execute(delete(FeatureSnapshot).where(
+            FeatureSnapshot.horizon.in_(sorted(EXTRA_HORIZONS)),
+            FeatureSnapshot.observed_at < now - timedelta(days=21))).rowcount
         out["pump_launches"] = s.execute(delete(PumpLaunch).where(
             PumpLaunch.created_at < now - timedelta(days=90))).rowcount
         out["token_events"] = s.execute(delete(TokenEvent).where(TokenEvent.ts < now - timedelta(days=30))).rowcount

@@ -247,3 +247,50 @@ def test_strategy_a_is_off_in_the_main_portfolio_only():
     s = Settings(enabled_strategies="A,B,C,D,E")
     assert s.main_strategies == ["B", "C", "D", "E"] and s.strategies == ["A", "B", "C", "D", "E"]
     assert Settings(enabled_strategies="A,B", main_disabled_strategies="").main_strategies == ["A", "B"]
+
+
+def test_short_model_finds_a_planted_signal_out_of_sample_and_rejects_noise():
+    import numpy as np
+
+    from mci.research.short_model import evaluate, net
+
+    rng = np.random.default_rng(0)
+
+    def rows(signal: bool):
+        out = []
+        for d in range(12):
+            for i in range(400):
+                x = rng.normal()
+                good = signal and x > 1.2
+                g = 40.0 if good else float(rng.normal(-8, 10))
+                out.append({"token": f"T{d}-{i}", "day": 20_000 + d, "ts": (20_000 + d) * 86400 + i,
+                            "features": {"n_trades": 50 + 10 * x, "noise": float(rng.normal())},
+                            "labels": {"ret_end_5m": g, "ret_end_10m": g}})
+        return out
+
+    rep = evaluate(rows(True))
+    sel = rep["holds"][5]["selections"]
+    assert sel["top 10%"]["mean_pct"] > 20 and sel["riferimento"]["mean_pct"] < 0
+    assert sel["top 10%"]["verdict"].startswith("promettente") and rep["holds"][5]["tested_days"] == 9
+    noise = evaluate(rows(False))["holds"][10]["selections"]
+    assert all(not v["verdict"].startswith("promettente") for v in noise.values())
+    assert abs(net(0.0) - ((1 / 1.03) * 0.9875 ** 2 - 0.01 - 1)) < 1e-12
+    empty = evaluate([{"token": "a", "day": 1, "ts": 1, "features": {"x": 1}, "labels": {}}])
+    assert empty["holds"][5]["verdict"].startswith("dati insufficienti")
+
+
+def test_extra_decision_points_only_for_active_launches_and_short_labels(db):
+    from mci.research import feature_store as fs
+
+    tr, j, c = build_story()  # an active launch
+    st = tr.get(MINT)
+    assert fs.write_feature_snapshots([(st, "t+2m", st.created_ts + 120), (st, "t+7m", st.created_ts + 420)], tr) == 2
+    quiet = LaunchTracker()
+    q = Curve(quiet, "QUIET111111111111111111111111111111111pump", created=1_800_000_000, slot=1)
+    q.buy(w(1), 0.1, q.created + 5, 2)
+    qs = quiet.get(q.mint)
+    assert fs.write_feature_snapshots([(qs, "t+3m", qs.created_ts + 180)], quiet) == 0  # < 5 trades: no decision point
+    assert fs.write_feature_snapshots([(qs, "t+1m", qs.created_ts + 60)], quiet) == 1   # base horizons always kept
+    lab = fs.compute_labels(1.0, 1_800_000_000, [(1_800_000_060, 1.2, 0.9, 1.1), (1_800_000_400, 2.0, 1.0, 1.5)],
+                            None, None, [])
+    assert lab["ret_end_5m"] == 10.0 and lab["ret_end_10m"] == 50.0 and lab["ret_max_10m"] == 100.0

@@ -283,6 +283,16 @@ class Worker:
         except Exception as e:  # the journal study must never stop the main research report
             log.warning("studio degli eventi non riuscito: %s", e)
             ev = None
+        self._research_runs = getattr(self, "_research_runs", 0) + 1
+        if self._research_runs % 6 == 1:  # every 6 hours: heavier (one model per tested day)
+            try:
+                from mci.research.short_model import run_short_model
+
+                sm = await asyncio.to_thread(run_short_model)
+                with session_scope() as s:
+                    repo.set_state(s, "short_model", sm)
+            except Exception as e:
+                log.warning("modello 5-10 minuti non riuscito: %s", e)
         try:
             copy_rep = await asyncio.to_thread(copy_store.copy_report)
             with session_scope() as s:

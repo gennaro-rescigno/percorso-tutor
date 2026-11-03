@@ -21,7 +21,9 @@ from mci.domain import Candle
 
 PUMP_TOTAL_SUPPLY_RAW = 10**15  # 1,000,000,000 tokens with 6 decimals
 PUMP_INITIAL_REAL_TOKENS_RAW = 793_100_000 * 10**6  # sellable on the curve (official default parameters)
-HORIZONS = {"t+1m": 60, "t+5m": 300, "t+15m": 900}
+HORIZONS = {"t+1m": 60, "t+2m": 120, "t+3m": 180, "t+5m": 300, "t+7m": 420, "t+10m": 600, "t+15m": 900}
+# the decision points added for the 5-10 minute study: written only for active classic launches (>= 5 trades)
+EXTRA_HORIZONS = {"t+2m", "t+3m", "t+7m", "t+10m"}
 
 
 @dataclass(slots=True)

@@ -13,6 +13,26 @@ function AucCell({ v }: { v: any }) {
   return <span className={v.informative ? "" : "muted"}>{v.auc?.toFixed(3)}{ci}{v.informative ? " ✓" : ""}</span>;
 }
 
+function ShortModel({ m }: { m: any }) {
+  if (!m) return <div className="card section"><h2>Modello "quando entrare" per 5-10 minuti</h2><div className="muted">Il primo calcolo parte dopo l'avvio; servono almeno 3 giorni di dati per il primo test.</div></div>;
+  const pct = (v: number | null | undefined) => v == null || Number.isNaN(v) ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+  return (
+    <div className="card section">
+      <h2>Modello "quando entrare" per 5-10 minuti (dati nostri)</h2>
+      <div className="note">{m.note} Usa {m.features} caratteristiche di {fmtNum(m.rows)} momenti di decisione su {m.days} giorni.
+        Costi inclusi (latenza 3%, commissioni 1,25% per lato, priority fee 1%).</div>
+      <table><thead><tr><th>Tenuta</th><th>Selezione</th><th className="num">Operazioni</th><th className="num">Giorni di test</th><th className="num">Media</th>
+        <th className="num">IC 95%</th><th className="num">Vincenti</th><th>Verdetto</th></tr></thead>
+        <tbody>{Object.entries(m.holds ?? {}).flatMap(([h, v]: any) => v.selections ? Object.entries(v.selections).map(([name, r]: any) => (
+          <tr key={h + name}><td>{h} min</td><td>{name}</td><td className="num">{fmtNum(r.n)}</td><td className="num">{r.test_days}</td>
+            <td className="num">{pct(r.mean_pct)}</td><td className="num">{r.ci_pct ? `${pct(r.ci_pct[0])} / ${pct(r.ci_pct[1])}` : "–"}</td>
+            <td className="num">{fmtPctPlain(r.win_rate)}</td><td>{r.verdict}</td></tr>
+        )) : [<tr key={h}><td>{h} min</td><td colSpan={7} className="muted">{v.verdict}</td></tr>])}</tbody></table>
+      <div className="muted">Aggiornato il {fmtTime(m.generated_at)} (ogni 6 ore).</div>
+    </div>
+  );
+}
+
 const VARIANT: Record<string, string> = {
   x_copy_3s: "copia i migliori, 3 s di ritardo", x_copy_10s: "copia i migliori, 10 s di ritardo",
   x_copy_ctrl: "controllo: wallet a caso, 3 s",
@@ -147,6 +167,7 @@ export default function Research() {
         <Kpi label="Candele dallo stream" value={fmtNum(d.stream_candles)} />
         <Kpi label="Eventi nel diario" value={fmtNum(d.token_events)} sub="fatti on-chain di ogni lancio" />
       </div>
+      <ShortModel m={data?.short_model} />
       <CopyExperiment c={data?.copy} />
       <RulesLab lab={data?.rules_lab} />
       <EventStudy ev={data?.event_study} />

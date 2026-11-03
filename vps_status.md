@@ -1,20 +1,20 @@
-## Stato VPS (2026-11-03 17:51 UTC)
+## Stato VPS (2026-11-03 17:59 UTC)
 
-- dati aggiornati 26 s fa
-- worker attivo: True · ultimo ciclo: 2026-11-03T17:49:45.040728+00:00 · token monitorati: 400 · registrati: 3798
+- dati aggiornati 59 s fa
+- worker attivo: True · ultimo ciclo: 2026-11-03T17:57:35.322008+00:00 · token monitorati: 400 · registrati: 3798
 - modalità: paper · pausa: False · kill switch: False · PumpPortal: True
 - Telegram: inviati 0 · falliti 0 · ultimo errore: None
 - Jupiter: chiave attiva (1 richiesta/s)
-- capitale: 2.0093 SOL (≈ 167.38 €) · liquido 2.0093 · investito 0.0000 · ROI +0.47%
+- capitale: 2.0093 SOL (≈ 167.56 €) · liquido 2.0093 · investito 0.0000 · ROI +0.47%
 - operazioni chiuse: 18 · aperte: 0 · win rate: 0.3333333333333333 · drawdown: 4.5%
 
 ### Fonti dati
-- dexscreener_discovery: ok (2026-11-03T17:48:37.498605+00:00)
-- dexscreener: ok (2026-11-03T17:48:41.284526+00:00)
-- jupiter: ok (2026-11-03T17:48:41.444209+00:00)
-- rugcheck: ok (2026-11-03T17:45:20.062169+00:00)
-- solana_rpc: ok (2026-11-03T17:45:20.123118+00:00)
-- geckoterminal: ok (2026-11-03T17:49:37.051094+00:00)
+- dexscreener_discovery: ok (2026-11-03T17:55:47.975059+00:00)
+- dexscreener: ok (2026-11-03T17:56:10.340930+00:00)
+- jupiter: ok (2026-11-03T17:56:10.487137+00:00)
+- rugcheck: ok (2026-11-03T17:57:33.674732+00:00)
+- solana_rpc: ok (2026-11-03T17:57:33.614041+00:00)
+- geckoterminal: ok (2026-11-03T17:57:29.750194+00:00)
 
 ### Posizioni
 - closed SI276 [B] puntata 0.081069 SOL · P&L -0.0031344799769999904 SOL (-3.8%) · aperta 2026-11-03T07:45:29.475517+00:00 · uscita: volume crollato rispetto all'ingresso (momentum esaurito)
@@ -46,15 +46,15 @@
 - 2026-11-03T15:13:58.071397+00:00 swordcat [B] score 65.1 → rejected numero massimo di operazioni giornaliere (6) raggiunto; score 65 sotto il minimo del profilo (70)
 
 ### Laboratorio (senza limiti)
-- attivo dal 2026-11-02T15:20:04.892052+00:00 · saldo virtuale 1.8388 SOL · ROI -8.06% · chiuse 29 · aperte 2 · win rate 0.1724137931034483 · drawdown max 9.2%
+- attivo dal 2026-11-02T15:20:04.892052+00:00 · saldo virtuale 1.8444 SOL · ROI -7.78% · chiuse 29 · aperte 2 · win rate 0.1724137931034483 · drawdown max 9.2%
   - A: chiuse 12 (vinte 1, perse 11) · aperte 1 · win rate 0.08333333333333333 · P/L -0.1639 SOL · media -0.21088975560025194
   - B: chiuse 15 (vinte 3, perse 12) · aperte 1 · win rate 0.2 · P/L -0.0391 SOL · media -0.0331266713634748
   - C: chiuse 2 (vinte 1, perse 1) · aperte 0 · win rate 0.5 · P/L +0.0390 SOL · media 0.24390485112406005
-  - ultimo controllo: 2026-11-03T17:49:45.161366+00:00 · segnali ricevuti: 51 {'B': 17, 'A': 32, 'C': 2} · ultimo segnale: A su 2500 2026-11-03T17:16:30.769990+00:00
+  - ultimo controllo: 2026-11-03T17:57:35.447149+00:00 · segnali ricevuti: 51 {'B': 17, 'A': 32, 'C': 2} · ultimo segnale: A su 2500 2026-11-03T17:16:30.769990+00:00
     · closed 2500 [A] 2026-11-03T17:16:30.781279+00:00 → 2026-11-03T17:24:11.203886+00:00 · ingresso 1.6021954488096209e-06 · puntata 0.050468 · costo 0.05261228 · P/L -0.0031844779338999554 (-0.060527274885254084) · durata 7.673710116666667 · uscita: stop superato in gap: eseguito all'apertura
-    · open MOGMAS [A] 2026-11-03T17:08:26.471168+00:00 → None · ingresso 1.071015045483283e-06 · puntata 0.055228 · costo 0.05737228 · P/L 0.011365245500195312 (0.1980964587810579) · durata 42.50777623333333 · uscita: None
+    · open MOGMAS [A] 2026-11-03T17:08:26.471168+00:00 → None · ingresso 1.071015045483283e-06 · puntata 0.055228 · costo 0.05737228 · P/L 0.021605218885519695 (0.3765794018560827) · durata 50.035545283333335 · uscita: take profit 1 (+50%)
     · closed ANONVOYAGE [A] 2026-11-03T16:40:22.801734+00:00 → 2026-11-03T17:10:29.727190+00:00 · ingresso 2.1197544286920002e-05 · puntata 0.073693 · costo 0.07583727999999999 · P/L -0.009262530547231973 (-0.12213690347586272) · durata 30.115424266666665 · uscita: volume crollato rispetto all'ingresso (momentum esaurito)
-    · open swordcat [B] 2026-11-03T15:12:46.413210+00:00 → None · ingresso 1.5790979232504565e-05 · puntata 0.074027 · costo 0.07617128 · P/L -0.0017738361998242969 (-0.023287467400105354) · durata 158.17540946666668 · uscita: None
+    · open swordcat [B] 2026-11-03T15:12:46.413210+00:00 → None · ingresso 1.5790979232504565e-05 · puntata 0.074027 · costo 0.07617128 · P/L -0.007164955315779056 (-0.09406373787835857) · durata 165.703179 · uscita: None
     · closed GLITCH [B] 2026-11-03T14:37:35.684435+00:00 → 2026-11-03T15:37:50.162337+00:00 · ingresso 4.122751689221055e-05 · puntata 0.074448 · costo 0.07659228 · P/L -0.006167155897512988 (-0.08051928859557371) · durata 60.24129836666667 · uscita: nessun progresso: capitale liberato
     · closed MOGMAS [A] 2026-11-03T14:27:06.229939+00:00 → 2026-11-03T14:40:44.148964+00:00 · ingresso 1.8069402557349068e-06 · puntata 0.051379 · costo 0.05352328 · P/L -0.012223671660707244 (-0.22838046660644198) · durata 13.63198375 · uscita: stop superato in gap: eseguito all'apertura
     · closed SI276 [B] 2026-11-03T13:50:21.541354+00:00 → 2026-11-03T14:50:24.195962+00:00 · ingresso 6.073713889600553e-06 · puntata 0.074815 · costo 0.07695928 · P/L -0.0036216638195278733 (-0.0470594815794518) · durata 60.044243466666664 · uscita: nessun progresso: capitale liberato
@@ -74,18 +74,18 @@
   - segnali non simulabili: {'prezzo delle candele incoerente con il prezzo attuale (2265517%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (38%)': 2, 'prezzo delle candele incoerente con il prezzo attuale (34%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (23%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (250842540%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (246576069%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (237232523%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (251529387%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (20%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (29%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (216383086%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (198749838%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (165484962%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (170646552%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (187162856%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191327667%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191702110%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (185835896%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (181547786%)': 1}
 
 ### Dati on-chain gratuiti (stream blockchain + RPC)
-- stream: connesso=True · messaggi 878385 · operazioni decodificate 79555 · lanci 902 · fallite scartate 771322 · riconnessioni 107 · errori handler 0 · ultimo errore ConnectionClosedError: sent 1002 (protocol error) invalid status code; no close frame received
-- lanci: ultima ora 1507 · 24 h 1526 · in memoria 1526 · interruzioni 24 h 25 · gap aperto False
-- RPC: chiamate 261 · cache 0 · rinviate per budget 0 · fallite 0 · endpoint [{'name': 'rpc#1', 'available': True, 'ok': 261, 'rate_limited': 0, 'errors': 0, 'paused_methods': []}]
-  - per metodo: {'getRecentPrioritizationFees': 7, 'getAccountInfo': 169, 'getTokenAccountsByOwner': 44, 'simulateTransaction': 41} · ultimi errori: {}
-- on-chain: {'security_checks': 151, 'curve_reads': 0, 'wallet_analyses': 0, 'errors': 0, 'rugcheck_disagreements': 0, 'sell_sims': 41, 'sell_sim_ok': 38, 'sell_sim_blocked': 0, 'sell_sim_unverified': 3, 'last_sell_sim': 'GLITCH: vendita simulata con successo, rotta Pump.fun Amm'} · wallet {'profiled': 0, 'cache_hits': 0, 'skipped_budget': 0, 'errors': 0, 'hub_checks': 0, 'cached': 0, 'hubs_known': 0}
+- stream: connesso=True · messaggi 996115 · operazioni decodificate 90809 · lanci 1012 · fallite scartate 874296 · riconnessioni 122 · errori handler 0 · ultimo errore ConnectionClosedError: sent 1002 (protocol error) invalid status code; no close frame received
+- lanci: ultima ora 1479 · 24 h 1697 · in memoria 1697 · interruzioni 24 h 25 · gap aperto False
+- RPC: chiamate 305 · cache 0 · rinviate per budget 0 · fallite 0 · endpoint [{'name': 'rpc#1', 'available': True, 'ok': 305, 'rate_limited': 0, 'errors': 0, 'paused_methods': []}]
+  - per metodo: {'getRecentPrioritizationFees': 7, 'getAccountInfo': 203, 'getTokenAccountsByOwner': 49, 'simulateTransaction': 46} · ultimi errori: {}
+- on-chain: {'security_checks': 181, 'curve_reads': 0, 'wallet_analyses': 0, 'errors': 0, 'rugcheck_disagreements': 0, 'sell_sims': 46, 'sell_sim_ok': 42, 'sell_sim_blocked': 0, 'sell_sim_unverified': 4, 'last_sell_sim': "XDG: errore di simulazione non attribuibile al token: {'InstructionError': [3, {'Custom': 6001}]}, rotta Raydium CP/Manifest"} · wallet {'profiled': 0, 'cache_hits': 0, 'skipped_budget': 0, 'errors': 0, 'hub_checks': 0, 'cached': 0, 'hubs_known': 0}
 - costi di rete misurati: {'measured_at': '2026-11-03T17:48:49.329098+00:00', 'swap_cu': 200000, 'slots': 150, 'nonzero_share': 0.213, 'priority_p50_sol': 0.0, 'priority_p75_sol': 0.0, 'priority_p90_sol': 5.4377e-05, 'jito_25_sol': 2.183e-06, 'jito_50_sol': 8.7855e-06, 'jito_75_sol': 0.00011506975, 'jito_95_sol': 0.001013, 'effective_priority_fee_sol': 0.0001} · in uso {'priority_fee_sol': 0.0001, 'jito_tip_sol': 0.0}
-- dataset: {'launches': 12583, 'launches_24h': 12583, 'early_trades': 491578, 'feature_snapshots': 34332, 'labeled': 15251, 'wallet_profiles': 0, 'stream_candles': 28432, 'token_events': 8076} · database 445608419 byte
+- dataset: {'launches': 12583, 'launches_24h': 12583, 'early_trades': 491578, 'feature_snapshots': 34332, 'labeled': 15251, 'wallet_profiles': 0, 'stream_candles': 28432, 'token_events': 8076} · database 448868835 byte
   - errore 2026-11-01T18:38:45.424699+00:00 system: Test Telegram: invio fallito (HTTP 400 Bad Request: chat not found)
 
 ### Esperimenti shadow
-- x_safe (Laboratorio + regole shadow): chiuse 14 · aperte 2 · ROI -4.89% · segnali 33 · scartati {'prezzo delle candele incoerente con il prezzo attuale (23%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (250842540%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (246576069%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (237232523%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (251529387%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (20%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (38%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (29%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (216383086%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (198749838%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (165484962%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (170646552%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (187162856%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191327667%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191702110%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (185835896%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (181547786%)': 1} · NON PROMUOVIBILE: almeno 50 operazioni chiuse; almeno 14 giorni di test; intervallo di confidenza 95% del rendimento medio sopra zero; meglio del Laboratorio nello stesso periodo (p < 0,05)
-- x_curve (Curva organica (nuova strategia)): chiuse 25 · aperte 3 · ROI -11.13% · segnali 36 · scartati {'prezzo delle candele incoerente con il prezzo attuale (35%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (21%)': 2, 'prezzo delle candele incoerente con il prezzo attuale (32%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (24%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (23%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (30%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (27%)': 1} · NON PROMUOVIBILE: almeno 50 operazioni chiuse; almeno 14 giorni di test; intervallo di confidenza 95% del rendimento medio sopra zero; meglio del Laboratorio nello stesso periodo (p < 0,05)
+- x_safe (Laboratorio + regole shadow): chiuse 14 · aperte 2 · ROI -4.60% · segnali 33 · scartati {'prezzo delle candele incoerente con il prezzo attuale (23%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (250842540%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (246576069%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (237232523%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (251529387%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (20%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (38%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (29%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (216383086%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (198749838%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (165484962%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (170646552%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (187162856%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191327667%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (191702110%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (185835896%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (181547786%)': 1} · NON PROMUOVIBILE: almeno 50 operazioni chiuse; almeno 14 giorni di test; intervallo di confidenza 95% del rendimento medio sopra zero; meglio del Laboratorio nello stesso periodo (p < 0,05)
+- x_curve (Curva organica (nuova strategia)): chiuse 25 · aperte 3 · ROI -11.32% · segnali 36 · scartati {'prezzo delle candele incoerente con il prezzo attuale (35%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (21%)': 2, 'prezzo delle candele incoerente con il prezzo attuale (32%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (24%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (23%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (30%)': 1, 'prezzo delle candele incoerente con il prezzo attuale (27%)': 1} · NON PROMUOVIBILE: almeno 50 operazioni chiuse; almeno 14 giorni di test; intervallo di confidenza 95% del rendimento medio sopra zero; meglio del Laboratorio nello stesso periodo (p < 0,05)
 
 ### Ricerca
 - campione sufficiente: leggere le AUC con i loro intervalli di confidenza · osservazioni usabili 3814 · tassi base {'hit_2x_first': {'positives': 53, 'rate': 0.0139}, 'rug_60m': {'positives': 53, 'rate': 0.0139}} · dataset {'launches': 12583, 'launches_24h': 12583, 'early_trades': 491578, 'feature_snapshots': 34332, 'labeled': 15251, 'wallet_profiles': 0, 'stream_candles': 28432, 'token_events': 8076}
@@ -125,7 +125,7 @@
     buyers_last_60s: AUC 0.65 IC [0.604, 0.705] informativa=True n=3814
 
 ### Diario e studio degli eventi
-- journal: {'tracked': 902, 'events': {'create': 902, 'copy': 566, 'whale_buy': 350, 'reserve': 325, 'block0': 898, 'dev_buy': 704, 'dev_sell': 258, 'whale_sell': 215, 'drawdown': 60, 'volume_spike': 28, 'complete': 5, 'dead': 239}}
+- journal: {'tracked': 1012, 'events': {'create': 1012, 'copy': 637, 'whale_buy': 403, 'reserve': 378, 'block0': 1010, 'dev_buy': 771, 'dev_sell': 285, 'whale_sell': 240, 'drawdown': 68, 'volume_spike': 33, 'complete': 9, 'dead': 335}}
 - studio del 2026-11-03T17:48:52.754810+00:00 · esclusi {'mayhem_or_unknown': 900, 'stream_gap': 0, 'no_price': 305} · gruppi piccoli ['calo dal massimo >= 80%', 'diploma (migrazione)', 'il creatore ricompra', 'picco di acquisti', 'riserva >= 40 SOL', 'riserva >= 60 SOL', 'riserva >= 80 SOL']
     lancio: n=295 età 0.0 min · mediana 60m 0.0% · +100% 0.024 · -50% 0.064 · diploma 0.007 · confronto t+1m
     acquisto >= 2 SOL: n=271 età 0.0 min · mediana 60m 0.0% · +100% 0.059 · -50% 0.151 · diploma 0.063 · confronto t+1m
@@ -147,7 +147,7 @@
     momento qualsiasi t+15m: {'n': 1745, 'end_median_pct': 0.0, 'end_mean_pct': -2.1, 'p_up_100': 0.005, 'p_down_50': 0.023, 'p_migrated': 0.001, 'age_median_min': 15.0}
 
 ### Esperimento di copia dei wallet
-- registro: {'positions_closed': 3803, 'marked_dead': 1128, 'marked_migrated': 14, 'transfer_sells': 4656, 'wallets': 3564, 'open_positions': 3521, 'mints': 660}
+- registro: {'positions_closed': 4681, 'marked_dead': 1662, 'marked_migrated': 32, 'transfer_sells': 5301, 'wallets': 4242, 'open_positions': 3908, 'mints': 674}
 - scelta: {'chosen_at': '2026-11-03T17:48:49.078013+00:00', 'eligible': 0, 'wallets_measured': 3524, 'control_size': 0} · primi 5: []
 - dal vivo {'variant': 'x_copy_3s', 'delay_s': 3.0, 'group': 'leaders', 'wallets': 0, 'chosen_at': '2026-11-03T17:48:49.078013+00:00', 'open': 0, 'pending': 0, 'signals': 0, 'filled': 0, 'closed': 0, 'skipped_busy': 0}
 - dal vivo {'variant': 'x_copy_10s', 'delay_s': 10.0, 'group': 'leaders', 'wallets': 0, 'chosen_at': '2026-11-03T17:48:49.078013+00:00', 'open': 0, 'pending': 0, 'signals': 0, 'filled': 0, 'closed': 0, 'skipped_busy': 0}
@@ -177,52 +177,52 @@
 - R6 E3: fuori campione n=0 media None% IC None · in campione n=176 media -9.41% · dati insufficienti (0/300 fuori campione)
 
 ### Ultimi lanci pump.fun visti dallo stream
-- 2026-11-03T17:50:54.773363+00:00 DCYC mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:53.252094+00:00 GTA$ mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:50.727486+00:00 Pawlitician mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:44+00:00 aob mayhem=False fonte=stream · stats {'trades': 2, 'buys': 2, 'buy_sol': 1.915769227, 'sell_sol': 0.0, 'wallets': 2, 'last_price': 3.164387465999352e-08, 'peak_price': 3.164387465999352e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728244, 'progress_pct': 8.121002581148026, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:39.561036+00:00 GTA mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:36.877410+00:00 Relic mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 3.685678014870809e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:34.496114+00:00 $EINU mayhem=True fonte=pumpportal · stats {'trades': 4, 'buys': 2, 'buy_sol': 0.080236203, 'sell_sol': 0.098639844, 'wallets': 2, 'last_price': 2.03800687973082e-08, 'peak_price': 2.5294549748855543e-08, 'launch_price': 2.851399717907517e-08, 'last_trade_ts': 1793728245, 'progress_pct': 1.3110702549339301, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:33.848176+00:00 Memeperps mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:18+00:00 Dracula mayhem=False fonte=stream · stats {'trades': 18, 'buys': 12, 'buy_sol': 13.580207631, 'sell_sol': 6.540076306, 'wallets': 12, 'last_price': 4.2621041567682624e-08, 'peak_price': 4.9979297730766504e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728221, 'progress_pct': 25.714614266893456, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
-- 2026-11-03T17:50:13+00:00 bog mayhem=True fonte=stream · stats {'trades': 20, 'buys': 11, 'buy_sol': 0.337589707, 'sell_sol': 0.124212809, 'wallets': 5, 'last_price': 3.2269661100064664e-09, 'peak_price': 2.8091501683953238e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728245, 'progress_pct': 10.00981679297617, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:23.498569+00:00 ARTERY mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:21.222635+00:00 WWKT mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 3.375448670917235e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:20.672205+00:00 $DCYC  mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:20.269860+00:00 $DCYC  mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 3.477343290880614e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:13.780705+00:00 TU mayhem=False fonte=pumpportal · stats {'trades': 1, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.987654319, 'wallets': 1, 'last_price': 2.7958993477166823e-08, 'peak_price': 2.7958993477166823e-08, 'launch_price': 2.983021808617079e-08, 'last_trade_ts': 1793728694, 'progress_pct': 0.0, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:12.965975+00:00 5STAR mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 2.7960834425456905e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:06.224120+00:00 Piston mayhem=False fonte=pumpportal · stats {'trades': 0, 'buys': 0, 'buy_sol': 0.0, 'sell_sol': 0.0, 'wallets': 0, 'last_price': None, 'peak_price': None, 'launch_price': 3.375448670917235e-08, 'last_trade_ts': None, 'progress_pct': None, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:58:00+00:00 MAYHEMBOT mayhem=True fonte=stream · stats {'trades': 4, 'buys': 2, 'buy_sol': 0.06897286, 'sell_sol': 0.009900738, 'wallets': 2, 'last_price': 3.4718678717845104e-09, 'peak_price': 2.80693365439432e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728696, 'progress_pct': 1.3412979569326693, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:57:58+00:00 Trump mayhem=False fonte=stream · stats {'trades': 3, 'buys': 3, 'buy_sol': 8.65, 'sell_sol': 0.0, 'wallets': 3, 'last_price': 4.6406415035725304e-08, 'peak_price': 4.6406415035725304e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728678, 'progress_pct': 30.27878061475552, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
+- 2026-11-03T17:57:57+00:00 WISH mayhem=False fonte=stream · stats {'trades': 15, 'buys': 12, 'buy_sol': 8.148185523, 'sell_sol': 3.233180595, 'wallets': 12, 'last_price': 3.787069178907297e-08, 'peak_price': 3.787069178907297e-08, 'launch_price': 2.7958993476234855e-08, 'last_trade_ts': 1793728680, 'progress_pct': 19.045115950859916, 'complete': False} · t+5m acquirenti None pressione None rischio None opportunità None esito None
 
 ### Token con il punteggio più alto
-- **ANONVOYAGE** score 78.6 (INTERESSANTE) · rischio basso · stato tracking · età 4.2 h · liquidità 117136.34 $ · 1h 7.59% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
-    - candele 1m disponibili: 246 · controlli in attesa: None · esclusioni per il trading: []
-    - rischi: []
-    - segnale 2026-11-03T16:40:35.667312+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
-    - segnale 2026-11-03T16:40:22.734279+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
-- **CAPY** score 77.2 (SCARTATO) · rischio alto · stato excluded · età 22.1 h · liquidità 159065.95 $ · 1h 4.19% · copertura dati 0.97 · ultimo segnale: None · esclusione: rischi critici RugCheck: Missing metadata
+- **CAPY** score 86.7 (SCARTATO) · rischio alto · stato excluded · età 22.3 h · liquidità 167925.95 $ · 1h 26.82% · copertura dati 0.97 · ultimo segnale: None · esclusione: rischi critici RugCheck: Missing metadata
     - candele 1m disponibili: 360 · controlli in attesa: None · esclusioni per il trading: ['rischi critici RugCheck: Missing metadata']
     - rischi: []
     - segnale 2026-11-03T01:39:04.955812+00:00 [A] rejected cooldown sul token dopo una perdita
     - segnale 2026-11-03T01:37:53.114265+00:00 [A] rejected cooldown sul token dopo una perdita
     - segnale 2026-11-03T01:36:25.682468+00:00 [A] rejected cooldown sul token dopo una perdita
-- **DOPE** score 75.2 (SCARTATO) · rischio alto · stato excluded · età 556.3 h · liquidità 172287.91 $ · 1h 23.81% · copertura dati 0.93 · ultimo segnale: None · esclusione: rischi critici RugCheck: Large Amount of LP Unlocked
-- **CBUCKS** score 75.0 (INTERESSANTE) · rischio basso · stato tracking · età 671.4 h · liquidità 145316.38 $ · 1h 11.06% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
-    - candele 1m disponibili: 360 · controlli in attesa: None · esclusioni per il trading: []
-    - rischi: []
-    - segnale 2026-11-01T18:12:21.388659+00:00 [B] executed 
-- **MOGMAS** score 74.4 (INTERESSANTE) · rischio basso · stato tracking · età 5.6 h · liquidità 27382.38 $ · 1h 41.73% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
-    - candele 1m disponibili: 336 · controlli in attesa: None · esclusioni per il trading: []
+- **MOGMAS** score 83.2 (ALTO POTENZIALE) · rischio basso · stato tracking · età 5.7 h · liquidità 31008.62 $ · 1h 66.5% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
+    - candele 1m disponibili: 341 · controlli in attesa: None · esclusioni per il trading: []
     - rischi: []
     - segnale 2026-11-03T14:34:27.954301+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
     - segnale 2026-11-03T14:33:09.478946+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
     - segnale 2026-11-03T14:31:22.431275+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
-- **XDG** score 74.1 (INTERESSANTE) · rischio basso · stato tracking · età 11.5 h · liquidità 114884.0 $ · 1h 27.02% · copertura dati 0.94 · ultimo segnale: None · esclusione: None
+- **XDG** score 80.6 (ALTO POTENZIALE) · rischio basso · stato tracking · età 11.6 h · liquidità 126259.64 $ · 1h 80.91% · copertura dati 0.94 · ultimo segnale: None · esclusione: None
     - candele 1m disponibili: 360 · controlli in attesa: None · esclusioni per il trading: []
     - rischi: []
     - segnale 2026-11-03T12:10:31.905100+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto; prezzo delle candele incoerente con il prezzo attuale (181547786%)
     - segnale 2026-11-03T12:08:21.180413+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto; prezzo delle candele incoerente con il prezzo attuale (185835896%)
     - segnale 2026-11-03T12:08:10.611018+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto; prezzo delle candele incoerente con il prezzo attuale (191702110%)
-- **HUND ** score 73.6 (INTERESSANTE) · rischio medio · stato tracking · età 2.3 h · liquidità 18224.48 $ · 1h 19.43% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
-    - candele 1m disponibili: 110 · controlli in attesa: None · esclusioni per il trading: []
-    - rischi: ['possibile wash trading (score 0.41)']
-- **PURPE** score 72.4 (INTERESSANTE) · rischio basso · stato tracking · età 20906.1 h · liquidità 379692.04 $ · 1h 0.31% · copertura dati 0.94 · ultimo segnale: None · esclusione: None
-    - candele 1m disponibili: 139 · controlli in attesa: None · esclusioni per il trading: []
+- **ANONVOYAGE** score 79.6 (INTERESSANTE) · rischio basso · stato tracking · età 4.3 h · liquidità 112757.29 $ · 1h 4.28% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
+    - candele 1m disponibili: 251 · controlli in attesa: None · esclusioni per il trading: []
     - rischi: []
+    - segnale 2026-11-03T16:40:35.667312+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
+    - segnale 2026-11-03T16:40:22.734279+00:00 [A] rejected numero massimo di operazioni giornaliere (6) raggiunto
+- **OTC** score 75.3 (INTERESSANTE) · rischio basso · stato tracking · età 1612.4 h · liquidità 515763.37 $ · 1h 1.02% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
+    - candele 1m disponibili: 360 · controlli in attesa: None · esclusioni per il trading: []
+    - rischi: []
+    - segnale 2026-11-02T15:37:39.801529+00:00 [B] rejected numero massimo di operazioni giornaliere (6) raggiunto
+    - segnale 2026-11-02T15:36:09.833738+00:00 [B] rejected numero massimo di operazioni giornaliere (6) raggiunto
+    - segnale 2026-11-02T15:34:18.996044+00:00 [B] rejected numero massimo di operazioni giornaliere (6) raggiunto; score 69 sotto il minimo del profilo (70)
+- **DOPE** score 73.8 (SCARTATO) · rischio alto · stato excluded · età 556.4 h · liquidità 172214.71 $ · 1h 22.67% · copertura dati 0.93 · ultimo segnale: None · esclusione: rischi critici RugCheck: Large Amount of LP Unlocked
+- **MAMESUKE** score 73.3 (SCARTATO) · rischio alto · stato excluded · età 30.4 h · liquidità 129745.39 $ · 1h 1.13% · copertura dati 0.9 · ultimo segnale: None · esclusione: rischi critici RugCheck: Large Amount of LP Unlocked
+- **HUND ** score 72.6 (INTERESSANTE) · rischio medio · stato tracking · età 2.4 h · liquidità 18286.32 $ · 1h 16.96% · copertura dati 0.97 · ultimo segnale: None · esclusione: None
+    - candele 1m disponibili: 117 · controlli in attesa: None · esclusioni per il trading: []
+    - rischi: ['possibile wash trading (score 0.43)']
 
 ### Ultimi eventi
 - 2026-11-03T16:48:47.350026+00:00 info system: worker avviato in modalità paper

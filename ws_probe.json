@@ -1,0 +1,166 @@
+{
+ "firehose_error": "ConnectionClosedError(None, Close(code=<CloseCode.PROTOCOL_ERROR: 1002>, reason='invalid status code'), None)",
+ "created_from": "pumpportal (10)",
+ "early": {
+  "mint": "DswyQA5A1jFNF43QMfpp5jVpc6R7iP2wHgwfb2Pfpump",
+  "create_slot": 464692487,
+  "creator": "3n7KjrZjDYMTK8cEFu9RoknQPn3pYHVEnpq9suYAUq1H",
+  "rows": [
+   {
+    "slot": 464692487,
+    "payer": "46x7gJqyQhsjQuXcws7ESW8h47kGcbQ1FD2RhFjfAWJN",
+    "user": "46x7gJqyQhsjQuXcws7ESW8h47kGcbQ1FD2RhFjfAWJN",
+    "buy": true,
+    "sol": 0.484938271,
+    "tok": 6409436409939,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692487,
+    "payer": "8WLPjhY1qXoYcbcywqE4ut1KibKe8hC9M22LUb8c8cza",
+    "user": "8WLPjhY1qXoYcbcywqE4ut1KibKe8hC9M22LUb8c8cza",
+    "buy": true,
+    "sol": 0.276543209,
+    "tok": 3599265589000,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692488,
+    "payer": "ssssswdk4RR8HqkE3uwUWzDbd6mXFTTPjcXBKNzQ57E",
+    "user": "ssssswdk4RR8HqkE3uwUWzDbd6mXFTTPjcXBKNzQ57E",
+    "buy": true,
+    "sol": 0.260438583,
+    "tok": 3353351902317,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692488,
+    "payer": "sssssDdMNAWKingjpEojkTNdVuZrBe7FsJLaGtexe7d",
+    "user": "sssssDdMNAWKingjpEojkTNdVuZrBe7FsJLaGtexe7d",
+    "buy": true,
+    "sol": 0.936546502,
+    "tok": 11776124218640,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692488,
+    "payer": "EJFytAkEW4TPjomDF4VVJx9CXyciCnvmKHye6USfJYuc",
+    "user": "EJFytAkEW4TPjomDF4VVJx9CXyciCnvmKHye6USfJYuc",
+    "buy": false,
+    "sol": 1.917883934,
+    "tok": 24596947554036,
+    "jito_tip": 0.0,
+    "cu_price_ix": 0
+   },
+   {
+    "slot": 464692488,
+    "payer": "CXEiVu7BcA7ohvrLrnbuH1iruZTU658exo8p389FPAw8",
+    "user": "CXEiVu7BcA7ohvrLrnbuH1iruZTU658exo8p389FPAw8",
+    "buy": false,
+    "sol": 2.046276749,
+    "tok": 28452227545016,
+    "jito_tip": 0.0,
+    "cu_price_ix": 0
+   },
+   {
+    "slot": 464692504,
+    "payer": "798v16ME8HfX4js47Buh7ewziCAjx32j31kPeehWGbJY",
+    "user": "798v16ME8HfX4js47Buh7ewziCAjx32j31kPeehWGbJY",
+    "buy": true,
+    "sol": 0.148148147,
+    "tok": 2142657837426,
+    "jito_tip": 0.0,
+    "cu_price_ix": 3
+   },
+   {
+    "slot": 464692504,
+    "payer": "FHcbMC1MLRzcmnWbG3sZHygKrXNUzF81qxLu8LRy94Rh",
+    "user": "FHcbMC1MLRzcmnWbG3sZHygKrXNUzF81qxLu8LRy94Rh",
+    "buy": false,
+    "sol": 0.189785582,
+    "tok": 2747286102648,
+    "jito_tip": 0.0,
+    "cu_price_ix": 0
+   },
+   {
+    "slot": 464692504,
+    "payer": "4Jb9rexU23CtLGE5SfG5Up6bsD1dq1smQwTDBrruBU9b",
+    "user": "4Jb9rexU23CtLGE5SfG5Up6bsD1dq1smQwTDBrruBU9b",
+    "buy": true,
+    "sol": 0.098765431,
+    "tok": 1432461699537,
+    "jito_tip": 0.0,
+    "cu_price_ix": 3
+   },
+   {
+    "slot": 464692511,
+    "payer": "sM2LcnT1nNGNuuAnZMBZUmFq8WewhCFsBqw16s766Eo",
+    "user": "sM2LcnT1nNGNuuAnZMBZUmFq8WewhCFsBqw16s766Eo",
+    "buy": false,
+    "sol": 0.025147991,
+    "tok": 364168640388,
+    "jito_tip": 0.0,
+    "cu_price_ix": 0
+   },
+   {
+    "slot": 464692532,
+    "payer": "7tdnfoEXjMChwxfYfP737Hy5XviWGpzcBpi7ZcuqPhR4",
+    "user": "7tdnfoEXjMChwxfYfP737Hy5XviWGpzcBpi7ZcuqPhR4",
+    "buy": false,
+    "sol": 0.000479209,
+    "tok": 6943222771,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692532,
+    "payer": "4oN18efpHpmaStKe759haW5EBqNYiga9qYF8vPkXNT2z",
+    "user": "4oN18efpHpmaStKe759haW5EBqNYiga9qYF8vPkXNT2z",
+    "buy": false,
+    "sol": 0.246116973,
+    "tok": 3584717326052,
+    "jito_tip": 0.0,
+    "cu_price_ix": 2
+   },
+   {
+    "slot": 464692537,
+    "payer": "HQz74vLRgg82xj9hfwzQKwiV4G6eNrmTCEDMA4TbBo53",
+    "user": "HQz74vLRgg82xj9hfwzQKwiV4G6eNrmTCEDMA4TbBo53",
+    "buy": true,
+    "sol": 0.3,
+    "tok": 4364539365333,
+    "jito_tip": 1e-05,
+    "cu_price_ix": 2
+   }
+  ]
+ },
+ "sell_sim": {
+  "user": "sssssDdMNAWKingjpEojkTNdVuZrBe7FsJLaGtexe7d",
+  "quote_status": 200,
+  "route": [
+   "Pump.fun"
+  ],
+  "quote_err": null,
+  "sim_err": {
+   "InstructionError": [
+    3,
+    {
+     "Custom": 6024
+    }
+   ]
+  },
+  "sim_units": 14742,
+  "sim_logs_tail": [
+   "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 13413 of 1399700 compute units",
+   "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL success",
+   "Program JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 invoke [1]",
+   "Program log: Instruction: Route",
+   "Program JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 consumed 1029 of 1386287 compute units",
+   "Program JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4 failed: custom program error: 0x1788"
+  ]
+ }
+}

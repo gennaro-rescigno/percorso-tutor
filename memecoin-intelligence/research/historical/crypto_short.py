@@ -194,6 +194,10 @@ def main() -> None:
     r(f"Perpetui USDT: **{c.shape[1]}** (di cui {gone} chiusi o delistati prima della fine), dati fino al "
       f"{last.date()}; con dati di funding: {int(has_f.sum())}. Memecoin dell'elenco presenti: "
       f"{len([m for m in MEMES if m in c.columns])}.")
+    fcov = p["funding"].notna().sum().sum() / max(1, p["close"].notna().sum().sum())
+    fu = p["funding"].where(p["universe"]).stack().dropna()
+    r(f"Giorni di contrattazione con dato di funding: **{100 * fcov:.1f}%**; nelle 100 più scambiate funding giornaliero "
+      f"medio {100 * fu.mean():+.4f}%, mediano {100 * fu.median():+.4f}%, giorni >= 0,10%: {100 * (fu >= 0.001).mean():.1f}%.")
     u = p["universe"]
     fwd3 = (c.shift(-3) / c - 1).where(u)
     ew = p["r1"].where(u).mean(axis=1)

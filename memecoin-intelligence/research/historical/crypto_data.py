@@ -154,10 +154,15 @@ def _funding_daily(sym: str) -> pd.Series:
         frames.append(pd.DataFrame({"t": df.iloc[:, 0].astype("int64"), "rate": df.iloc[:, -1].astype(float)}))
     if not frames:
         return pd.Series(dtype=float)
-    f = pd.concat(frames).drop_duplicates("t")
+    return funding_by_day(pd.concat(frames))
+
+
+def funding_by_day(f: pd.DataFrame) -> pd.Series:
+    """Funding events (t in ms or us, rate) -> sum per candle day, indexed like the candles (UTC, tz-aware)."""
+    f = f.drop_duplicates("t").reset_index(drop=True)
     t = f.t.where(f.t < 10**14, f.t // 1000)
-    day = pd.to_datetime(t - 1, unit="ms", utc=True).dt.normalize()
-    return f.rate.groupby(day.values).sum()
+    day = pd.DatetimeIndex(pd.to_datetime(t - 1, unit="ms", utc=True)).normalize()
+    return f.rate.groupby(day).sum()
 
 
 def _futures_daily(sym: str) -> pd.DataFrame | None:

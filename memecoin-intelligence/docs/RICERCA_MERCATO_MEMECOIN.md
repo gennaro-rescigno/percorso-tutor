@@ -232,10 +232,22 @@ metà del periodo. Il mercato "prezza" correttamente la probabilità di diploma,
   metà del periodo), le mediane sono fortemente negative (da −4% a −92%). Anche "ha retto il primo crollo" perde
   (−6% a 1 ora, intervallo interamente negativo); "diploma organico" non aiuta.
 
-### 9.4 Cosa ne segue per il bot
+### 9.4 Entrate a breve termine sulla curva (loopholetape, 330.000 token tra 1 e 5 minuti di vita)
+
+Sei regole pre-registrate (qualsiasi momento, slancio, ritracciamento, ritracciamento forte, flusso di acquisti,
+ritracciamento + flusso) con uscita dopo 1, 3 o 10 minuti: **18 combinazioni su 18 perdono** (dal −8% al −16% per
+operazione con i costi) e **perdono anche senza costi** (dal −1,5% al −10%): nei primi minuti il prezzo tende a
+scendere, qualunque sia il segnale. Comprare dopo una forte salita ("slancio") è il peggio (−10% lordo a 3 minuti);
+comprare dopo un ritracciamento non è meglio della media. Nota: nei nostri dati di novembre un ritracciamento con
+molta attività è associato a più raddoppi (AUC 0,82), ma questo non basta a rendere positivo il rendimento medio,
+perché i raddoppi restano pochi e le perdite degli altri pesano di più. Le regole R1, R2 e R6 del laboratorio
+(ritracciamento + attività) verificheranno lo stesso dal vivo: lo storico fa prevedere che non funzioneranno.
+
+### 9.5 Cosa ne segue per il bot
 
 1. Le strategie "semplici" sui lanci (comprare presto, tenere fino al diploma, comprare dopo il diploma, comprare
-   i crolli) sono **verificate perdenti** su milioni di casi: non le adotteremo.
+   i crolli, seguire lo slancio o il flusso, comprare i ritracciamenti) sono **verificate perdenti** su milioni di
+   casi, quasi tutte anche prima dei costi: non le adotteremo.
 2. Il valore che possiamo costruire gratis sta in tre cose: **evitare** (filtri che riducono le perdite),
    **orizzonti brevi con uscite rapide** misurati sul percorso completo dei prezzi (che solo il nostro stream ha),
    e **verifica fuori campione** continua prima di qualunque decisione.

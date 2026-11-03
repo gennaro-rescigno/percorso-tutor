@@ -59,6 +59,14 @@ def log_event(s: Session, category: str, message: str, *, level: str = "info", t
 def upsert_token(s: Session, snap: TokenSnapshot, source: str, score: ScoreResult | None = None) -> Token:
     tok = s.scalar(select(Token).where(Token.chain == snap.chain, Token.address == snap.token_address))
     now = to_utc(snap.observed_at) or utcnow()
+    try:  # lifecycle journal of listed tokens: facts from two consecutive snapshots (never blocks the scanner)
+        from mci.database.models import TokenEvent
+        from mci.onchain.journal import market_events
+
+        for e in market_events(tok, tok.last_snapshot if tok is not None else None, snap, now):
+            s.add(TokenEvent(**e))
+    except Exception as e:  # pragma: no cover - defensive
+        log.warning("diario del token %s non aggiornato: %s", snap.token_address, e)
     if tok is None:
         tok = Token(chain=_cut(snap.chain, 16), address=_cut(snap.token_address, 64), first_seen_at=now,
                     first_seen_source=_cut(source, 32))

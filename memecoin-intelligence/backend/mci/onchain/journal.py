@@ -249,3 +249,46 @@ def uri_kind(uri: str | None) -> str:
     if "arweave" in u or "irys" in u:
         return "arweave"
     return "http" if u.startswith("http") else "other"
+
+
+# ---------------------------------------------------------------------- listed tokens (scanner snapshots)
+PRICE_JUMP, PRICE_DROP, LIQ_DROP, HOLDERS_JUMP = 0.5, -0.4, 0.7, 0.5
+MIN_LIQ_USD = 5000
+
+
+def market_events(prev: Any | None, prev_snap: dict | None, snap: Any, now: datetime) -> list[dict[str, Any]]:
+    """Facts about a token followed on a DEX, from two consecutive scanner snapshots (``prev`` = Token row)."""
+    from mci.domain import to_utc
+
+    out: list[dict[str, Any]] = []
+    created = to_utc(snap.created_at) if snap.created_at else None
+    age = (to_utc(now) - created).total_seconds() if created else None
+    price = snap.price_native
+
+    def ev(kind: str, value: float | None, detail: dict | None = None) -> None:
+        out.append({"token_address": snap.token_address, "ts": now, "kind": kind,
+                    "value": None if value is None else round(float(value), 6), "price": price,
+                    "age_s": None if age is None else round(age, 1), "detail": detail or {}, "source": "scanner"})
+
+    if prev is None:
+        ev("listed", snap.liquidity_usd, {"dex": snap.dex_id, "bonding_curve": bool(snap.bonding_curve)})
+        return out
+    p0 = prev.last_price_native
+    if p0 and price and p0 > 0:
+        ch = price / p0 - 1
+        if ch >= PRICE_JUMP:
+            ev("price_jump", round(ch * 100, 1))
+        elif ch <= PRICE_DROP:
+            ev("price_drop", round(ch * 100, 1))
+    l0, l1 = prev.last_liquidity_usd, snap.liquidity_usd
+    if l0 and l1 is not None and l0 >= MIN_LIQ_USD and l1 <= LIQ_DROP * l0:
+        ev("liquidity_drop", round((l1 / l0 - 1) * 100, 1), {"from_usd": round(l0), "to_usd": round(l1)})
+    ps = prev_snap or {}
+    if (snap.boosts_active or 0) > 0 and not (ps.get("boosts_active") or 0):
+        ev("boost_on", snap.boosts_active)
+    if ps.get("bonding_curve") is True and snap.bonding_curve is False:
+        ev("migrated", None, {"dex": snap.dex_id})
+    h0, h1 = prev.last_holders, snap.holders_count
+    if h0 and h1 and h0 >= 50 and h1 >= (1 + HOLDERS_JUMP) * h0:
+        ev("holders_jump", h1, {"from": h0})
+    return out

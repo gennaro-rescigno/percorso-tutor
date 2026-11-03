@@ -127,6 +127,9 @@ const JOURNAL_LABEL: Record<string, string> = {
   whale_buy: "acquisto grande", whale_sell: "vendita grande", wash_atomic: "wash trade atomico (stesso wallet compra e vende)",
   reserve: "riserva della curva", drawdown: "calo dal massimo", volume_spike: "picco di acquisti", complete: "diploma (migrazione)",
   dead: "30 minuti senza scambi", copy: "nome già usato da un lancio precedente",
+  listed: "visto per la prima volta dallo scanner", price_jump: "prezzo in forte salita", price_drop: "prezzo in forte calo",
+  liquidity_drop: "liquidità ritirata", boost_on: "promozione DexScreener attivata (a pagamento)",
+  migrated: "migrazione vista dallo scanner", holders_jump: "holder in forte aumento",
 };
 
 function journalValue(e: any): string {
@@ -141,7 +144,12 @@ function journalValue(e: any): string {
     case "complete": return `dopo ${Math.round((e.value ?? 0) / 60)} min`;
     case "dead": return e.value != null ? `ultimo prezzo = ${(e.value * 100).toFixed(0)}% del massimo` : "";
     case "copy": return `${e.value} lanci precedenti con lo stesso nome`;
-    case "create": return d.mayhem ? "modalità mayhem" : `metadati: ${d.uri_kind}`;
+    case "create": return d.mayhem ? "modalità mayhem" : `metadati: ${d.uri_kind}${d.quote && d.quote !== "SOL" ? ` · quotato in ${d.quote}… (non SOL)` : ""}`;
+    case "listed": return `liquidità ${e.value != null ? Math.round(e.value).toLocaleString("it-IT") + " $" : "n/d"} · ${d.dex ?? ""}`;
+    case "price_jump": case "price_drop": return `${e.value > 0 ? "+" : ""}${e.value}% tra due controlli`;
+    case "liquidity_drop": return `${e.value}% (da ${d.from_usd} $ a ${d.to_usd} $)`;
+    case "boost_on": return `${e.value} boost attivi`;
+    case "holders_jump": return `da ${d.from} a ${e.value} holder`;
     default: return e.value != null ? String(e.value) : "";
   }
 }

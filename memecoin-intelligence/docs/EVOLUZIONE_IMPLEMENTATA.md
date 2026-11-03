@@ -137,7 +137,10 @@ dello stream. I messaggi automatici restano solo acquisti e vendite del portafog
   per operazione, il bot annota i fatti con ora e prezzo: acquisti e vendite del creatore (anche "vende tutto"),
   acquirenti nel blocco 0, acquisti e vendite di almeno 2 SOL, wash trade atomici (stesso wallet compra e vende
   nella stessa transazione), soglie della riserva della curva (5, 10, 20, 40, 60, 80 SOL), cali dal massimo del 50% e
-  dell'80%, picchi di acquisti, diploma, 30 minuti senza scambi, nomi già usati. Visibile nella pagina di ogni token.
+  dell'80%, picchi di acquisti, diploma, 30 minuti senza scambi, nomi già usati. Per i **token già quotati** seguiti
+  dallo scanner: prima quotazione vista, prezzo +50% o −40% tra due controlli, liquidità −30%, promozione
+  DexScreener attivata, migrazione, holder +50%. Visibile nella pagina di ogni token. Le curve quotate in un'altra
+  moneta (USDC, azioni tokenizzate...) non hanno un prezzo in SOL: sono registrate ma escluse dalle statistiche.
 * **Studio degli eventi** (ogni ora, pagina Ricerca): per ogni tipo di fatto, cosa è successo nei 60 minuti dopo
   (variazione mediana, quota che tocca +100% o −50%, quota che si diploma), confrontato con un momento qualsiasi
   della stessa età. Le finestre con lo stream interrotto sono escluse.

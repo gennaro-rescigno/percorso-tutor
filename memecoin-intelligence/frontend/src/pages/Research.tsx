@@ -60,6 +60,17 @@ function EventStudy({ ev }: { ev: any }) {
           ))}
         </tbody></table>
       {(ev.small_groups ?? []).length > 0 && <div className="muted">Ancora pochi casi (meno di 30): {ev.small_groups.join(", ")}</div>}
+      {(ev.listed ?? []).length > 0 && (
+        <>
+          <h3>Token già quotati (dai controlli dello scanner)</h3>
+          <table><thead><tr><th>Evento</th><th className="num">Casi</th><th className="num">Variazione mediana a 60 min</th>
+            <th className="num">Tocca +100%</th><th className="num">Tocca −50%</th></tr></thead>
+            <tbody>{ev.listed.map((r: any) => (
+              <tr key={r.event}><td>{r.event}</td><td className="num">{fmtNum(r.n)}</td><td className="num">{pct(r.end_median_pct)}</td>
+                <td className="num">{fmtPctPlain(r.p_up_100)}</td><td className="num">{fmtPctPlain(r.p_down_50)}</td></tr>
+            ))}</tbody></table>
+        </>
+      )}
       <div className="muted">Aggiornato il {fmtTime(ev.generated_at)} · esclusi per interruzioni dello stream: {fmtNum(ev.skipped?.stream_gap)}</div>
     </div>
   );

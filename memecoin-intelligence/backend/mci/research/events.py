@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 from sqlalchemy import select
 
-from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, TokenEvent
+from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, Token, TokenEvent, TokenSnapshotRow
 from mci.database.session import session_scope
 from mci.domain import utcnow
 from mci.onchain.curve_features import MIN_COVERAGE
@@ -50,7 +50,11 @@ def group_key(kind: str, value: float | None, detail: dict | None) -> str:
             "blocco 0: 1-2 acquirenti" if n <= 2 else "blocco 0: 3-5 acquirenti" if n <= 5 else "blocco 0: > 5 acquirenti")
     if kind == "copy":
         return "nome già usato (copia)"
-    names = {"whale_buy": "acquisto >= 2 SOL", "whale_sell": "vendita >= 2 SOL", "wash_atomic": "wash trade atomico",
+    names = {"listed": "token quotato visto per la prima volta", "price_jump": "prezzo +50% tra due controlli",
+             "price_drop": "prezzo -40% tra due controlli", "liquidity_drop": "liquidità -30% tra due controlli",
+             "boost_on": "promozione DexScreener attivata", "migrated": "migrazione vista dallo scanner",
+             "holders_jump": "holder +50% tra due controlli",
+             "whale_buy": "acquisto >= 2 SOL", "whale_sell": "vendita >= 2 SOL", "wash_atomic": "wash trade atomico",
              "volume_spike": "picco di acquisti", "complete": "diploma (migrazione)", "dead": "30 minuti senza scambi",
              "create": "lancio"}
     return names.get(kind, kind)
@@ -98,7 +102,7 @@ def event_study(days: int = 7, gaps: list[tuple[float, float]] | None = None,
         for k in kinds:
             events += s.execute(select(TokenEvent.token_address, TokenEvent.ts, TokenEvent.kind, TokenEvent.value,
                                        TokenEvent.price, TokenEvent.age_s, TokenEvent.detail).where(
-                TokenEvent.kind == k, TokenEvent.ts >= since, TokenEvent.ts <= until)
+                TokenEvent.kind == k, TokenEvent.ts >= since, TokenEvent.ts <= until, TokenEvent.source == "stream")
                 .order_by(TokenEvent.ts.desc()).limit(MAX_PER_KIND)).all()
         tokens = sorted({e[0] for e in events})
         launches = {}
@@ -110,6 +114,7 @@ def event_study(days: int = 7, gaps: list[tuple[float, float]] | None = None,
         tokens = [t for t in tokens if t in launches and not launches[t][0]]
         bars = _bars_by_token(s, tokens, int(since.timestamp()) - 60, int(now.timestamp()))
         base = baseline(s, since, until, gaps)
+        listed = listed_study(s, since, until)
 
     groups: dict[str, list] = defaultdict(list)
     skipped = {"mayhem_or_unknown": 0, "stream_gap": 0, "no_price": 0}
@@ -143,7 +148,7 @@ def event_study(days: int = 7, gaps: list[tuple[float, float]] | None = None,
         st["baseline"] = "t+1m" if st["age_median_min"] < 3 else "t+5m" if st["age_median_min"] < 10 else "t+15m"
         table.append(st)
     table.sort(key=lambda r: -r["n"])
-    return {"generated_at": now.isoformat(), "days": days, "window_min": WINDOW_MIN, "events": table,
+    return {"generated_at": now.isoformat(), "days": days, "window_min": WINDOW_MIN, "events": table, "listed": listed,
             "baseline": base, "skipped": skipped, "small_groups": sorted(k for k, v in groups.items() if len(v) < MIN_GROUP),
             "note": "Studio descrittivo: cosa è successo nei 60 minuti DOPO ogni fatto, dal prezzo di chiusura del minuto "
                     "in cui è avvenuto. Non è una previsione e non include i costi; serve a capire, non a comprare."}
@@ -177,4 +182,44 @@ def baseline(s, since: datetime, until: datetime, gaps: list[tuple[float, float]
             vals.append((lab["ret_max_60m"], lab["ret_min_60m"], lab["ret_end_60m"], mig, (feat or {}).get("age_s") or 0))
         if len(vals) >= MIN_GROUP:
             out[h] = summarize(vals)
+    return out
+
+
+def listed_study(s, since: datetime, until: datetime) -> list[dict[str, Any]]:
+    """Same question for tokens followed on a DEX: price path from the scanner's own snapshots after the fact."""
+    rows = s.execute(select(TokenEvent.token_address, TokenEvent.ts, TokenEvent.kind, TokenEvent.value,
+                            TokenEvent.price, TokenEvent.age_s, TokenEvent.detail).where(
+        TokenEvent.source == "scanner", TokenEvent.ts >= since, TokenEvent.ts <= until, TokenEvent.price.is_not(None))
+        .order_by(TokenEvent.ts.desc()).limit(MAX_PER_KIND * 3)).all()
+    if not rows:
+        return []
+    addrs = sorted({r[0] for r in rows})
+    ids = {}
+    for i in range(0, len(addrs), CHUNK):
+        ids.update({a: t for a, t in s.execute(select(Token.address, Token.id).where(Token.address.in_(addrs[i:i + CHUNK])))})
+    hist: dict[int, list[tuple[datetime, float]]] = defaultdict(list)
+    tids = sorted(set(ids.values()))
+    for i in range(0, len(tids), CHUNK):
+        for tid, at, p in s.execute(select(TokenSnapshotRow.token_id, TokenSnapshotRow.observed_at,
+                                           TokenSnapshotRow.price_native).where(
+                TokenSnapshotRow.token_id.in_(tids[i:i + CHUNK]), TokenSnapshotRow.observed_at >= since,
+                TokenSnapshotRow.price_native.is_not(None)).order_by(TokenSnapshotRow.observed_at.asc())):
+            hist[tid].append((_aware(at), p))
+    groups: dict[str, list] = defaultdict(list)
+    for addr, ts, kind, value, price, age, detail in rows:
+        tid = ids.get(addr)
+        t0 = _aware(ts)
+        after = [p for at, p in hist.get(tid, []) if t0 < at <= t0 + timedelta(minutes=WINDOW_MIN)]
+        if not after or not price or price <= 0:
+            continue  # no later observation: nothing can be said (never read as "no movement")
+        mx, mn, end = (max(after) / price - 1) * 100, (min(after) / price - 1) * 100, (after[-1] / price - 1) * 100
+        groups[group_key(kind, value, detail)].append((mx, mn, end, False, age or 0.0))
+    out = []
+    for key, g in groups.items():
+        if len(g) >= MIN_GROUP:
+            st = summarize(g)
+            st.pop("p_migrated", None)
+            st["event"] = key
+            out.append(st)
+    out.sort(key=lambda r: -r["n"])
     return out

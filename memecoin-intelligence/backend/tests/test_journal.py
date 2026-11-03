@@ -209,3 +209,33 @@ def test_curves_quoted_in_another_token_have_no_sol_price_or_reserve_facts():
     assert st.price is None and st.launch_price is None and not st.bars
     ev = j.drain()
     assert kinds(ev) == ["create"] and ev[0]["detail"]["quote"] == usdc[:8]
+
+
+def test_listed_token_facts_from_consecutive_scanner_snapshots(db):
+    from datetime import timedelta
+
+    from sqlalchemy import select
+
+    from conftest import good_snapshot
+    from mci.database import repo
+    from mci.database.models import TokenEvent
+    from mci.database.session import session_scope
+    from mci.domain import utcnow
+    from mci.research.events import listed_study
+
+    t0 = utcnow() - timedelta(hours=3)
+    snaps = [good_snapshot(observed_at=t0, bonding_curve=True, boosts_active=0, holders_count=100),
+             good_snapshot(observed_at=t0 + timedelta(minutes=2), price_native=0.001 / 150 * 1.8, boosts_active=2,
+                           liquidity_usd=50_000, bonding_curve=False, holders_count=200),
+             good_snapshot(observed_at=t0 + timedelta(minutes=10), price_native=0.001 / 150 * 1.2)]
+    with session_scope() as s:
+        for sn in snaps:
+            tok = repo.upsert_token(s, sn, "test")
+            repo.add_snapshot(s, tok, sn, None)
+    with session_scope() as s:
+        k = [e.kind for e in s.scalars(select(TokenEvent).order_by(TokenEvent.id)).all()]
+        assert k[0] == "listed"
+        assert {"price_jump", "boost_on", "liquidity_drop", "migrated", "holders_jump"} <= set(k)
+        assert "price_drop" not in k  # 1.8x -> 1.2x is -33%: below the -40% threshold
+        assert all(e.source == "scanner" for e in s.scalars(select(TokenEvent)).all())
+        assert listed_study(s, t0 - timedelta(hours=1), utcnow()) == []  # fewer than 30 cases: nothing claimed

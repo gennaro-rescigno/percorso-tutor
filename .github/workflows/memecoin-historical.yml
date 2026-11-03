@@ -1,0 +1,52 @@
+name: memecoin historical study
+# Studi sui dataset storici GRATUITI (Hugging Face, licenze aperte) eseguiti sui runner di GitHub, non sul
+# server del bot. I risultati vanno nel branch "research-results" (un file .md per studio) e nel riepilogo.
+# Sola lettura: nessun segreto, nessun servizio a pagamento.
+on:
+  workflow_dispatch:
+    inputs:
+      study:
+        description: "studio da eseguire (nome del file in memecoin-intelligence/research/historical, senza .py)"
+        required: true
+        default: probe
+permissions:
+  contents: write
+jobs:
+  study:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: memecoin-intelligence/research }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install analysis libraries
+        run: pip install --quiet duckdb==1.1.3 pandas==2.2.3 pyarrow==18.1.0 numpy==2.1.3 scipy==1.14.1
+      - name: Disk and memory
+        run: df -h /tmp && free -h && nproc
+      - name: Run study
+        working-directory: memecoin-intelligence/research/historical
+        env:
+          STUDY: ${{ inputs.study }}
+        run: |
+          case "$STUDY" in *[!a-z0-9_]*) echo "nome studio non valido"; exit 1;; esac
+          python "$STUDY.py" 2>&1 | tee /tmp/study.log
+          cat /tmp/out/*.md >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Publish to the research-results branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          REPO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          mkdir -p /tmp/out
+          if git clone -q --depth 1 -b research-results "$REPO" /tmp/res 2>/dev/null; then :; else
+            mkdir -p /tmp/res && cd /tmp/res && git init -q -b research-results && cd -; fi
+          cp /tmp/out/* /tmp/res/ 2>/dev/null || true
+          cp /tmp/study.log "/tmp/res/${{ inputs.study }}.log" 2>/dev/null || true
+          cd /tmp/res
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "study ${{ inputs.study }} $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
+          git push -q "$REPO" research-results

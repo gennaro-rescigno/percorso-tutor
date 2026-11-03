@@ -90,7 +90,7 @@ jobs:
                     f"lanci {cs.get('creates')} · fallite scartate {cs.get('skipped_failed')} · riconnessioni {cs.get('reconnects')} · "
                     f"errori handler {cs.get('handler_errors')} · ultimo errore {cs.get('last_error')}")
               print(f"- lanci: ultima ora {lt.get('launches_1h')} · 24 h {lt.get('launches_24h')} · in memoria {lt.get('in_memory')} · "
-                    f"interruzioni 24 h {lt.get('gaps_24h')} · gap aperto {lt.get('stream_gap_open')}")
+                    f"interruzioni 24 h {lt.get('gaps_24h')} · gap aperto {lt.get('stream_gap_open')} · ritardo di arrivo {lt.get('arrival_lag_s')}")
               print(f"- RPC: chiamate {rpc.get('calls')} · cache {rpc.get('cache_hits')} · rinviate per budget {rpc.get('budget_refused')} · "
                     f"fallite {rpc.get('failed')} · endpoint {rpc.get('endpoints')}")
               print(f"  - per metodo: {rpc.get('by_method')} · ultimi errori: {rpc.get('last_errors')}")

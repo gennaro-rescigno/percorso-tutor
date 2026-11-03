@@ -266,17 +266,36 @@ perché i raddoppi restano pochi e le perdite degli altri pesano di più. Le reg
 - Dal vivo, l'esperimento di copia del bot resta attivo come verifica su novembre (con il ritardo reale dello stream:
   una copia non può partire prima che l'operazione sia arrivata al bot).
 
-### 9.6 Cosa ne segue per il bot
+### 9.6 Token già quotati su PumpSwap (fly-trader-seed: una settimana, 14-21 settembre, 28.721 token)
 
-1. Le strategie "semplici" sui lanci (comprare presto, tenere fino al diploma, comprare dopo il diploma, comprare
-   i crolli, seguire lo slancio o il flusso, comprare i ritracciamenti) sono **verificate perdenti** su milioni di
-   casi, quasi tutte anche prima dei costi: non le adotteremo.
-2. Il valore che possiamo costruire gratis sta in tre cose: **evitare** (filtri che riducono le perdite),
-   **orizzonti brevi con uscite rapide** misurati sul percorso completo dei prezzi (che solo il nostro stream ha),
-   e **verifica fuori campione** continua prima di qualunque decisione.
-3. Per questo il bot ora tiene un **diario di ogni lancio** (fatti on-chain con prezzo e ora), uno **studio di cosa
-   succede dopo ogni tipo di evento** e un **laboratorio di regole** pre-registrate valutate su ogni lancio
-   osservato dopo il 3 novembre 2026, con i costi. Nulla cambia nel portafoglio principale senza il tuo consenso.
+Nota: la scheda del dataset parla di aprile-settembre, ma le candele contenute nel file coprono solo questa settimana
+(1,03 milioni di candele da 1 minuto). La vita mediana di un token dopo il diploma è di **2 ore** (ultima ora con
+scambi); solo il 32% viene ancora scambiato dopo 24 ore. Sette regole pre-registrate (qualsiasi ora, slancio,
+slancio forte, ritracciamento, sopravvissuti con liquidità, sopravvissuti senza vendite di insider, accumulo), tenute
+1, 4 o 24 ore con la commissione reale del pool, l'impatto sul prezzo e le priority fee: **21 combinazioni su 21 non
+positive**, dal −4% al −43% per operazione; le due migliori (ritracciamento e slancio forte, 1 ora) sono intorno a
+zero con intervalli molto larghi. Una settimana non basta per escludere tutto, ma niente indica un vantaggio.
+
+### 9.7 Conclusione onesta (3 novembre 2026)
+
+| Famiglia di strategie | Dati | Risultato |
+|---|---|---|
+| Comprare sulla curva e tenere fino al diploma | 547.350 token, set-ott | perde (−13% / −25%) |
+| Entrate a breve sulla curva (slancio, ritracciamento, flusso) | 330.000 token, set-ott | perde, anche senza costi |
+| Comprare dopo il diploma (1-30 min, tenuta 1-24 h) | 5.669 diplomi, giu-lug | nessuna positiva e stabile |
+| Regole sui token già quotati | 28.721 token, set | nessuna positiva |
+| Copiare i wallet migliori con 1-10 s di ritardo | 4.163 copie, giu-lug | perde (−5% / −6%) |
+| Copiare i wallet migliori **nello stesso istante** | stesse occasioni | **+9%**, ma richiede velocità da infrastruttura a pagamento |
+
+1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
+   nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i
+   guadagni vanno a creatori e insider, a chi è più veloce e a chi manipola (cose che non faremo).
+2. L'unico vantaggio misurato è la **velocità**: il risultato dei wallet migliori è reale e persistente, ma sparisce
+   entro un secondo. Provarlo davvero richiederebbe un'infrastruttura veloce a pagamento: è una decisione con costi,
+   che spetta solo a te, e anche così la concorrenza di bot professionali è forte.
+3. Il bot continua a raccogliere prove fuori campione senza rischi: diario degli eventi, laboratorio delle regole,
+   esperimento di copia con il ritardo reale, esperimenti x_safe e x_curve, Laboratorio. Nulla viene promosso senza
+   il cancello statistico e senza la tua approvazione.
 
 ---
 

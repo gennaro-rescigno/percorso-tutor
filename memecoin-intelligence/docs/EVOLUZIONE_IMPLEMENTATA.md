@@ -15,7 +15,7 @@ funzionano. Le novità vengono provate in **portafogli virtuali separati** e non
 
 | Fonte | Uso | Limiti e protezioni |
 |---|---|---|
-| WebSocket pubblico Solana (`logsSubscribe` sul programma pump.fun) | lanci, ogni compravendita, migrazioni | ~300 messaggi/s; l'88% sono transazioni fallite e vengono scartate senza decodifica; riconnessione automatica (2 s → 5 min); ogni interruzione viene registrata |
+| WebSocket pubblico Solana (`logsSubscribe` sul programma pump.fun) | lanci, ogni compravendita, migrazioni | ~300 messaggi/s; l'80-88% sono transazioni fallite e vengono scartate senza decodifica. Il nodo pubblico chiude ogni iscrizione dopo ~15-25 s (misurato nella prova generale): il bot tiene **2 connessioni ridondanti** sfasate, elimina i doppioni per firma e si riconnette in 1 s; ogni interruzione reale (tutte le connessioni giù) viene registrata |
 | IDL ufficiale pump.fun | formato esatto degli eventi e della curva | controllo settimanale automatico (workflow `memecoin contract check`) |
 | RPC pubblico Solana | sicurezza del mint, stato della curva, wallet, simulazioni | budget per metodo al minuto, cache, pausa automatica sui 429; si possono aggiungere RPC gratuiti personali (file `data/secrets/rpc_urls`, mai pubblicato) |
 | PumpPortal | solo nuovi token (gratuito) | le iscrizioni alle **operazioni** ora richiedono una chiave finanziata con SOL: **disattivate** (sostituite dallo stream blockchain) |
@@ -61,7 +61,8 @@ migrazioni e crolli dei suoi token, dal **nostro** archivio (serve almeno un gio
 Calcolate solo con le operazioni avvenute **fino a quel momento** (nessuno sguardo al futuro): acquirenti unici,
 venditori, SOL comprati/venduti, pressione d'acquisto, acquisti nel blocco di creazione, sniper nei primi 3 slot,
 comportamento del creatore, concentrazione, flipper, progresso e velocità della curva, distanza dal massimo,
-acquirenti nell'ultimo minuto. Se lo stream si è interrotto in quella finestra, i dati sono marcati **incompleti**
+acquirenti nell'ultimo minuto. Per ogni finestra il bot misura la **copertura** dello stream (quota del tempo in cui
+almeno una connessione era attiva, salvata come `stream_coverage`): sotto il 97% i dati sono marcati **incompleti**
 e non vengono usati (un'assenza di dati non è mai letta come "nessuna attività").
 
 Per i token sulla curva, prezzo e candele da 1 minuto arrivano dallo stream (esatti, in tempo reale) e il bot

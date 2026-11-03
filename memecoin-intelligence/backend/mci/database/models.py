@@ -343,6 +343,49 @@ class TokenEvent(Base):
     source: Mapped[str] = mapped_column(String(16), default="stream")
 
 
+class WalletDay(Base):
+    """Daily realized result of a wallet on pump.fun curves (wallet ledger; only wallets with >= 2 positions)."""
+
+    __tablename__ = "wallet_days"
+    __table_args__ = (UniqueConstraint("wallet", "day", name="uq_wallet_day"), Index("ix_wallet_days_day", "day"))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    wallet: Mapped[str] = mapped_column(String(64))
+    day: Mapped[int] = mapped_column(Integer)  # unix day (UTC)
+    n: Mapped[float] = mapped_column(Float, default=0)
+    win: Mapped[float] = mapped_column(Float, default=0)
+    pnl: Mapped[float] = mapped_column(Float, default=0)
+    cost: Mapped[float] = mapped_column(Float, default=0)
+    sum_ret: Mapped[float] = mapped_column(Float, default=0)
+    sum_ret2: Mapped[float] = mapped_column(Float, default=0)
+    quick: Mapped[float] = mapped_column(Float, default=0)
+    early: Mapped[float] = mapped_column(Float, default=0)
+    transfer_sells: Mapped[float] = mapped_column(Float, default=0)
+    marked: Mapped[float] = mapped_column(Float, default=0)
+    mayhem: Mapped[float] = mapped_column(Float, default=0)
+
+
+class CopyTrade(Base):
+    """A simulated copy of a followed wallet (copy experiment; never a real transaction)."""
+
+    __tablename__ = "copy_trades"
+    __table_args__ = (Index("ix_copy_trades_variant_exit", "variant", "exit_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    variant: Mapped[str] = mapped_column(String(16))
+    mint: Mapped[str] = mapped_column(String(64), index=True)
+    leader: Mapped[str] = mapped_column(String(64))
+    signal_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    entry_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    exit_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    entry_price: Mapped[float | None] = mapped_column(Float)
+    cost_sol: Mapped[float] = mapped_column(Float)
+    proceeds_sol: Mapped[float] = mapped_column(Float)
+    ret_pct: Mapped[float] = mapped_column(Float)
+    exit_reason: Mapped[str | None] = mapped_column(String(80))
+    leader_stats: Mapped[dict | None] = mapped_column(JSON)
+
+
 class FeatureSnapshot(Base):
     """Point-in-time feature store: only data available at ``observed_at`` (no look-ahead)."""
 

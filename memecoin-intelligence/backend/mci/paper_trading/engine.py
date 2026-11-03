@@ -92,7 +92,8 @@ class TradingEngine:
         self.risk = RiskManager(profile, costs)
         self.notifier = notifier or NullNotifier()
         self.policy = exit_policy or EXIT_POLICIES["ladder_trailing"]
-        self.strategies = strategies or [build_strategy(c) for c in settings.strategies]
+        codes = settings.main_strategies if self.mode in ("paper", "live") else settings.strategies
+        self.strategies = strategies or [build_strategy(c) for c in codes]
         self.port = self._load_portfolio()
         self.last_equity_notified = self.port.equity
         self._pending_alerts: list[str] = []

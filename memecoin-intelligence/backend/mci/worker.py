@@ -41,6 +41,10 @@ from mci.onchain.service import OnchainService
 from mci.paper_trading.experiments import CurveExperiment, SafeRulesExperiment
 from mci.paper_trading.lab import LabEngine
 from mci.onchain.journal import Journal
+from mci.onchain.wallet_ledger import WalletLedger
+from mci.paper_trading.copy_sim import build_sims
+from mci.paper_trading.copy_sim import refresh as refresh_copy_leaders
+from mci.research import copy_store
 from mci.research import feature_store as fs
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
@@ -70,6 +74,14 @@ class Worker:
         self.tracker = LaunchTracker()
         self.journal = Journal()
         self.tracker.journal = self.journal
+        # wallet ledger (who really earns on the curves) and the copy experiment that tests following them
+        self.ledger = WalletLedger()
+        self.copy_sims = build_sims()
+        self.tracker.listeners = [self.ledger, *self.copy_sims]
+        try:
+            self.ledger.load(copy_store.load_wallet_days(days=4))
+        except Exception as e:
+            log.warning("storico dei wallet non caricato: %s", e)
         try:  # names of recent launches, so the 'copy' fact also works right after a restart
             self.journal.seed_names(fs.recent_launch_names(days=7))
         except Exception as e:  # never block the start for this
@@ -141,6 +153,8 @@ class Worker:
             "chain_stream": self.stream.health() if self.stream else {"enabled": False},
             "onchain": self.onchain.health() if self.onchain else {"enabled": False},
             "journal": self.journal.health(),
+            "wallet_ledger": self.ledger.health(),
+            "copy": [sim.health() for sim in self.copy_sims],
             "experiments": [{"mode": e.mode, "candidates": getattr(e, "last_candidates", None)} for e in self.experiments],
             "network_costs": {"priority_fee_sol": self.costs.priority_fee_sol, "jito_tip_sol": self.costs.jito_tip_sol},
             "telegram_enabled": self.tg.enabled,
@@ -213,7 +227,10 @@ class Worker:
         fs.persist_stream(rows)
         fs.write_feature_snapshots(self.tracker.due_horizons(), self.tracker)
         self._chain_ticks += 1
+        for sim in self.copy_sims:
+            copy_store.save_copy_trades(sim.drain())
         if self._chain_ticks % 40 == 0:
+            await asyncio.to_thread(copy_store.save_wallet_days, self.ledger.drain_dirty())
             self.tracker.evict()
             counts = await asyncio.to_thread(fs.dataset_counts)
             with session_scope() as s:
@@ -241,6 +258,13 @@ class Worker:
                 merged.append([a, b])
         return merged
 
+    async def copy_leaders_once(self) -> None:
+        """Choose the wallets to follow from PAST data only; the copies that follow are out of sample."""
+        summary = self.ledger.summary()  # in the event loop: the stream callbacks mutate the ledger
+        info = refresh_copy_leaders(self.copy_sims, summary)
+        with session_scope() as s:
+            repo.set_state(s, "copy_leaders", info)
+
     async def labels_once(self) -> None:
         n = fs.label_due(self._gaps())
         if n:
@@ -259,6 +283,12 @@ class Worker:
         except Exception as e:  # the journal study must never stop the main research report
             log.warning("studio degli eventi non riuscito: %s", e)
             ev = None
+        try:
+            copy_rep = await asyncio.to_thread(copy_store.copy_report)
+            with session_scope() as s:
+                repo.set_state(s, "copy_report", copy_rep)
+        except Exception as e:
+            log.warning("rapporto dell'esperimento di copia non riuscito: %s", e)
         try:
             lab_rules = await asyncio.to_thread(run_rules_lab)
         except Exception as e:
@@ -316,6 +346,7 @@ class Worker:
                 await self.notifier.notify("daily", p)
                 self.retention()
                 kept = fs.retention()
+                kept.update(copy_store.retention())
                 with session_scope() as s:
                     repo.log_event(s, "system", f"retention dati on-chain: {kept}")
             except Exception:
@@ -481,6 +512,7 @@ class Worker:
             asyncio.create_task(self._loop("labels", 600, self.labels_once)),
             # hourly: ~10 s of CPU in a thread; the first outcomes arrive 4 h after the first launches
             asyncio.create_task(self._loop("research", 3600, self.research_once)),
+            asyncio.create_task(self._loop("copyleaders", 3600, self.copy_leaders_once)),
             asyncio.create_task(self._loop("netcosts", 600, self.netcosts_once)),
         ]
         if self.pump:
@@ -493,6 +525,10 @@ class Worker:
         await asyncio.gather(*tasks, return_exceptions=True)
         try:
             fs.persist_stream(self.tracker.drain())  # do not lose the last seconds of chain data
+            copy_store.save_wallet_days(self.ledger.drain_dirty())
+            for sim in self.copy_sims:
+                sim.close_all()
+                copy_store.save_copy_trades(sim.drain())
         except Exception:
             log.exception("final chain data flush failed")
         for c in (self.dex, self.gecko, self.rug, self.jup, self.rpc, self.fx, self.tg, self.rpc_pool):

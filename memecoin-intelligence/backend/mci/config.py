@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     initial_capital_sol: float = 2.0
     risk_profile: Literal["conservative", "moderate", "aggressive"] = "moderate"
     enabled_strategies: str = "A,B,C,D,E"
+    # strategies switched off in the MAIN portfolio only (the Laboratorio keeps measuring them). A = Early Entry:
+    # 1 win in 10 lab trades (-23.5% average) and every historical test of early buying lost (docs, section 9).
+    # Decided with the user's approval on 2026-11-03.
+    main_disabled_strategies: str = "A"
 
     # --- trading mode -------------------------------------------------------------
     # 'paper' is the default. 'live' is only honoured if ALL live gates pass.
@@ -149,6 +153,11 @@ class Settings(BaseSettings):
     @property
     def strategies(self) -> list[str]:
         return [s.strip().upper() for s in self.enabled_strategies.split(",") if s.strip()]
+
+    @property
+    def main_strategies(self) -> list[str]:
+        off = {s.strip().upper() for s in self.main_disabled_strategies.split(",") if s.strip()}
+        return [c for c in self.strategies if c not in off]
 
     @property
     def telegram_enabled(self) -> bool:

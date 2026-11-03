@@ -140,6 +140,7 @@ class LaunchTracker:
         self.stats: dict[str, int] = {"creates": 0, "trades": 0, "untracked_trades": 0, "completes": 0,
                                       "pumpportal_creates": 0, "evicted": 0}
         self.journal: Any = None  # optional mci.onchain.journal.Journal (lifecycle diary of every launch)
+        self.listeners: list[Any] = []  # objects with on_create(st), on_trade(mint, t), on_complete(mint), tick(now)
 
     # ------------------------------------------------------------------ stream health
     def stream_up(self) -> None:
@@ -177,6 +178,8 @@ class LaunchTracker:
                     st.dirty = True
                     if self.journal is not None:
                         self.journal.on_complete(ev.mint, st.complete_ts, st.price)
+                    for li in self.listeners:
+                        li.on_complete(ev.mint)
 
     def _register(self, st: LaunchState) -> None:
         self.launches[st.mint] = st
@@ -206,10 +209,14 @@ class LaunchTracker:
             self._upgraded.append(new)  # its database row must get the on-chain time, slot and creator
             if self.journal is not None:
                 self.journal.on_create(new)
+            for li in self.listeners:
+                li.on_create(new)
             return
         self._register(new)
         if self.journal is not None:
             self.journal.on_create(new)
+        for li in self.listeners:
+            li.on_create(new)
 
     def on_pumpportal(self, ev: dict[str, Any]) -> None:
         """PumpPortal create events: launch counter and creator when the chain stream is down or slower."""
@@ -257,8 +264,11 @@ class LaunchTracker:
             else:
                 st.early_truncated = True
         st.last = t
-        if self.journal is not None and st.source == "stream":
-            self.journal.on_trade(ev.mint, t)
+        if st.source == "stream":
+            if self.journal is not None:
+                self.journal.on_trade(ev.mint, t)
+            for li in self.listeners:
+                li.on_trade(ev.mint, t)
         p = t.price
         if p:
             st.peak_price = max(st.peak_price or p, p)
@@ -367,6 +377,8 @@ class LaunchTracker:
         if self.journal is not None:
             self.journal.tick(now)
             events = self.journal.drain()
+        for li in self.listeners:
+            li.tick(now)
         return {"launches": new, "launch_updates": updates, "stats": stats, "trades": trades, "bars": bars,
                 "events": events}
 

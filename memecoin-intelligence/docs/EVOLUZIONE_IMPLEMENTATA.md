@@ -148,6 +148,16 @@ dello stream. I messaggi automatici restano solo acquisti e vendite del portafog
   2026 prima di vederne i risultati**, applicate a ogni lancio osservato dopo quella data, con latenza, commissioni,
   priority fee e stop riempito a −60%. Verdetto "promettente" solo con almeno 300 casi fuori campione, intervallo
   di confidenza sopra zero e correzione per test multipli. Non cambia nulla da solo.
+* **Registro dei wallet ed esperimento di copia** (pagina Ricerca): dallo stesso stream il bot calcola il risultato
+  reale in SOL di ogni wallet sulle curve (commissioni incluse; le posizioni rimaste in mano su token morti contano
+  come perdite; esclusi creatori e vendite di token ricevuti da altri wallet). Ogni ora sceglie i 50 migliori degli
+  ultimi 3 giorni con filtri pre-registrati (almeno 8 posizioni, metà vincenti, +1 SOL, non sniper del primo blocco,
+  non "mordi e fuggi" sotto 60 s) e simula di copiarli **da quel momento in poi** con 3 o 10 secondi di ritardo
+  (0,1 SOL a copia, curva esatta, commissioni e priority fee). Un gruppo di 50 wallet a caso con la stessa attività
+  fa da controllo. Verdetto solo con almeno 200 copie in 7 giorni, intervallo di confidenza sopra zero e sopra il
+  controllo. Nessuna operazione reale.
+* **Strategia A spenta nel portafoglio principale** (3 novembre 2026, con il tuo consenso): 1 vincente su 10 nel
+  Laboratorio e tutti i test storici sugli acquisti precoci perdenti; continua a essere misurata nel Laboratorio.
 * **Studi storici gratuiti** sui runner di GitHub (workflow `memecoin historical study`): vedi
   [RICERCA_MERCATO_MEMECOIN.md](RICERCA_MERCATO_MEMECOIN.md), sezione 9.
 

@@ -13,6 +13,48 @@ function AucCell({ v }: { v: any }) {
   return <span className={v.informative ? "" : "muted"}>{v.auc?.toFixed(3)}{ci}{v.informative ? " ✓" : ""}</span>;
 }
 
+const VARIANT: Record<string, string> = {
+  x_copy_3s: "copia i migliori, 3 s di ritardo", x_copy_10s: "copia i migliori, 10 s di ritardo",
+  x_copy_ctrl: "controllo: wallet a caso, 3 s",
+};
+
+function CopyExperiment({ c }: { c: any }) {
+  if (!c) return null;
+  const rep = c.report?.variants ?? {};
+  const live = Object.fromEntries((c.live ?? []).map((v: any) => [v.variant, v]));
+  const pct = (v: number | null | undefined) => v == null || Number.isNaN(v) ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+  const variants = Array.from(new Set([...Object.keys(VARIANT), ...Object.keys(rep)]));
+  return (
+    <div className="card section">
+      <h2>Esperimento: copiare i wallet che guadagnano davvero</h2>
+      <div className="note">
+        Il bot misura dallo stream gratuito il risultato reale di ogni wallet sulle curve pump.fun (perdite incluse, anche quelle
+        tenute in portafoglio; esclusi creatori, sniper del primo blocco, chi vende token ricevuti da altri). Ogni ora sceglie i
+        50 migliori degli <b>ultimi 3 giorni</b> e simula di copiarne gli acquisti <b>da quel momento in poi</b>, con qualche secondo
+        di ritardo, 0,1 SOL a copia, commissioni incluse. Un gruppo di wallet a caso fa da controllo: se i "migliori" non lo battono,
+        era solo fortuna. Nessuna operazione reale.
+      </div>
+      <table><thead><tr><th>Variante</th><th className="num">Copie chiuse</th><th className="num">Media</th><th className="num">IC 95%</th>
+        <th className="num">Mediana</th><th className="num">Vincenti</th><th className="num">P/L (SOL)</th><th className="num">Aperte ora</th><th>Verdetto</th></tr></thead>
+        <tbody>{variants.map((v) => {
+          const r = rep[v] ?? {}; const l = live[v] ?? {};
+          return (
+            <tr key={v}><td>{VARIANT[v] ?? v}</td><td className="num">{fmtNum(r.n ?? 0)}</td><td className="num">{pct(r.mean_pct)}</td>
+              <td className="num">{r.ci_pct ? `${pct(r.ci_pct[0])} / ${pct(r.ci_pct[1])}` : "–"}</td><td className="num">{pct(r.median_pct)}</td>
+              <td className="num">{r.win_rate != null ? fmtPctPlain(r.win_rate) : "–"}</td><td className="num">{r.pnl_sol ?? "–"}</td>
+              <td className="num">{fmtNum(l.open ?? 0)}</td><td>{r.verdict ?? "in attesa delle prime copie"}</td></tr>
+          );
+        })}</tbody></table>
+      {c.leaders && (
+        <div className="muted">Scelta del {fmtTime(c.leaders.chosen_at)}: {fmtNum(c.leaders.wallets_measured)} wallet misurati,
+          {" "}{fmtNum(c.leaders.eligible)} con attività copiabile, {(c.leaders.leaders ?? []).length} scelti
+          {(c.leaders.leaders ?? []).length > 0 && ` (il primo: ${c.leaders.leaders[0].n} posizioni, ${fmtPctPlain(c.leaders.leaders[0].win_rate)} vincenti, ${c.leaders.leaders[0].pnl_sol} SOL)`}.
+          {c.ledger && ` Registro: ${fmtNum(c.ledger.positions_closed)} posizioni chiuse, ${fmtNum(c.ledger.marked_dead)} rimaste in mano su token morti, ${fmtNum(c.ledger.transfer_sells)} vendite di token ricevuti da altri.`}</div>
+      )}
+    </div>
+  );
+}
+
 function RulesLab({ lab }: { lab: any }) {
   if (!lab) return null;
   const pct = (v: number | null) => v == null ? "–" : `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
@@ -105,6 +147,7 @@ export default function Research() {
         <Kpi label="Candele dallo stream" value={fmtNum(d.stream_candles)} />
         <Kpi label="Eventi nel diario" value={fmtNum(d.token_events)} sub="fatti on-chain di ogni lancio" />
       </div>
+      <CopyExperiment c={data?.copy} />
       <RulesLab lab={data?.rules_lab} />
       <EventStudy ev={data?.event_study} />
       {!r && <div className="warn-box">Il primo rapporto viene calcolato dopo l'avvio e poi ogni ora: servono almeno 4 ore di raccolta per i primi esiti.</div>}

@@ -131,6 +131,13 @@ jobs:
                     f"+100% {g.get('p_up_100')} · -50% {g.get('p_down_50')} · diploma {g.get('p_migrated')} · confronto {g.get('baseline')}")
           for h, b in (es.get("baseline") or {}).items():
               print(f"    momento qualsiasi {h}: {b}")
+          cp = d["research"].get("copy") or {}
+          print(f"\n### Esperimento di copia dei wallet\n- registro: {cp.get('ledger')}")
+          print(f"- scelta: {({k: v for k, v in (cp.get('leaders') or {}).items() if k != 'leaders'})} · primi 5: {((cp.get('leaders') or {}).get('leaders') or [])[:5]}")
+          for v in cp.get("live") or []:
+              print(f"- dal vivo {v}")
+          for k, v in (((cp.get("report") or {}).get("variants")) or {}).items():
+              print(f"- {k}: {v}")
           rl = d["research"].get("rules_lab") or {}
           print(f"\n### Laboratorio delle regole (registrate {rl.get('registered_at')}, righe {rl.get('rows')})")
           for x in rl.get("results") or []:

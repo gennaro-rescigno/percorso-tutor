@@ -239,3 +239,11 @@ def test_listed_token_facts_from_consecutive_scanner_snapshots(db):
         assert "price_drop" not in k  # 1.8x -> 1.2x is -33%: below the -40% threshold
         assert all(e.source == "scanner" for e in s.scalars(select(TokenEvent)).all())
         assert listed_study(s, t0 - timedelta(hours=1), utcnow()) == []  # fewer than 30 cases: nothing claimed
+
+
+def test_strategy_a_is_off_in_the_main_portfolio_only():
+    from mci.config import Settings
+
+    s = Settings(enabled_strategies="A,B,C,D,E")
+    assert s.main_strategies == ["B", "C", "D", "E"] and s.strategies == ["A", "B", "C", "D", "E"]
+    assert Settings(enabled_strategies="A,B", main_disabled_strategies="").main_strategies == ["A", "B"]

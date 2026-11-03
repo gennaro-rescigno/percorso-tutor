@@ -473,6 +473,11 @@ class Scanner:
         if pumpish and snap.bonding_curve is not False and c.due("curve_state", 120) \
                 and await guarded("curve", lambda: oc.curve_state(snap)):
             c.mark("curve_state")
+        if snap.bonding_curve is False and c.candle_source.get("1m") == "stream":
+            # migrated to a DEX: the curve candles stop here, the pool candles come from GeckoTerminal again
+            c.candles.pop("1m", None)
+            c.candle_source.pop("1m", None)
+            c.last_enriched.pop("gecko", None)
         f = oc.stream_view(snap)
         st = oc.tracker.get(c.address)
         if f is not None:

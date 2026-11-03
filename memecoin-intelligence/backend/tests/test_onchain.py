@@ -541,3 +541,25 @@ def test_pumpportal_launch_confirmed_by_the_chain_is_updated_in_the_database(db)
     fs.persist_stream(tr.drain())
     with session_scope() as s:
         assert s.get(PumpLaunch, "M3").source == "stream"
+
+
+
+async def test_migrated_token_drops_curve_candles(db):
+    """After migration the stream candles of the curve must not be kept (GeckoTerminal takes over)."""
+    from mci.config import get_settings
+    from mci.scanner.service import Scanner, TrackedToken
+
+    mint = b58encode(b"\x09" * 32)
+    tr = LaunchTracker()
+    _synthetic_launch(tr, mint, time.time())
+    rpc, client = _rpc_with_accounts({mint: live("mint_new_mayhem")["result"]["value"]})
+    sc = Scanner(get_settings(), None, None, None, None, None, onchain=OnchainService(rpc, tr))  # type: ignore[arg-type]
+    tt = TrackedToken(mint, TokenSnapshot(chain="solana", token_address=mint, observed_at=utcnow(), bonding_curve=True,
+                                          dex_id="pumpfun"), utcnow(), "pumpportal")
+    await sc._enrich_onchain(tt, 150.0, wallet_budget=0)
+    assert tt.candle_source.get("1m") == "stream"
+    tt.snapshot.bonding_curve = False  # migrated (DexScreener now reports a pumpswap pool)
+    tt.mark("gecko")
+    await sc._enrich_onchain(tt, 150.0, wallet_budget=0)
+    assert "1m" not in tt.candles and "1m" not in tt.candle_source and tt.due("gecko", 300)
+    await client.aclose()

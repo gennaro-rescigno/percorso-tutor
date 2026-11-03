@@ -311,7 +311,7 @@ e dal −9% al −57% a settembre.
 | Modello che sceglie quando entrare per 5-10 minuti | 1,26 milioni di momenti, set-ott | perde (−7% / −10%) dopo la correzione |
 | Modello portabile per token quotati, 1 e 4 ore | 1 milione di momenti giu-lug + 152.656 set | perde (da −3% a −57%) |
 | Fornire liquidità ai pool PumpSwap (fare il banco), 1 h - 3 giorni | 5.067 token giu-lug + 19.242 set | perde (da −4% a −52%), sezione 9.10 |
-| Short sui perpetui Binance di altcoin e memecoin, 1-3 giorni | 918 contratti 2020-2026 | sezione 10.2 |
+| Short sui perpetui Binance di altcoin e memecoin, 1-3 giorni | 918 contratti 2020-2026 | nessuna regge (la migliore +3,7% annuo, negativa con costi doppi), sezione 10.2 |
 
 1. Con i vincoli della demo (dati e infrastruttura gratuiti, nessuna velocità da blocco 0) **non è stata trovata
    nessuna strategia profittevole**, su milioni di casi e quattro periodi diversi. È coerente con la letteratura: i
@@ -425,6 +425,32 @@ ritardo perde, e il risultato dipende da pochi anni di euforia (2021, 2024, 2026
 aggiunta al bot. Il sottoinsieme "solo memecoin" è positivo ma conta solo 130 operazioni, era quasi piatto nel
 2018-2021 e usa un elenco di memecoin scritto oggi (conoscendo già quali sono sopravvissute): non è una prova.
 L'unica regola che ha superato tutte le verifiche resta il trend di sezione 10.
+
+### 10.2 Scommettere sulla discesa: short sui perpetui, 1-3 giorni (`crypto_short`)
+
+Se comprare altcoin e memecoin perde, forse vendere allo scoperto guadagna. 918 perpetui USDT di Binance 2020-2026
+(31 chiusi, inclusi; 36 memecoin), le 100 più scambiate ogni giorno, al massimo 10 posizioni da un decimo, garanzia 1x,
+stop a +15% sul massimo del giorno, commissione 0,05% + slittamento 0,05-0,20% per lato, **funding reale** di Binance
+accreditato o addebitato ogni giorno. Contesto: nel 2022-2026 il 53,9% di queste monete scende nei 3 giorni successivi,
+ma la variazione media è solo −0,25% (mediana −0,67%): la discesa media è più piccola dei costi.
+
+| Regola (fuori campione 2022-2026) | 1 / 2 / 3 giorni: rendimento annuo | Funding medio per operazione (3 giorni) | Fermate dallo stop (3 giorni) |
+|---|---|---|---|
+| SH1 vendere dopo l'hype (+10% e volume triplo) | −38% / −48% / −43% | −0,34% | 41% |
+| SH2 SH1 solo con BTC sotto la media di 50 giorni | −6% / −8% / −5% | −0,71% | 40% |
+| SS1 vendere le 5 più salite in 3 giorni | −58% / −53% / −45% | −0,20% | 28% |
+| SN1 vendere i nuovi listing al secondo giorno | +1,3% / +0,6% / +3,7% | −0,21% | 41% |
+| SF1 vendere quando il funding è >= 0,10% | −37% / −31% / −26% | +0,24% | 40% |
+| SB1 seguire la debolezza con BTC in calo | −30% / −25% / −23% | −0,13% | 21% |
+
+- **Nessuna regola regge.** L'unica positiva, vendere i nuovi listing (SN1), guadagna pochissimo (+3,7% annuo a
+  3 giorni, intervallo dello Sharpe da −0,66 a 1,09) e diventa negativa con costi doppi (−1,8%) o entrando un giorno
+  dopo (−0,6%).
+- Dopo l'hype il **funding gioca contro chi vende**: chi è già corto paga (in media −0,3/−0,7% per operazione), e il
+  40% delle posizioni viene fermato da rialzi improvvisi del 15% (le memecoin "squeezano" i venditori).
+- Una nota sul primo calcolo: nella prima esecuzione il funding non veniva abbinato alle candele (date con e senza
+  fuso orario); corretto e rieseguito con le stesse regole. Senza funding SN1 a 3 giorni faceva +6,0%: il funding
+  pagato dai venditori ne mangia quasi metà.
 
 ## 11. Fonti principali
 

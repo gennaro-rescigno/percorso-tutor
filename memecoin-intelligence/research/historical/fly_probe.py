@@ -15,11 +15,16 @@ DS = "bryceweiner/fly-trader-seed"
 
 
 def pg_restore() -> str:
-    for cand in ("pg_restore", "/usr/lib/postgresql/18/bin/pg_restore", "/usr/lib/postgresql/17/bin/pg_restore",
-                 "/usr/lib/postgresql/16/bin/pg_restore"):
-        if shutil.which(cand) or cand.startswith("/") and shutil.os.path.exists(cand):
-            return cand
-    raise RuntimeError("pg_restore non trovato")
+    """Newest installed pg_restore first: the dump uses archive format 1.16 (PostgreSQL 17+)."""
+    import glob
+    import os
+
+    found = sorted(glob.glob("/usr/lib/postgresql/*/bin/pg_restore"), key=lambda p: int(p.split("/")[4]), reverse=True)
+    if found:
+        return found[0]
+    if shutil.which("pg_restore"):
+        return "pg_restore"
+    raise RuntimeError("pg_restore non trovato: " + str(os.listdir("/usr/lib/postgresql")))
 
 
 def main() -> None:

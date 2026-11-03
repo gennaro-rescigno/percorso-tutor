@@ -18,8 +18,43 @@ Pre-registrazione (testo originale):
   * verdict "positive" only with q (Benjamini-Hochberg over all tests) < 0.05 and both halves of A positive; a rule
     is "portable" only if it is also positive on B (the other period).
 ```
-A (giugno-luglio): 1,002,433 momenti di decisione di 5,067 token, 1 giorni.
-pg_restore: error: unsupported version (1.16) in file header
-B non disponibile: ValueError: NaTType does not support strftime
-_(nessuna riga: dati insufficienti per questa tabella)_
+A (giugno-luglio): 1,002,433 momenti di decisione di 5,067 token, 28 giorni.
+Candele estratte: 1,033,011 di 28,721 token, dal 2026-09-14 al 2026-09-21.
+/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/dex_model.py:135: RuntimeWarning: invalid value encountered in divide
+  out["accel"] = np.where(df.vol.to_numpy() > 0, vol5 / df.vol.to_numpy(), np.nan)
+B (settembre, altra fonte): 152,656 momenti orari di 28,721 token.
+| dati | tenuta_h | selezione | lettura | n | media_% | IC95_basso_% | IC95_alto_% | p | mediana_% | vincenti_% | 1a_metà_% | 2a_metà_% | q_BH | verdetto |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A giu-lug | 1 | P0 ogni momento | ottimistica | 10317 | 0.1597 | -13.87 | 25.02 | 0.5435 | -5.845 | 8.355 | -6.464 | 2.672 | 0.7905 | non dimostrata |
+| A giu-lug | 1 | P0 ogni momento | pessimistica | 10317 | -1.602 | -16.17 | 23.1 | 0.6265 | -5.845 | 8.268 | -7.627 | 0.683 | 0.8019 | non dimostrata |
+| A giu-lug | 1 | P1 previsto > 0 | ottimistica | 2570 | 6.652 | -5.686 | 25.7 | 0.233 | -12.46 | 23.31 | -12.2 | 14.42 | 0.3924 | non dimostrata |
+| A giu-lug | 1 | P1 previsto > 0 | pessimistica | 2570 | 5.524 | -6.859 | 24.16 | 0.272 | -13.14 | 23.07 | -12.45 | 12.93 | 0.4145 | non dimostrata |
+| A giu-lug | 1 | P2 5% più alto | ottimistica | 2778 | 8.708 | -3.31 | 26.22 | 0.1165 | -13.02 | 22.75 | -4.753 | 12.82 | 0.2193 | non dimostrata |
+| A giu-lug | 1 | P2 5% più alto | pessimistica | 2778 | 7.156 | -4.854 | 26.43 | 0.1895 | -13.69 | 22.5 | -4.753 | 10.79 | 0.3369 | non dimostrata |
+| A giu-lug | 1 | P3 1% più alto | ottimistica | 842 | 35.52 | 0.9045 | 91.43 | 0.0165 | -16.11 | 27.67 | -9.908 | 46.1 | 0.03771 | non dimostrata |
+| A giu-lug | 1 | P3 1% più alto | pessimistica | 842 | 33.57 | -0.3051 | 88.54 | 0.0285 | -18.72 | 27.2 | -9.908 | 43.69 | 0.057 | non dimostrata |
+| A giu-lug | 4 | P0 ogni momento | ottimistica | 10317 | -14.79 | -19.97 | -9.019 | 1 | -7.711 | 7.357 | -12.62 | -15.61 | 1 | non dimostrata |
+| A giu-lug | 4 | P0 ogni momento | pessimistica | 10317 | -20.49 | -25.59 | -14.55 | 1 | -10.59 | 7.056 | -17.06 | -21.79 | 1 | non dimostrata |
+| A giu-lug | 4 | P1 previsto > 0 | ottimistica | 1991 | -0.8165 | -10.79 | 12.49 | 0.576 | -18.3 | 18.08 | -5.147 | 1.38 | 0.8014 | non dimostrata |
+| A giu-lug | 4 | P1 previsto > 0 | pessimistica | 1991 | -4.693 | -15.28 | 9.233 | 0.7905 | -21.31 | 17.38 | -6.305 | -3.875 | 0.9369 | non dimostrata |
+| A giu-lug | 4 | P2 5% più alto | ottimistica | 2788 | -4.532 | -11.09 | 4.072 | 0.8745 | -10.25 | 15.53 | -18.21 | -0.9799 | 0.965 | non dimostrata |
+| A giu-lug | 4 | P2 5% più alto | pessimistica | 2788 | -9.98 | -16.63 | -1.48 | 0.9875 | -13.87 | 14.85 | -18.83 | -7.681 | 1 | non dimostrata |
+| A giu-lug | 4 | P3 1% più alto | ottimistica | 459 | -1.439 | -16.62 | 16.61 | 0.6085 | -27.72 | 20.7 | -27.76 | 4.805 | 0.8019 | non dimostrata |
+| A giu-lug | 4 | P3 1% più alto | pessimistica | 459 | -8.592 | -22.81 | 9.218 | 0.8595 | -32.89 | 19.39 | -27.76 | -4.044 | 0.965 | non dimostrata |
+| B settembre | 1 | P0 ogni momento | ottimistica | 47566 | 56.84 | 9.567 | 102.8 | 0.0075 | -5.845 | 2.76 |  |  | 0.02 | positiva |
+| B settembre | 1 | P0 ogni momento | pessimistica | 47566 | 15.68 | -30.32 | 61.41 | 0.2465 | -11.45 | 2.712 |  |  | 0.3944 | non dimostrata |
+| B settembre | 1 | P1 previsto > 0 | ottimistica | 8198 | 332.8 | 126 | 637.8 | 0.0005 | -5.845 | 3.269 |  |  | 0.001778 | positiva |
+| B settembre | 1 | P1 previsto > 0 | pessimistica | 8198 | 273.1 | 50.35 | 582.5 | 0.0015 | -100 | 3.184 |  |  | 0.0048 | positiva |
+| B settembre | 1 | P2 5% più alto | ottimistica | 14300 | 190.2 | 68.09 | 373.7 | 0.0005 | -5.845 | 3.364 |  |  | 0.001778 | positiva |
+| B settembre | 1 | P2 5% più alto | pessimistica | 14300 | 141.7 | 17.09 | 315.9 | 0.0055 | -100 | 3.28 |  |  | 0.016 | positiva |
+| B settembre | 1 | P3 1% più alto | ottimistica | 2304 | 1047 | 267.8 | 2027 | 0.0005 | -5.845 | 6.988 |  |  | 0.001778 | positiva |
+| B settembre | 1 | P3 1% più alto | pessimistica | 2304 | 996.6 | 218.5 | 2149 | 0.0005 | -100 | 6.727 |  |  | 0.001778 | positiva |
+| B settembre | 4 | P0 ogni momento | ottimistica | 47566 | 35.92 | 4.898 | 66.45 | 0.011 | -5.845 | 3.366 |  |  | 0.02708 | positiva |
+| B settembre | 4 | P0 ogni momento | pessimistica | 47566 | -9.217 | -39.55 | 21.92 | 0.7215 | -51.76 | 3.21 |  |  | 0.888 | non dimostrata |
+| B settembre | 4 | P1 previsto > 0 | ottimistica | 3786 | 482.8 | 178.6 | 904.5 | 0.0005 | -5.845 | 7.739 |  |  | 0.001778 | positiva |
+| B settembre | 4 | P1 previsto > 0 | pessimistica | 3786 | 426.9 | 110.8 | 872.8 | 0.0005 | -100 | 6.867 |  |  | 0.001778 | positiva |
+| B settembre | 4 | P2 5% più alto | ottimistica | 11601 | 156.7 | 57.39 | 296.1 | 0.0005 | -5.845 | 4.569 |  |  | 0.001778 | positiva |
+| B settembre | 4 | P2 5% più alto | pessimistica | 11601 | 97.75 | 3.143 | 244.4 | 0.0205 | -100 | 4.207 |  |  | 0.04373 | positiva |
+| B settembre | 4 | P3 1% più alto | ottimistica | 2501 | 445.9 | 184.3 | 771.3 | 0.0005 | -5.845 | 7.477 |  |  | 0.001778 | positiva |
+| B settembre | 4 | P3 1% più alto | pessimistica | 2501 | 386.9 | 137.6 | 706.9 | 0.0005 | -100 | 6.517 |  |  | 0.001778 | positiva |
 

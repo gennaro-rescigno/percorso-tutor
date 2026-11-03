@@ -48,7 +48,7 @@ def jocry_points() -> pd.DataFrame:
                                     "price_change_1h", "price_change_6h", "liquidity_usd", "volume_5m", "volume_1h",
                                     "buys_1h", "sells_1h", "market_cap_usd"])
     s = s[(s.price_usd > 0) & (s.liquidity_usd > 0)].copy()
-    s["t"] = pd.to_datetime(s.snapshot_time, utc=True).astype("int64") / 1e9
+    s["t"] = (pd.to_datetime(s.snapshot_time, utc=True) - pd.Timestamp("1970-01-01", tz="UTC")).dt.total_seconds()
     s = s.sort_values(["mint", "t"])
     g = s.groupby("mint")
     s["age_h"] = s.seconds_since_graduation / 3600

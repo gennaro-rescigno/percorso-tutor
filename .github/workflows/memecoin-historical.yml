@@ -25,7 +25,7 @@ jobs:
       - name: Disk and memory
         run: df -h /tmp && free -h && nproc && (pg_restore --version || true)
       - name: PostgreSQL client 18 (only to read pg_dump files of the fly study)
-        if: startsWith(inputs.study, 'fly')
+        if: startsWith(inputs.study, 'fly') || startsWith(inputs.study, 'dex')
         run: |
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -fsSo /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc

@@ -157,7 +157,7 @@ async def main() -> None:
         early = list(reversed(sigs))[:15]
         txs = []
         for s in early:
-            tx = await rpc(http, "getTransaction", [s["signature"], {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 0}])
+            tx = await rpc(http, "getTransaction", [s["signature"], {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 1}])
             txs.append(tx)
         (OUT / "early_txs_normal.json").write_text(json.dumps({"create": c, "txs": txs}, indent=1)[:5_000_000])
         rows = []

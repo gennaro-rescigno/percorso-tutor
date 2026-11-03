@@ -4,6 +4,11 @@ name: memecoin live probe
 # Sola lettura: nessuna transazione firmata o inviata.
 on:
   workflow_dispatch:
+    inputs:
+      only_ws:
+        description: "solo la sonda WebSocket"
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -20,10 +25,12 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install "httpx>=0.27" "websockets>=12" "solders>=0.21"
       - name: Probe
+        if: ${{ !inputs.only_ws }}
         run: python memecoin-intelligence/backend/scripts/live_probe.py /tmp/fixtures
       - name: Probe 2 - free real-time trades from the public Solana WebSocket
         run: python memecoin-intelligence/backend/scripts/ws_probe.py /tmp/fixtures
       - name: Publish fixtures to the live-fixtures branch
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

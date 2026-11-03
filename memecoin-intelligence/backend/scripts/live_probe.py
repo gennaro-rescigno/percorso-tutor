@@ -171,7 +171,7 @@ async def main() -> None:
                 txs = []
                 for s in oldest:
                     tx = await rpc("getTransaction", [s["signature"], {"encoding": "jsonParsed",
-                                                                       "maxSupportedTransactionVersion": 0,
+                                                                       "maxSupportedTransactionVersion": 1,
                                                                        "commitment": "confirmed"}])
                     txs.append(tx)
                 save("curve_early_txs", {"curve": curve, "mint": mint, "txs": txs})
@@ -194,7 +194,7 @@ async def main() -> None:
                 tx = None
                 if oldest:
                     tx = await rpc("getTransaction", [oldest["signature"], {"encoding": "jsonParsed",
-                                                                            "maxSupportedTransactionVersion": 0,
+                                                                            "maxSupportedTransactionVersion": 1,
                                                                             "commitment": "confirmed"}])
                 save("wallet_funding", {"wallet": first_buyer, "n_signatures": len(sigs or []), "oldest_tx": tx})
                 note("wallet_funding", tx is not None, f"{first_buyer} firme={len(sigs or [])}")

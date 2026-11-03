@@ -243,7 +243,25 @@ molta attività è associato a più raddoppi (AUC 0,82), ma questo non basta a r
 perché i raddoppi restano pochi e le perdite degli altri pesano di più. Le regole R1, R2 e R6 del laboratorio
 (ritracciamento + attività) verificheranno lo stesso dal vivo: lo storico fa prevedere che non funzioneranno.
 
-### 9.5 Cosa ne segue per il bot
+### 9.5 I wallet che guadagnano: esiste un'abilità? Si può copiare? (jocry, giugno-luglio, 23,4 milioni di operazioni)
+
+- Su 574.000 wallet solo il **27,9% è in guadagno** sulle curve; i perdenti perdono in totale 356.049 SOL, i
+  vincenti guadagnano 193.625 SOL (la differenza va in commissioni, ai creatori, esclusi dal conteggio, e a operazioni
+  che il corpus non contiene). Il miglior 1% dei
+  wallet prende il **59,8%** di tutti i guadagni (in linea con Bitquery: 56%).
+- **L'abilità persiste**: in 11 finestre su 11 la correlazione di rango tra il rendimento di un wallet in 3 giorni e
+  nei 3 successivi è positiva (da 0,22 a 0,68). Il 10% migliore di una finestra guadagna in media circa **+5%** a
+  posizione nella finestra dopo, gli altri perdono circa −6%.
+- **Ma copiarli qualche secondo dopo non basta**: scegliendo ogni giorno i 50 migliori dei 3 giorni prima e
+  copiandone gli acquisti del giorno dopo (4.163 copie, 34 giorni), il risultato è **−5,9% a copia con 3 secondi di
+  ritardo** e −6,5% con 10 secondi, contro −9,1% copiando 50 wallet a caso. La selezione aiuta (circa +3 punti
+  rispetto al caso, con intervalli separati), ma non rende positivo il risultato: il vantaggio di quei wallet sta nei
+  primi secondi e nel momento esatto della vendita, che un seguace in ritardo non ottiene.
+- Uno studio di approfondimento (`jocry_copy2`) misura quanto vale la velocità (copia perfetta e 1 secondo), i wallet
+  "lenti", l'uscita fissa e il consenso di più wallet. Dal vivo, l'esperimento di copia del bot verifica lo stesso su
+  novembre.
+
+### 9.6 Cosa ne segue per il bot
 
 1. Le strategie "semplici" sui lanci (comprare presto, tenere fino al diploma, comprare dopo il diploma, comprare
    i crolli, seguire lo slancio o il flusso, comprare i ritracciamenti) sono **verificate perdenti** su milioni di

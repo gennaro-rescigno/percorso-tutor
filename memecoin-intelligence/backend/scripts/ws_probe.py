@@ -136,6 +136,24 @@ async def main() -> None:
         res["firehose_error"] = repr(e)
         created = []
         print("FIREHOSE ERR", repr(e), flush=True)
+    if not created:  # public WebSocket unavailable: new tokens from PumpPortal (free for creations)
+        import websockets
+
+        try:
+            async with websockets.connect("wss://pumpportal.fun/api/data", ping_interval=20) as ws:
+                await ws.send(json.dumps({"method": "subscribeNewToken"}))
+                t0 = time.time()
+                while time.time() - t0 < 60:
+                    try:
+                        m = json.loads(await asyncio.wait_for(ws.recv(), timeout=10))
+                    except asyncio.TimeoutError:
+                        continue
+                    if m.get("txType") == "create" and m.get("pool") == "pump" and not m.get("is_mayhem_mode"):
+                        created.append({"mint": m["mint"], "bonding_curve": m.get("bondingCurveKey"),
+                                        "creator": m.get("traderPublicKey"), "slot": None, "sig": m.get("signature")})
+            res["created_from"] = f"pumpportal ({len(created)})"
+        except Exception as e:  # noqa: BLE001
+            res["pumpportal_error"] = repr(e)
     await asyncio.sleep(90)  # let the new tokens collect their first buyers
     async with httpx.AsyncClient(timeout=30) as http:
         jito = (await http.post("https://mainnet.block-engine.jito.wtf/api/v1/getTipAccounts",
@@ -155,6 +173,8 @@ async def main() -> None:
             return
         c, sigs = best
         early = list(reversed(sigs))[:15]
+        if c.get("slot") is None and early:
+            c["slot"] = early[0].get("slot")
         txs = []
         for s in early:
             tx = await rpc(http, "getTransaction", [s["signature"], {"encoding": "jsonParsed", "maxSupportedTransactionVersion": 1}])

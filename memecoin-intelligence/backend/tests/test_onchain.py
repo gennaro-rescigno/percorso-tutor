@@ -449,3 +449,36 @@ async def test_scanner_onchain_enrichment_path(db):
                                                   bonding_curve=True), utcnow(), "x")
     await sc._enrich_onchain(bad, 150.0, wallet_budget=0)
     await client.aclose()
+
+
+async def test_stream_reconnects_after_the_server_drops_it():
+    """A real local WebSocket server sends real logs, then drops the connection: the stream must report the
+    outage (gap) and reconnect by itself."""
+    import asyncio
+
+    import websockets
+
+    tx = live("early_txs_normal")["txs"][0]
+    connections = []
+
+    async def handler(ws):
+        connections.append(1)
+        await ws.recv()  # logsSubscribe request
+        await ws.send(_ws_message(tx))
+        await asyncio.sleep(0.05)
+        await ws.close()  # the public node drops us
+
+    states = []
+    got = []
+    async with websockets.serve(handler, "127.0.0.1", 0) as server:
+        port = server.sockets[0].getsockname()[1]
+        stream = PumpStream(f"ws://127.0.0.1:{port}", got.extend, on_state=states.append)
+        task = asyncio.create_task(stream.run())
+        for _ in range(100):
+            await asyncio.sleep(0.05)
+            if len(connections) >= 2:
+                break
+        stream.stop()
+        await asyncio.wait_for(task, timeout=5)
+    assert len(connections) >= 2 and stream.stats["reconnects"] >= 1
+    assert states[:2] == [True, False] and len(got) >= 1

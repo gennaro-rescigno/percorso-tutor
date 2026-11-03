@@ -10,6 +10,7 @@ import concurrent.futures as cf
 import io
 import re
 import time
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -41,7 +42,7 @@ def _get(url: str, retries: int = 4) -> bytes:
 def list_prefixes(prefix: str) -> list[str]:
     out, marker = [], ""
     while True:
-        xml = _get(f"{BUCKET}?delimiter=/&prefix={prefix}&marker={marker}").decode()
+        xml = _get(f"{BUCKET}?delimiter=/&prefix={urllib.parse.quote(prefix)}&marker={urllib.parse.quote(marker)}").decode()
         found = re.findall(r"<Prefix>([^<]+)</Prefix>", xml)
         keys = re.findall(r"<Key>([^<]+)</Key>", xml)
         out += [p for p in found if p != prefix]
@@ -66,11 +67,19 @@ def usdt_symbols() -> list[str]:
 
 
 def _symbol_daily(sym: str) -> pd.DataFrame | None:
+    try:
+        return _symbol_daily_raw(sym)
+    except Exception as e:  # one broken pair must not stop the download
+        print(f"  {sym!r}: saltata ({type(e).__name__})", flush=True)
+        return None
+
+
+def _symbol_daily_raw(sym: str) -> pd.DataFrame | None:
     keys = [k for k in list_prefixes(f"data/spot/monthly/klines/{sym}/1d/") if k.endswith(".zip")]
     frames = []
     for k in keys:
         try:
-            z = zipfile.ZipFile(io.BytesIO(_get(f"{FILES}/{k}")))
+            z = zipfile.ZipFile(io.BytesIO(_get(f"{FILES}/{urllib.parse.quote(k)}")))
             with z.open(z.namelist()[0]) as f:
                 df = pd.read_csv(f, header=None, usecols=range(8))
         except Exception:

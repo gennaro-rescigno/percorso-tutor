@@ -4,7 +4,7 @@ name: memecoin VPS status
 on:
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write  # only to save the printed summary (public paper data, no secrets) in the research-results branch
 jobs:
   status:
     runs-on: ubuntu-24.04
@@ -31,7 +31,7 @@ jobs:
           # details of the highest-scoring tokens (why they were or were not bought)
           python3 -c "import json; [print(t['address']) for t in sorted(json.load(open('/tmp/d/scanner.json')).get('tokens', []), key=lambda t: -(t.get('score') or 0))[:8]]" \
             | while read -r a; do mkdir -p /tmp/d/tokens; curl -fsS -m 20 "http://$IP:8080/data/tokens/$a.json" -o "/tmp/d/tokens/$a.json" || true; done
-          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY" /tmp/vps_status.md
           import json
           from datetime import datetime, timezone
           d = {f: json.load(open(f"/tmp/d/{f}.json")) for f in ("meta", "overview", "positions", "logs", "signals", "scanner", "lab",
@@ -168,3 +168,18 @@ jobs:
           if age is None or age > 600 or not w.get("worker_alive"):
               raise SystemExit("ATTENZIONE: dati vecchi o worker non attivo")
           PY
+      - name: Save the summary in the research-results branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -s /tmp/vps_status.md ] || exit 0
+          REPO="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git clone -q --depth 1 -b research-results "$REPO" /tmp/res || exit 0
+          cp /tmp/vps_status.md /tmp/res/vps_status.md
+          cd /tmp/res
+          git config user.name "memecoin-bot"
+          git config user.email "memecoin-bot@users.noreply.github.com"
+          git add vps_status.md
+          git commit -q -m "vps status $(date -u +%Y-%m-%dT%H:%MZ)" || exit 0
+          git push -q "$REPO" research-results || (git pull -q --rebase "$REPO" research-results && git push -q "$REPO" research-results)

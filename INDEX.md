@@ -1,0 +1,31 @@
+# Fonti scaricate
+
+- ok   arxiv-2607.02823-graduation-survival (31,410 caratteri) https://arxiv.org/html/2607.02823v3
+- ok   arxiv-2607.02795-sniper-cohorts (6,175 caratteri) https://arxiv.org/abs/2607.02795
+- ok   arxiv-2512.11850-memecoin-phenomenon (29,768 caratteri) https://arxiv.org/html/2512.11850v3
+- ok   arxiv-2609.10246-meme-coin-factories (116,165 caratteri) https://arxiv.org/html/2609.10246v1
+- ok   arxiv-2610.39458-early-buyer-groups (203,983 caratteri) https://arxiv.org/html/2610.39458
+- ok   arxiv-2610.41597-serial-rug-exits (159,419 caratteri) https://arxiv.org/html/2610.41597
+- ok   arxiv-2507.01963-midsummer-meme-manipulation (95,101 caratteri) https://arxiv.org/html/2507.01963v2
+- ok   arxiv-2602.13480-memetrans-melt (45,663 caratteri) https://arxiv.org/html/2602.13480v2
+- ok   devto-2193-graduations-first-10-min (5,599 caratteri) https://dev.to/launchtape/what-2193-pumpfun-graduations-did-in-their-first-10-minutes-and-what-it-means-for-your-bot-4f70
+- ok   arrowalgo-1411-launches (15,524 caratteri) https://arrowalgo.com/solana-memecoin-trading/
+- ok   bitquery-74pct-lose (16,086 caratteri) https://bitquery.io/investigations/solana-memecoin-traders-lose-money
+- ok   bitquery-snipers-bundles (24,905 caratteri) https://bitquery.io/investigations/pump-fun-snipers-bundles
+- FAIL substack-call-channels https://moneyleavesclues.substack.com/p/inside-the-economics-of-pumpfun-call: HTTPError: HTTP Error 403: Forbidden
+- FAIL medium-memecoin-encyclopedia https://medium.com/@rakesh.therani/the-memecoin-trading-encyclopedia-35-concepts-backed-byproduction-data-6745ab79d1c9: HTTPError: HTTP Error 403: Forbidden
+- ok   pumpfundata-graduation-rate (5,858 caratteri) https://pumpfundata.com/blog/pumpfun-graduation-rate-analysis
+- ok   github-pump-bundle-check (2,862 caratteri) https://raw.githubusercontent.com/opsec-bot/pump-bundle-check/main/README.md
+- ok   coingecko-pumpfun-traders (11,717 caratteri) https://www.coingecko.com/research/publications/pump-fun-traders-are-making-a-comeback
+- ok   xanguard-307-calls (7,315 caratteri) https://xanguard.tech/blog/pumpfun-caller-win-rates/
+- ok   memegateway-bundles (13,075 caratteri) https://memegateway.com/academy/detect-bundled-launches-insider-wallets/
+- FAIL blofin-mayhem-mode https://blofin.com/academy/education/pumpfun/what-is-mayhem-mode: HTTPError: HTTP Error 403: Forbidden
+- ok   madeonsol-pumpswap (19,899 caratteri) https://madeonsol.com/blog/what-is-pumpswap
+- ok   dataset jocry/Pumpfun_Memecoin_Corpus: 28 file, 6.70 GB
+- ok   dataset loopholetape/pumpfun-launches: 99 file, 0.52 GB
+- ok   dataset bryceweiner/fly-trader-seed: 4 file, 2.29 GB
+- ok   dataset AratiKamat/red-pump-2026: 8 file, 0.18 GB
+- FAIL dataset cryptodata/pumpfun-dataset-light: HTTPError: HTTP Error 401: Unauthorized
+- ok   dataset launchtape/solana-launch-tape: 18 file, 0.27 GB
+- ok   dataset pumpdatafun/pump-fun-trades-sample: 16 file, 4.15 GB
+- ok   dataset hussxamg04/trenches-pumpfun-forward-2026-08: 13 file, 0.10 GB

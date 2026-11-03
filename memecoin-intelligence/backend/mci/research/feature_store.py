@@ -14,7 +14,7 @@ from typing import Any
 
 from sqlalchemy import bindparam, delete, insert, select, update
 
-from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, PumpTradeRow, WalletProfile
+from mci.database.models import CandleRow, FeatureSnapshot, PumpLaunch, PumpTradeRow, TokenEvent, WalletProfile
 from mci.database.session import session_scope
 from mci.domain import TokenSnapshot, utcnow
 from mci.onchain.curve_features import FEATURE_VERSION, MIN_COVERAGE, curve_features
@@ -36,7 +36,7 @@ def _aware(d: datetime | None) -> datetime | None:
 
 def persist_stream(rows: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
     """Write what ``LaunchTracker.drain()`` returned. Idempotent on restarts (existing keys are skipped)."""
-    out = {"launches": 0, "launch_updates": 0, "stats": 0, "trades": 0, "bars": 0}
+    out = {"launches": 0, "launch_updates": 0, "stats": 0, "trades": 0, "bars": 0, "events": 0}
     with session_scope() as s:
         launches = rows.get("launches") or []
         if launches:
@@ -80,6 +80,10 @@ def persist_stream(rows: dict[str, list[dict[str, Any]]]) -> dict[str, int]:
             if new_bars:
                 s.execute(insert(CandleRow), new_bars)
             out["bars"] = len(new_bars)
+        events = rows.get("events") or []
+        if events:
+            s.execute(insert(TokenEvent), events)
+            out["events"] = len(events)
     return out
 
 
@@ -195,7 +199,7 @@ def label_due(gaps: list[tuple[float, float]], batch: int = 400, now: datetime |
 
 
 def retention(now: datetime | None = None) -> dict[str, int]:
-    """Tiered retention: raw early trades 3 days, stream candles 10 days, wallet profiles 30 days,
+    """Tiered retention: raw early trades 3 days, stream candles 10 days, wallet profiles and journal events 30 days,
     launches and labelled feature snapshots 90 days (the research dataset)."""
     now = now or utcnow()
     out = {}
@@ -209,7 +213,14 @@ def retention(now: datetime | None = None) -> dict[str, int]:
             FeatureSnapshot.observed_at < now - timedelta(days=90))).rowcount
         out["pump_launches"] = s.execute(delete(PumpLaunch).where(
             PumpLaunch.created_at < now - timedelta(days=90))).rowcount
+        out["token_events"] = s.execute(delete(TokenEvent).where(TokenEvent.ts < now - timedelta(days=30))).rowcount
     return out
+
+
+def recent_launch_names(days: int = 7, limit: int = 200_000) -> list[str | None]:
+    with session_scope() as s:
+        return list(s.scalars(select(PumpLaunch.name).where(PumpLaunch.created_at >= utcnow() - timedelta(days=days))
+                              .order_by(PumpLaunch.created_at.asc()).limit(limit)).all())
 
 
 def dataset_counts() -> dict[str, Any]:
@@ -230,4 +241,5 @@ def dataset_counts() -> dict[str, Any]:
             "labeled": count(FeatureSnapshot, FeatureSnapshot.labels.is_not(None)),
             "wallet_profiles": count(WalletProfile),
             "stream_candles": count(CandleRow, CandleRow.source == "stream"),
+            "token_events": count(TokenEvent),
         }

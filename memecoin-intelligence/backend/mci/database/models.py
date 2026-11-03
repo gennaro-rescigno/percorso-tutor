@@ -326,6 +326,23 @@ class WalletProfile(Base):
     data: Mapped[dict | None] = mapped_column(JSON)
 
 
+class TokenEvent(Base):
+    """Lifecycle journal: one fact observed on-chain (creator sells, whale buy, reserve level, migration...)."""
+
+    __tablename__ = "token_events"
+    __table_args__ = (Index("ix_token_events_token_ts", "token_address", "ts"), Index("ix_token_events_kind_ts", "kind", "ts"))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token_address: Mapped[str] = mapped_column(String(64))
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    kind: Mapped[str] = mapped_column(String(24))
+    value: Mapped[float | None] = mapped_column(Float)
+    price: Mapped[float | None] = mapped_column(Float)  # SOL per token at the event (None when not defined)
+    age_s: Mapped[float | None] = mapped_column(Float)  # seconds since the launch
+    detail: Mapped[dict | None] = mapped_column(JSON)
+    source: Mapped[str] = mapped_column(String(16), default="stream")
+
+
 class FeatureSnapshot(Base):
     """Point-in-time feature store: only data available at ``observed_at`` (no look-ahead)."""
 

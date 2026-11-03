@@ -13,6 +13,35 @@ function AucCell({ v }: { v: any }) {
   return <span className={v.informative ? "" : "muted"}>{v.auc?.toFixed(3)}{ci}{v.informative ? " ✓" : ""}</span>;
 }
 
+function EventStudy({ ev }: { ev: any }) {
+  if (!ev) return <div className="card section"><h2>Cosa succede dopo ogni evento</h2><div className="muted">Lo studio parte dopo la prima ora di diario.</div></div>;
+  const pct = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}%`;
+  const rows = [...(ev.events ?? [])];
+  const base = Object.entries(ev.baseline ?? {}) as [string, any][];
+  return (
+    <div className="card section">
+      <h2>Cosa succede dopo ogni evento (ultimi {ev.days} giorni, finestra {ev.window_min} min)</h2>
+      <div className="note">{ev.note} Il "momento qualsiasi" è la stessa misura presa a 1, 5 o 15 minuti dal lancio, senza nessun evento: serve da confronto.</div>
+      <table><thead><tr><th>Evento</th><th className="num">Casi</th><th className="num">Età mediana</th><th className="num">Variazione mediana a 60 min</th>
+        <th className="num">Tocca +100%</th><th className="num">Tocca −50%</th><th className="num">Si diploma entro 60 min</th><th>Confronto</th></tr></thead>
+        <tbody>
+          {rows.map((r: any) => (
+            <tr key={r.event}><td>{r.event}</td><td className="num">{fmtNum(r.n)}</td><td className="num">{r.age_median_min} min</td>
+              <td className="num">{pct(r.end_median_pct)}</td><td className="num">{fmtPctPlain(r.p_up_100)}</td><td className="num">{fmtPctPlain(r.p_down_50)}</td>
+              <td className="num">{fmtPctPlain(r.p_migrated)}</td><td className="muted">{r.baseline}</td></tr>
+          ))}
+          {base.map(([h, b]) => (
+            <tr key={h} className="muted"><td>momento qualsiasi ({h})</td><td className="num">{fmtNum(b.n)}</td><td className="num">{b.age_median_min} min</td>
+              <td className="num">{pct(b.end_median_pct)}</td><td className="num">{fmtPctPlain(b.p_up_100)}</td><td className="num">{fmtPctPlain(b.p_down_50)}</td>
+              <td className="num">{fmtPctPlain(b.p_migrated)}</td><td></td></tr>
+          ))}
+        </tbody></table>
+      {(ev.small_groups ?? []).length > 0 && <div className="muted">Ancora pochi casi (meno di 30): {ev.small_groups.join(", ")}</div>}
+      <div className="muted">Aggiornato il {fmtTime(ev.generated_at)} · esclusi per interruzioni dello stream: {fmtNum(ev.skipped?.stream_gap)}</div>
+    </div>
+  );
+}
+
 export default function Research() {
   const { data, error } = usePoll<any>("/research", 120000);
   const r = data?.report;
@@ -40,8 +69,10 @@ export default function Research() {
         <Kpi label="Operazioni iniziali salvate" value={fmtNum(d.early_trades)} />
         <Kpi label="Wallet analizzati" value={fmtNum(d.wallet_profiles)} />
         <Kpi label="Candele dallo stream" value={fmtNum(d.stream_candles)} />
+        <Kpi label="Eventi nel diario" value={fmtNum(d.token_events)} sub="fatti on-chain di ogni lancio" />
       </div>
-      {!r && <div className="warn-box">Il primo rapporto viene calcolato dopo l'avvio e poi ogni 6 ore: servono almeno 4 ore di raccolta per i primi esiti.</div>}
+      <EventStudy ev={data?.event_study} />
+      {!r && <div className="warn-box">Il primo rapporto viene calcolato dopo l'avvio e poi ogni ora: servono almeno 4 ore di raccolta per i primi esiti.</div>}
       {r && (
         <>
           <div className="card section">

@@ -189,6 +189,14 @@ def create_app() -> FastAPI:
                 })
         return {"tokens": out}
 
+    def _journal(s, address: str) -> list[dict[str, Any]]:
+        from mci.database.models import TokenEvent
+
+        rows = s.scalars(select(TokenEvent).where(TokenEvent.token_address == address)
+                         .order_by(TokenEvent.ts.asc()).limit(300)).all()
+        return [{"ts": _iso(e.ts), "kind": e.kind, "value": e.value, "price": e.price, "age_s": e.age_s,
+                 "detail": e.detail or {}} for e in rows]
+
     def _launch_only_detail(s, address: str) -> dict[str, Any]:
         """A pump.fun launch seen on the chain stream but never tracked by the scanner (e.g. it died early)."""
         from mci.database.models import FeatureSnapshot, PumpLaunch
@@ -216,6 +224,7 @@ def create_app() -> FastAPI:
                        "source": launch.source, "complete_at": _iso(launch.complete_at), "stats": launch.stats},
             "feature_snapshots": [{"horizon": f.horizon, "observed_at": _iso(f.observed_at), "features": f.features,
                                    "risk": f.risk, "opportunity": f.opportunity, "labels": f.labels} for f in fsnaps],
+            "journal": _journal(s, address),
         }
 
     @app.get("/api/tokens/{address}")
@@ -261,6 +270,7 @@ def create_app() -> FastAPI:
                 "feature_snapshots": [{"horizon": f.horizon, "observed_at": _iso(f.observed_at), "features": f.features,
                                        "risk": f.risk, "opportunity": f.opportunity, "labels": f.labels}
                                       for f in fsnaps],
+                "journal": _journal(s, address),
             }
 
     # ------------------------------------------------------------------ positions / signals
@@ -397,7 +407,8 @@ def create_app() -> FastAPI:
         with session_scope() as s:
             rep = repo.get_state(s, "research_report")
             counts = repo.get_state(s, "dataset_counts")
-        return {"report": rep, "dataset": counts or dataset_counts(), "index_note": NOTE,
+            events = repo.get_state(s, "event_study")
+        return {"report": rep, "dataset": counts or dataset_counts(), "index_note": NOTE, "event_study": events,
                 "rules": [{"code": r.code, "mode": r.mode, "description": r.description} for r in RULES.values()]}
 
     @app.get("/api/launches")

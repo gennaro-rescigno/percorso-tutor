@@ -40,6 +40,7 @@ from mci.onchain.launches import LaunchTracker
 from mci.onchain.service import OnchainService
 from mci.paper_trading.experiments import CurveExperiment, SafeRulesExperiment
 from mci.paper_trading.lab import LabEngine
+from mci.onchain.journal import Journal
 from mci.research import feature_store as fs
 from mci.risk_management.profiles import get_profile
 from mci.scanner.service import Scanner
@@ -67,6 +68,12 @@ class Worker:
         reddit = RedditCollector(s.reddit_client_id, s.reddit_client_secret.get_secret_value(), s.reddit_user_agent)
         # free on-chain layer: launch tracker fed by the public chain stream, RPC pool with budgets
         self.tracker = LaunchTracker()
+        self.journal = Journal()
+        self.tracker.journal = self.journal
+        try:  # names of recent launches, so the 'copy' fact also works right after a restart
+            self.journal.seed_names(fs.recent_launch_names(days=7))
+        except Exception as e:  # never block the start for this
+            log.warning("nomi dei lanci recenti non caricati: %s", e)
         extra = [u for u in read_secret(s, "rpc_urls").splitlines() if u.strip().startswith("http")]
         self.rpc_pool = RpcPool([s.solana_rpc_url] + extra, rps=s.solana_rpc_rps)
         self.onchain = OnchainService(self.rpc_pool, self.tracker) if s.onchain_enabled else None
@@ -133,6 +140,7 @@ class Worker:
             "pumpportal_connected": bool(self.pump and self.pump.connected),
             "chain_stream": self.stream.health() if self.stream else {"enabled": False},
             "onchain": self.onchain.health() if self.onchain else {"enabled": False},
+            "journal": self.journal.health(),
             "experiments": [{"mode": e.mode, "candidates": getattr(e, "last_candidates", None)} for e in self.experiments],
             "network_costs": {"priority_fee_sol": self.costs.priority_fee_sol, "jito_tip_sol": self.costs.jito_tip_sol},
             "telegram_enabled": self.tg.enabled,
@@ -242,9 +250,18 @@ class Worker:
         from mci.research.evaluate import run_research
         from mci.research.promotion import experiment_report
 
+        from mci.research.events import event_study
+
         rep = await asyncio.to_thread(run_research)  # CPU-heavy: never block the stream and the monitors
+        try:
+            ev = await asyncio.to_thread(event_study, 7, self._gaps())
+        except Exception as e:  # the journal study must never stop the main research report
+            log.warning("studio degli eventi non riuscito: %s", e)
+            ev = None
         with session_scope() as s:
             repo.set_state(s, "research_report", rep)
+            if ev is not None:
+                repo.set_state(s, "event_study", ev)
             repo.set_state(s, "experiments_report", {e.mode: experiment_report(s, e.mode) for e in self.experiments})
 
     async def netcosts_once(self) -> None:

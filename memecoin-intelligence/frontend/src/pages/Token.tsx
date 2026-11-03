@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { usePoll } from "../api";
 import { TimeLine } from "../components/charts";
-import { OnchainSection } from "../components/onchain";
+import { JournalSection, OnchainSection } from "../components/onchain";
 import { ErrorBox, Kpi, ScoreBars } from "../components/ui";
 import { fmtNum, fmtPct, fmtPctPlain, fmtPrice, fmtTime, fmtUsd } from "../format";
 
@@ -48,6 +48,7 @@ export default function TokenPage() {
         </div>
       </div>
       <OnchainSection snap={s} launch={data?.launch} features={data?.feature_snapshots ?? []} />
+      <JournalSection events={data?.journal ?? []} />
       <div className="grid cols-2 section">
         <div className="card">
           <h2>Score dettagliato</h2>

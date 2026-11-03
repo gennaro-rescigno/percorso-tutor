@@ -121,3 +121,43 @@ export function OnchainSection({ snap, launch, features }: { snap: any; launch: 
     </>
   );
 }
+
+const JOURNAL_LABEL: Record<string, string> = {
+  create: "lancio", dev_buy: "il creatore compra", dev_sell: "il creatore vende", block0: "acquirenti nel blocco 0",
+  whale_buy: "acquisto grande", whale_sell: "vendita grande", wash_atomic: "wash trade atomico (stesso wallet compra e vende)",
+  reserve: "riserva della curva", drawdown: "calo dal massimo", volume_spike: "picco di acquisti", complete: "diploma (migrazione)",
+  dead: "30 minuti senza scambi", copy: "nome già usato da un lancio precedente",
+};
+
+function journalValue(e: any): string {
+  const d = e.detail ?? {};
+  switch (e.kind) {
+    case "dev_buy": case "whale_buy": case "whale_sell": return `${e.value?.toFixed(3)} SOL`;
+    case "dev_sell": return `${e.value?.toFixed(3)} SOL${d.sold_all ? " · TUTTO" : d.share_of_holding != null ? ` · ${(d.share_of_holding * 100).toFixed(0)}% di quanto aveva` : ""}`;
+    case "block0": return `${e.value} wallet · ${d.sol} SOL · ${d.supply_pct}% della supply`;
+    case "reserve": return `≥ ${e.value} SOL (prezzo ×${d.multiple} dal lancio)`;
+    case "drawdown": return `−${e.value}% (picco a ${d.peak_reserve_sol} SOL)`;
+    case "volume_spike": return `${e.value} acquisti in 60 s da ${d.wallets} wallet`;
+    case "complete": return `dopo ${Math.round((e.value ?? 0) / 60)} min`;
+    case "dead": return e.value != null ? `ultimo prezzo = ${(e.value * 100).toFixed(0)}% del massimo` : "";
+    case "copy": return `${e.value} lanci precedenti con lo stesso nome`;
+    case "create": return d.mayhem ? "modalità mayhem" : `metadati: ${d.uri_kind}`;
+    default: return e.value != null ? String(e.value) : "";
+  }
+}
+
+export function JournalSection({ events }: { events: any[] }) {
+  if (!events?.length) return null;
+  const age = (s: number | null) => s == null ? "" : s < 90 ? `${Math.round(s)} s` : `${(s / 60).toFixed(1)} min`;
+  return (
+    <div className="card section">
+      <h2>Diario del token (fatti on-chain)</h2>
+      <div className="note">Ogni riga è un fatto osservato sulla blockchain, con l'età del token in quel momento. Non è un consiglio.</div>
+      <table><thead><tr><th>Età</th><th>Evento</th><th>Dettaglio</th><th className="num">Prezzo (SOL)</th></tr></thead>
+        <tbody>{events.map((e: any, i: number) => (
+          <tr key={i}><td className="num">{age(e.age_s)}</td><td>{JOURNAL_LABEL[e.kind] ?? e.kind}</td><td>{journalValue(e)}</td>
+            <td className="num mono">{e.price != null ? e.price.toExponential(3) : ""}</td></tr>
+        ))}</tbody></table>
+    </div>
+  );
+}

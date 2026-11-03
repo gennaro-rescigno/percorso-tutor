@@ -109,6 +109,20 @@ jobs:
                     f"ROI {100*(es.get('roi') or 0):+.2f}% · segnali {(e.get('stats') or {}).get('signals')} · scartati {e.get('skipped')} · {g.get('status')}")
           r = (d["research"].get("report") or {})
           print(f"\n### Ricerca\n- {r.get('verdict')} · osservazioni usabili {r.get('rows_usable')} · tassi base {r.get('base_rates')} · dataset {d['research'].get('dataset')}")
+          print(f"- rapporto del {r.get('generated_at')} · orizzonte {r.get('horizon')} · osservazioni totali {r.get('rows_total')}")
+          for k, v in (r.get("indices") or {}).items():
+              print(f"- indice {k}: {v}")
+          for k, v in (r.get("walk_forward") or {}).items():
+              print(f"- walk-forward {k}: verdetto {v.get('verdict')} · AUC media {v.get('mean_auc')} · batte il tasso base {v.get('beats_base_rate_folds')}")
+          for k, v in (r.get("shadow_rules") or {}).items():
+              print(f"- regola shadow {k}: {v}")
+          feats = [f for f in (r.get("features") or []) if isinstance(f, dict)]
+          for tgt in ("hit_2x_first", "rug_60m"):
+              ranked = sorted((f for f in feats if f.get(tgt)), key=lambda f: -abs((f[tgt].get("auc") or 0.5) - 0.5))
+              print(f"- caratteristiche più legate a {tgt} (AUC, IC 95%, informativa):")
+              for f in ranked[:12]:
+                  x = f[tgt]
+                  print(f"    {f['feature']}: AUC {x.get('auc')} IC {x.get('ci')} informativa={x.get('informative')} n={f.get('n')}")
           print("\n### Ultimi lanci pump.fun visti dallo stream")
           for l in (d["launches"].get("launches") or [])[:10]:
               t5 = l.get("t5") or {}

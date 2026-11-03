@@ -357,6 +357,28 @@ tolte dal mercato** (LUNA, FTT...), archivio pubblico gratuito. Regole fissate p
   continuo con il compra e tieni. Nessuna operazione reale e nessun messaggio Telegram. Essendo giornaliera, servono
   mesi perché la verifica dal vivo dica qualcosa.
 
+### 10.1 Operazioni brevi (1-3 giorni) su 100 monete, memecoin comprese (`crypto_daily`)
+
+Le 100 crypto più scambiate di ogni giorno (in media 3,3 memecoin: DOGE, SHIB, PEPE, WIF, BONK, FLOKI, BOME...),
+massimo 10 posizioni da un decimo del capitale, stop a −15%, costi 0,15-0,30% per lato. Fuori campione 2022-2026:
+
+| Regola | Tenuta 1 / 2 / 3 giorni: rendimento annuo | Operazioni (3 giorni) |
+|---|---|---|
+| H1 hype (prezzo +10% in un giorno con volume triplo) | −30% / −21% / −20% | 1.725 |
+| **H2 hype solo con BTC sopra la media di 50 giorni** | **−11% / +7,6% / +11,7%** | **1.216** |
+| P1 comprare i cali in una moneta in salita | −52% / −59% / −58% | 2.941 |
+| B1 rottura dei massimi a 20 giorni con volume doppio | −30% / −8% / −13% | 1.919 |
+| S1 le 5 più forti degli ultimi 3 giorni | −41% / −40% / −44% | 2.550 |
+| M1 modello che impara quando entrare | −56% / −55% / −65% | 4.446 |
+
+- Solo **H2 a 2-3 giorni** è positiva in entrambi i periodi (2018-2021 +24% annuo a 3 giorni; 2022-2026 +11,7%),
+  con +0,76% medio per operazione e il 39% di operazioni vincenti; ma l'intervallo di confidenza è molto largo
+  (Sharpe da −0,50 a +1,35) e la perdita massima è −51%: **non dimostrata**.
+- Il modello M1 guadagnava nel periodo di addestramento (+15/+29% annuo) e perde il 55-65% annuo dopo: è il caso
+  tipico di un modello che impara il passato a memoria (sovra-adattamento).
+- Confronto con il trend BTC·ETH·SOL (sezione 10): +31% annuo, perdita massima −42%, 141 operazioni, verificato su
+  6 monete su 7 con costi doppi e ritardo. Le operazioni brevi su molte monete rendono meno e sono meno solide.
+
 ## 11. Fonti principali
 
 - Arrow Algo, *Solana Memecoin Trading: What 1,411 Launches Showed* — https://arrowalgo.com/solana-memecoin-trading/

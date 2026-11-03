@@ -47,7 +47,7 @@ FEATURE_COLS = [
     "flag_serial_rugger_creator", "flag_warm_launch", "f_dev_share", "f_insider_share", "f_bundle_wallets",
     "f_rep_n", "f_rep_rug", "f_rep_grad", "f_rs", "f_n_buys", "capture_lag_s", "repaired", "outcome_status",
     "launch_t0", "launch_mayhem", "launch_quote_asset", "launch_decoder_complete", "graduated", "rugged",
-    "peak_rs", "terminal_rs", "migrated_before_row",
+    "peak_rs", "terminal_rs", "migrated_before_row", "migrate_dt_s",
 ]
 
 

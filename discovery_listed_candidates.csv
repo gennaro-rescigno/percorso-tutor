@@ -1,0 +1,3 @@
+ipotesi,ritardo,entrata,uscita,n_scoperta,media_scoperta_%,t_scoperta,n_validazione,media_validazione_%,p_val,q_val,passa_validazione
+distanza dal massimo alto (>= -0.441),istantanea dopo,E4 consolidamento,X2 4 h,101,11.688679,3.1144043981890124,231,-4.765287,0.9385,0.9385,False
+distanza dal massimo alto (>= -0.441) E età (ore) basso (<= 9.05),istantanea dopo,E4 consolidamento,X2 4 h,101,11.688679,3.1144043981890124,231,-4.765287,0.931,0.9385,False

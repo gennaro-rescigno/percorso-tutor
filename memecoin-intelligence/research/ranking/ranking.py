@@ -97,7 +97,8 @@ def main() -> None:
              "rendimento più alto: formula e pesi nel docstring di `ranking.py`.", ""]
     counts = out.stato.value_counts()
     lines += [f"Strategie valutate: **{len(out)}** · robuste: **{counts.get('robusta', 0)}** · promettenti ma non "
-              f"dimostrate: **{counts.get('promettente, non dimostrata', 0)}** · scartate: **{counts.get('scartata', 0)}**.", ""]
+              f"dimostrate: **{counts.get('promettente, non dimostrata', 0)}** · positive ma non eseguibili gratis: "
+              f"**{counts.get('positiva ma non eseguibile gratis', 0)}** · scartate: **{counts.get('scartata', 0)}**.", ""]
     for area in ["nuovi lanci", "memecoin esistenti", "short", "funding", "crypto affermate"]:
         t = out[out.area == area]
         if t.empty:

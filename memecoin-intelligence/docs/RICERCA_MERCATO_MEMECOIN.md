@@ -374,6 +374,56 @@ falliti è **0%**, con una media di 42,5 tentativi falliti per wallet (pochi wal
 ordine singolo e non spammato il rischio di fallire è quindi molto più basso dell'85%, ma non nullo nei primi
 secondi.
 
+### 9.13 Motore di scoperta sui nuovi lanci (`discovery_launch`, jocry, 4 novembre 2026)
+
+33,6 milioni di operazioni (31,2 con prezzo valido, 24,5 con un wallet reale): **574.105 momenti di decisione di
+252.630 token** a 10 s, 30 s, 1, 3, 5, 15 e 60 minuti dal lancio (al massimo 100.000 per momento, campione fisso).
+27 segnali solo con il passato (flusso, curva, bundle, wallet nuovi, concentrazione, wallet con un buon passato,
+creatore), 551 ipotesi generate (singole, coppie, modello con validazione incrociata per giorni), 4 entrate x 7 uscite
+x 3 ritardi: **46.284 strategie. Nessuna supera nemmeno la soglia sui giorni di scoperta** (t >= 3 con media positiva
+e almeno 100 operazioni), quindi nessuna arriva alla validazione.
+
+| Momento dal lancio | Candidati | 2x prima di −50% | Massimo nell'ora (mediana / 90° percentile) | Ancora scambiato dopo 15 min |
+|---|---|---|---|---|
+| 10 s | 100.000 | 14,3% | ×1,12 / ×2,52 | 8,3% |
+| 30 s | 100.000 | 8,9% | ×1,00 / ×1,99 | 9,2% |
+| 1 min | 100.000 | 6,2% | ×1,00 / ×1,67 | 10,8% |
+| 3 min | 100.000 | 4,0% | ×1,00 / ×1,36 | 13,4% |
+| 5 min | 100.000 | 2,5% | ×1,00 / ×1,16 | 12,1% |
+| 15 min | 58.134 | 0,8% | ×1,00 / ×1,01 | 14,1% |
+| 60 min | 15.971 | 0,5% | ×1,00 / ×1,00 | 25,7% |
+
+- **Quando è troppo tardi**: già dopo 30 secondi il token mediano non torna mai sopra il prezzo del momento nella
+  successiva ora; la probabilità di un raddoppio prima di un dimezzamento scende dal 14% a 10 s al 2,5% a 5 minuti.
+  Il rialzo sfruttabile c'è solo nei primi secondi, dove il dato gratuito arriva con 28,7 s di ritardo e l'85% degli
+  acquisti dei bot fallisce (sezione 9.12).
+- **I segnali sono informativi ma non profittevoli**: per il diploma l'AUC arriva a 0,85-0,89 a 3-5 minuti
+  (numero di acquisti, accelerazione, operazioni; il tempo dall'ultimo scambio è il segnale opposto più forte, AUC
+  0,08) e per "2x prima di −50%" a 0,81 (accelerazione degli acquisti a 5 minuti). Il prezzo della curva incorpora già
+  questa informazione: sapere chi si diplomerà più spesso non basta a guadagnare dopo i costi.
+- **Pump organico o artificiale** (a 60 s): i token con molti wallet nello stesso secondo (bundle) si diplomano di più
+  (1,13% contro 0,77%) ma perdono di più (−9,8% contro −5,2% per operazione con trailing e 3 s di ritardo); molti
+  acquirenti unici: più diplomi (1,22%) e perdite maggiori (−10,4%). I **wallet con un buon passato** sono il segnale
+  migliore: a 5 minuti i token dove sono presenti si diplomano 6 volte di più (2,73% contro 0,44%) e perdono meno
+  (−3,4% contro −4,2%), ma restano negativi.
+- **Entrate e uscite su tutti i candidati**: 9 combinazioni su 224 con media positiva, tutte a 15 minuti dal lancio
+  (da +0,1% a +1,7%, mediane negative, 1.200-1.700 casi), non confermate dal motore. Ordini non eseguibili perché la
+  curva si chiude prima: 0,09% con 30 s di ritardo, 0,57% per le entrate su conferma.
+
+### 9.14 Progetti e hype: link social e post su X (`red_pump`, `probe2`/`probe3`)
+
+- **Progetti** (red-pump, 833.079 lanci con esito, 8 maggio - 10 giugno; misurato su giugno): i metadati presenti alla
+  creazione predicono il diploma entro 24 ore. Con tre link (X, sito, Telegram) si diploma il 2,56% contro lo 0,17%
+  senza link; con Telegram l'1,71% contro lo 0,20%; la capitalizzazione iniziale alta (cioè un grande acquisto del
+  creatore al lancio) ha AUC 0,81; un modello su tutti AUC 0,73 e il suo 10% migliore si diploma l'1,30% contro lo
+  0,23% (×5,6). Limiti: senza prezzi non misura un profitto; i diplomi "costruiti" con grandi acquisti del creatore
+  sono anche quelli con più rug (sezione 9.1); il tasso di diploma di questo collettore (0,20%) è molto più basso di
+  quello degli altri dataset, perché le etichette sono del collettore e non della piattaforma (lo dice la scheda).
+- **Post su X** (trenches, 85.442 token, 6-13 agosto): i dati sui post sono presenti, ma gli autori stessi dimostrano
+  che arrivano in mediana 20,5 s dopo il momento a cui sono attribuiti: **su 0 token su 85.442** sono disponibili al
+  momento della decisione. Un test onesto dell'hype social sui nuovi lanci con dati gratuiti oggi non è possibile;
+  il bot registra già dal vivo boost e token di tendenza con l'ora esatta, per poterlo fare sui dati futuri.
+
 ---
 
 ## 10. Fuori dalle memecoin: le crypto affermate (Binance 2018 - ottobre 2026)

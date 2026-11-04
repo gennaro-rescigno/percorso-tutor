@@ -25,7 +25,10 @@ PRE-REGISTERED (written before looking at any result):
   * hypotheses generated automatically per moment: every signal in its top 20% and in its bottom 20% (thresholds
     from the discovery days), the AND of every pair of the 8 best single signals (by discovery t-statistic), a
     gradient-boosted model trained on the discovery days (its top 10% of discovery predictions), and "every
-    candidate" (the reference);
+    candidate" (the reference); (correction after the synthetic check, before any real result was read: on the
+    discovery days the model is cross-fitted by day - trained on half of the days, scored on the other half - so
+    that its in-sample fit does not fill the validation slots; validation and test days use the model trained on
+    all discovery days);
   * entries, with a data delay d = 0 s (theoretical), 3 s, 30 s (the median delay measured on the live stream):
     E1 at once; E2 confirmation: price 15% above the decision price within 2 minutes; E3 pullback: price 25% below
     its high since the decision within 5 minutes; E4 consolidation: a 60-second stretch with >= 3 trades and a
@@ -498,6 +501,29 @@ def auc(score: np.ndarray, label: np.ndarray) -> tuple[float, float]:
     return float(a), float(se)
 
 
+def cross_fit(X: np.ndarray, y: np.ndarray, train: np.ndarray, day: np.ndarray, Model) -> np.ndarray | None:
+    """Predictions with no in-sample fit on the discovery days: two folds by day parity there; validation and test
+    rows are scored by a model trained on all discovery days."""
+    ok = train & ~np.isnan(y)
+    if ok.sum() < 2000:
+        return None
+
+    def mk():
+        return Model(max_iter=200, learning_rate=0.05, max_leaf_nodes=31, min_samples_leaf=200, l2_regularization=1.0,
+                     random_state=0)
+
+    pred = np.full(len(y), np.nan)
+    fold = day % 2
+    for k in (0, 1):
+        fit_m = ok & (fold != k)
+        if fit_m.sum() < 1000:
+            return None
+        pred[train & (fold == k)] = mk().fit(X[fit_m], y[fit_m]).predict(X[train & (fold == k)])
+    if (~train).any():
+        pred[~train] = mk().fit(X[ok], y[ok]).predict(X[~train])
+    return pred
+
+
 # ----------------------------------------------------------------------------------------------- main
 def main() -> None:
     from sklearn.ensemble import HistGradientBoostingRegressor
@@ -653,15 +679,10 @@ def main() -> None:
             for j in range(i + 1, len(top8)):
                 rules[f"{top8[i]} E {top8[j]}"] = rules[top8[i]] & rules[top8[j]]
         try:
-            Xtr = x.loc[tr_m, FEATS].to_numpy(np.float64)
-            ytr = np.clip(net[ix[tr_m], 1, 0, 3], -1, 3)
-            ok = ~np.isnan(ytr)
-            if ok.sum() >= 2000:
-                mdl = HistGradientBoostingRegressor(max_iter=200, learning_rate=0.05, max_leaf_nodes=31,
-                                                    min_samples_leaf=200, l2_regularization=1.0, random_state=0)
-                mdl.fit(Xtr[ok], ytr[ok])
-                pred = mdl.predict(x[FEATS].to_numpy(np.float64))
-                rules["modello (10% migliore)"] = pred >= np.quantile(pred[tr_m], 0.9)
+            pred = cross_fit(x[FEATS].to_numpy(np.float64), np.clip(net[ix, 1, 0, 3], -1, 3), tr_m, x.day.to_numpy(),
+                             HistGradientBoostingRegressor)
+            if pred is not None:
+                rules["modello (10% migliore)"] = pred >= np.nanquantile(pred[tr_m], 0.9)
         except Exception as e:
             print(f"modello {a}s: {e}", flush=True)
         for name, m in rules.items():

@@ -1,0 +1,68 @@
+momento_s,ipotesi,ritardo_s,entrata,uscita,n_scoperta,media_scoperta_%,t_scoperta,n_validazione,media_validazione_%,p_val,q_val,passa_validazione
+10,modello (10% migliore),3,E1 subito,X4 trailing 35%,5141,12.896543,10.299664893375876,1751,-1.6823915,0.8905,1.0,False
+10,modello (10% migliore),3,E1 subito,X5 metà a +100% + trailing,5141,11.225584,10.110684579643088,1751,-1.4441341,0.885,1.0,False
+10,modello (10% migliore),3,E1 subito,X3 stop -30% / +100%,5141,9.003174,8.51836129262557,1751,-1.1934704,0.8335,1.0,False
+10,modello (10% migliore),3,E2 conferma +15%,X5 metà a +100% + trailing,1937,15.469749,8.182114961519874,690,-3.3573184,0.9345,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X5 metà a +100% + trailing,656,26.992765,8.17886269788787,283,-0.7658702,0.605,1.0,False
+10,modello (10% migliore),3,E2 conferma +15%,X4 trailing 35%,1937,17.187605,8.04615975223358,690,-2.8155577,0.8605,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X4 trailing 35%,656,30.811632,7.890786337828522,283,-1.395534,0.677,1.0,False
+60,modello (10% migliore),3,E2 conferma +15%,X5 metà a +100% + trailing,656,27.36117,7.53854121697154,283,-0.9276917,0.6365,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X5 metà a +100% + trailing,689,21.865618,7.429904250526408,273,2.3804407,0.251,1.0,False
+30,modello (10% migliore),3,E2 conferma +15%,X5 metà a +100% + trailing,688,25.004852,7.39104972432378,272,-1.840894,0.694,1.0,False
+30,modello (10% migliore),3,E2 conferma +15%,X4 trailing 35%,688,29.160112,7.354669782641453,272,-2.2310903,0.762,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X3 stop -30% / +100%,656,22.647854,7.322247444197743,283,-1.3541083,0.666,1.0,False
+10,modello (10% migliore),0,E3 ritracciamento -25%,X5 metà a +100% + trailing,2267,12.346373,7.30842512324768,772,-0.8223067,0.665,1.0,False
+60,modello (10% migliore),3,E2 conferma +15%,X4 trailing 35%,656,30.708138,7.100603322904579,283,-2.1239784,0.7595,1.0,False
+10,modello (10% migliore),3,E2 conferma +15%,X3 stop -30% / +100%,1937,13.10553,7.07714032035857,690,-2.6721373,0.892,1.0,False
+180,modello (10% migliore),0,E2 conferma +15%,X3 stop -30% / +100%,263,26.11123,7.045071740966653,115,0.34873372,0.499,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X3 stop -30% / +100%,689,17.387691,6.991012538005614,273,0.9450437,0.392,1.0,False
+60,modello (10% migliore),3,E2 conferma +15%,X3 stop -30% / +100%,656,23.64708,6.9615589085836955,283,-2.0505495,0.7175,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X4 trailing 35%,689,26.707067,6.900155337948223,273,2.3976514,0.264,1.0,False
+10,modello (10% migliore),0,E3 ritracciamento -25%,X4 trailing 35%,2267,16.152733,6.886763653174595,772,-0.6275491,0.6105,1.0,False
+60,modello (10% migliore),3,E1 subito,X4 trailing 35%,4835,6.692039,6.841967329630876,2105,-3.632471,1.0,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X6 slancio perso,656,27.023256,6.796436868520519,283,1.0451102,0.443,1.0,False
+30,modello (10% migliore),3,E2 conferma +15%,X3 stop -30% / +100%,688,20.77934,6.614788148111532,272,-1.6979841,0.698,1.0,False
+60,modello (10% migliore),3,E1 subito,X5 metà a +100% + trailing,4835,5.6009483,6.552566033911395,2105,-3.3635504,1.0,1.0,False
+180,modello (10% migliore),0,E2 conferma +15%,X5 metà a +100% + trailing,263,25.372469,6.497872399896917,115,3.970182,0.235,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X1 5 min,656,30.718607,6.494079559238747,283,-2.9909234,0.7155,1.0,False
+10,modello (10% migliore),3,E3 ritracciamento -25%,X4 trailing 35%,2267,13.874334,6.402240509442956,772,0.8884089,0.3895,1.0,False
+30,modello (10% migliore),3,E1 subito,X4 trailing 35%,5132,6.1550574,6.382261553574584,1891,-2.422197,0.9985,1.0,False
+10,modello (10% migliore),3,E3 ritracciamento -25%,X5 metà a +100% + trailing,2267,12.149022,6.380918418911042,772,0.88514286,0.354,1.0,False
+10,modello (10% migliore),0,E2 conferma +15%,X5 metà a +100% + trailing,1937,10.508096,6.320692736091506,690,1.25221,0.294,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X7 fino al diploma,656,30.176922,6.287282870090392,283,-3.557076,0.7565,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X6 slancio perso,689,29.579914,6.251341279821329,273,1.0926392,0.4165,1.0,False
+60,modello (10% migliore),0,E2 conferma +15%,X2 30 min,656,29.900322,6.248819630455295,283,-3.557076,0.7635,1.0,False
+180,modello (10% migliore),0,E2 conferma +15%,X4 trailing 35%,263,27.981087,6.202311828377135,115,7.17093,0.1755,1.0,False
+10,modello (10% migliore),0,E3 ritracciamento -25%,X3 stop -30% / +100%,2267,8.7708845,6.181696552842578,772,-0.67238426,0.599,1.0,False
+10,modello (10% migliore),0,E2 conferma +15%,X3 stop -30% / +100%,1937,9.089582,6.159619012640801,690,0.20222345,0.454,1.0,False
+10,modello (10% migliore),0,E2 conferma +15%,X4 trailing 35%,1937,13.340965,6.066559108970787,690,1.728376,0.26,1.0,False
+30,modello (10% migliore),0,E3 ritracciamento -25%,X5 metà a +100% + trailing,725,18.445433,6.0307994154237825,300,0.26073298,0.4645,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X1 5 min,689,28.788176,5.9009388812230625,273,-0.48895088,0.5295,1.0,False
+180,modello (10% migliore),3,E2 conferma +15%,X5 metà a +100% + trailing,263,22.037746,5.855487201605759,115,0.606139,0.46,1.0,False
+30,modello (10% migliore),3,E1 subito,X5 metà a +100% + trailing,5132,5.032541,5.852679687393012,1891,-2.4428585,0.998,1.0,False
+30,modello (10% migliore),0,E3 ritracciamento -25%,X3 stop -30% / +100%,725,15.437831,5.837157034704941,300,-1.750356,0.6865,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X2 30 min,689,28.86129,5.8352488062532375,273,-0.6785692,0.5525,1.0,False
+30,modello (10% migliore),0,E2 conferma +15%,X7 fino al diploma,689,28.833338,5.829498455790799,273,-0.6785692,0.5675,1.0,False
+30,modello (10% migliore),0,E3 ritracciamento -25%,X4 trailing 35%,725,23.52445,5.752646649945799,300,0.35400835,0.4655,1.0,False
+10,modello (10% migliore),3,E1 subito,X6 slancio perso,5141,8.245481,5.744091709453232,1751,-1.8434535,0.835,1.0,False
+30,modello (10% migliore),3,E3 ritracciamento -25%,X5 metà a +100% + trailing,725,18.04028,5.7300594425122835,300,-3.2395535,0.8105,1.0,False
+10,modello (10% migliore),3,E1 subito,X2 30 min,5141,8.824665,5.687384456629639,1751,-1.4734483,0.775,1.0,False
+10,modello (10% migliore),3,E1 subito,X1 5 min,5141,8.42752,5.674160799331077,1751,-1.4122952,0.7755,1.0,False
+10,modello (10% migliore),3,E1 subito,X7 fino al diploma,5141,8.742519,5.635043429331795,1751,-1.4734483,0.769,1.0,False
+30,modello (10% migliore),3,E3 ritracciamento -25%,X4 trailing 35%,725,20.894487,5.629861798229467,300,-4.2082853,0.841,1.0,False
+60,modello (10% migliore),0,E3 ritracciamento -25%,X5 metà a +100% + trailing,654,17.270098,5.567473135929895,324,-0.38403693,0.5375,1.0,False
+180,modello (10% migliore),3,E2 conferma +15%,X3 stop -30% / +100%,263,20.208029,5.553387577729559,115,9.6675005,0.295,1.0,False
+10,modello (10% migliore),0,E2 conferma +15%,X6 slancio perso,1937,16.11755,5.510173844329003,690,0.65515584,0.4465,1.0,False
+60,modello (10% migliore),0,E1 subito,X4 trailing 35%,4835,5.066571,5.453246198775751,2105,-2.9832296,1.0,1.0,False
+60,modello (10% migliore),3,E2 conferma +15%,X6 slancio perso,656,22.818535,5.4477175921203305,283,0.40082815,0.461,1.0,False
+180,modello (10% migliore),3,E2 conferma +15%,X4 trailing 35%,263,23.556828,5.4459692461855145,115,2.6922681,0.386,1.0,False
+60,modello (10% migliore),3,E1 subito,X7 fino al diploma,4835,6.1869874,5.404256063553346,2105,-3.597945,1.0,1.0,False
+60,modello (10% migliore),0,E3 ritracciamento -25%,X4 trailing 35%,654,22.286121,5.391415659658222,324,0.2113454,0.4935,1.0,False
+30,modello (10% migliore),3,E2 conferma +15%,X6 slancio perso,688,24.147987,5.387869943753857,272,-3.2633133,0.772,1.0,False
+180,modello (10% migliore),30,E4 consolidamento,X5 metà a +100% + trailing,409,10.152523,3.680706981623049,207,-5.6954875,0.9995,1.0,False
+180,modello (10% migliore),30,E4 consolidamento,X3 stop -30% / +100%,409,10.060605,3.625384566006666,207,-5.3981633,1.0,1.0,False
+180,modello (10% migliore),30,E4 consolidamento,X4 trailing 35%,409,9.941461,3.5676626153024755,207,-5.6954875,1.0,1.0,False
+180,modello (10% migliore),30,E4 consolidamento,X7 fino al diploma,409,9.371533,3.3239436422017277,207,-5.5994873,1.0,1.0,False
+900,modello (10% migliore),30,E4 consolidamento,X4 trailing 35%,162,13.414076,3.100491489098696,30,-2.647227,0.923,1.0,False
+900,modello (10% migliore),30,E4 consolidamento,X5 metà a +100% + trailing,162,12.673148,3.0753192840480934,30,-2.647227,0.921,1.0,False
+180,modello (10% migliore),30,E4 consolidamento,X2 30 min,409,7.965685,3.0268994580839377,207,-5.924153,1.0,1.0,False

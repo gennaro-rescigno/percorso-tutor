@@ -69,13 +69,245 @@ finestra 10s: 100,000 candidati
 finestra 30s: 100,000 candidati
 finestra 60s: 100,000 candidati
 finestra 180s: 100,000 candidati
-Traceback (most recent call last):
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 738, in <module>
-    main()
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 507, in main
-    f = features(con, a)
-        ^^^^^^^^^^^^^^^^
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 162, in features
-    df = con.execute(f"""
-         ^^^^^^^^^^^^^^^^
-duckdb.duckdb.OutOfMemoryException: Out of Memory Error: failed to pin block of size 256.0 KiB (2.7 GiB/2.7 GiB used)
+finestra 300s: 100,000 candidati
+finestra 900s: 58,134 candidati
+finestra 3600s: 15,971 candidati
+Candidati: 574,105 momenti di 252,630 token; operazioni nei percorsi: 20,679,989; giorni 37 (scoperta 277,556, validazione 121,158, test 175,391 momenti).
+
+## 1. Quando entrare: cosa resta dopo ogni momento (tutti i giorni)
+| momento_s | candidati | diplomati_% | 2x_prima_di_-50%_% | massimo_mediano_nell'ora_x | massimo_p90_x | vivi_dopo_5_min_% | vivi_dopo_15_min_% | vivi_dopo_60_min_% |
+|---|---|---|---|---|---|---|---|---|
+| 10 | 100000 | 0.832 | 14.28 | 1.124 | 2.516 | 21.19 | 8.277 | 2.075 |
+| 30 | 100000 | 0.802 | 8.886 | 1 | 1.992 | 22.89 | 9.215 | 2.372 |
+| 60 | 100000 | 0.832 | 6.236 | 1 | 1.667 | 26.14 | 10.75 | 2.91 |
+| 180 | 100000 | 1.063 | 3.992 | 1 | 1.355 | 32.48 | 13.44 | 3.9 |
+| 300 | 100000 | 0.758 | 2.549 | 1 | 1.163 | 28.42 | 12.13 | 3.83 |
+| 900 | 58134 | 0.1961 | 0.7724 | 1 | 1.006 | 21.95 | 14.14 | 6.119 |
+| 3600 | 15971 | 0 | 0.4633 | 1 | 1 | 30.27 | 25.69 | 5.422 |
+
+
+## 2. Quali segnali sono informativi e da quando (AUC, tutti i giorni; 0,5 = nessuna informazione)
+
+### Obiettivo: diploma
+| momento_s | segnale | AUC | IC95 |
+|---|---|---|---|
+| 10 | mayhem | 0.7167 | [0.697, 0.737] |
+| 10 | acquisto del creatore | 0.3543 | [0.337, 0.371] |
+| 10 | venduto/comprato | 0.3585 | [0.342, 0.375] |
+| 10 | SOL netti | 0.6395 | [0.619, 0.660] |
+| 10 | SOL reali nella curva | 0.6166 | [0.595, 0.638] |
+| 10 | secondi dall'ultimo scambio | 0.3853 | [0.368, 0.403] |
+| 30 | secondi dall'ultimo scambio | 0.2395 | [0.226, 0.253] |
+| 30 | SOL netti | 0.7304 | [0.710, 0.750] |
+| 30 | mayhem | 0.7236 | [0.704, 0.744] |
+| 30 | acquisti | 0.718 | [0.698, 0.738] |
+| 30 | venduto/comprato | 0.2873 | [0.272, 0.302] |
+| 30 | accelerazione degli acquisti | 0.6984 | [0.678, 0.719] |
+| 60 | secondi dall'ultimo scambio | 0.1595 | [0.150, 0.169] |
+| 60 | accelerazione degli acquisti | 0.7911 | [0.773, 0.810] |
+| 60 | acquisti | 0.7808 | [0.762, 0.799] |
+| 60 | SOL netti | 0.7724 | [0.754, 0.791] |
+| 60 | acquirenti/venditori | 0.7716 | [0.753, 0.790] |
+| 60 | operazioni | 0.766 | [0.747, 0.785] |
+| 180 | secondi dall'ultimo scambio | 0.1044 | [0.099, 0.110] |
+| 180 | acquisti | 0.8522 | [0.838, 0.867] |
+| 180 | accelerazione degli acquisti | 0.8483 | [0.834, 0.863] |
+| 180 | operazioni | 0.8458 | [0.831, 0.860] |
+| 180 | vendite | 0.8331 | [0.818, 0.848] |
+| 180 | acquirenti/venditori | 0.8039 | [0.788, 0.820] |
+| 300 | secondi dall'ultimo scambio | 0.08429 | [0.079, 0.090] |
+| 300 | acquisti | 0.8904 | [0.875, 0.906] |
+| 300 | operazioni | 0.8842 | [0.869, 0.900] |
+| 300 | accelerazione degli acquisti | 0.8814 | [0.866, 0.897] |
+| 300 | vendite | 0.8722 | [0.856, 0.888] |
+| 300 | acquirenti/venditori | 0.8479 | [0.831, 0.865] |
+| 900 | secondi dall'ultimo scambio | 0.07223 | [0.060, 0.085] |
+| 900 | acquisti | 0.8805 | [0.840, 0.921] |
+| 900 | operazioni | 0.8732 | [0.831, 0.915] |
+| 900 | accelerazione degli acquisti | 0.8686 | [0.826, 0.911] |
+| 900 | vendite | 0.8572 | [0.814, 0.901] |
+| 900 | SOL netti | 0.8463 | [0.801, 0.891] |
+
+
+### Obiettivo: 2x prima di -50% dal momento
+| momento_s | segnale | AUC | IC95 |
+|---|---|---|---|
+| 10 | operazioni per wallet | 0.6583 | [0.653, 0.664] |
+| 10 | venditori unici | 0.3547 | [0.350, 0.359] |
+| 10 | acquisto del creatore | 0.3694 | [0.365, 0.374] |
+| 10 | SOL reali nella curva | 0.3886 | [0.384, 0.393] |
+| 10 | acquisto medio | 0.3929 | [0.388, 0.398] |
+| 10 | quota del primo acquirente | 0.6058 | [0.600, 0.612] |
+| 30 | secondi dall'ultimo scambio | 0.3004 | [0.295, 0.305] |
+| 30 | operazioni per wallet | 0.6684 | [0.662, 0.675] |
+| 30 | accelerazione degli acquisti | 0.6618 | [0.655, 0.668] |
+| 30 | venditori unici | 0.3642 | [0.359, 0.370] |
+| 30 | venduto/comprato | 0.3683 | [0.363, 0.374] |
+| 30 | acquisto del creatore | 0.3696 | [0.364, 0.375] |
+| 60 | secondi dall'ultimo scambio | 0.2335 | [0.229, 0.238] |
+| 60 | accelerazione degli acquisti | 0.7314 | [0.724, 0.739] |
+| 60 | venduto/comprato | 0.3234 | [0.317, 0.329] |
+| 60 | SOL netti | 0.6713 | [0.664, 0.679] |
+| 60 | operazioni per wallet | 0.6689 | [0.661, 0.677] |
+| 60 | acquirenti/venditori | 0.6451 | [0.637, 0.653] |
+| 180 | secondi dall'ultimo scambio | 0.1833 | [0.178, 0.188] |
+| 180 | accelerazione degli acquisti | 0.7778 | [0.769, 0.786] |
+| 180 | venduto/comprato | 0.2816 | [0.275, 0.288] |
+| 180 | acquisti | 0.7168 | [0.708, 0.726] |
+| 180 | operazioni per wallet | 0.7099 | [0.701, 0.719] |
+| 180 | SOL netti | 0.704 | [0.695, 0.713] |
+| 300 | secondi dall'ultimo scambio | 0.166 | [0.160, 0.172] |
+| 300 | accelerazione degli acquisti | 0.8143 | [0.804, 0.824] |
+| 300 | venduto/comprato | 0.2311 | [0.224, 0.238] |
+| 300 | acquisti | 0.7657 | [0.755, 0.777] |
+| 300 | operazioni per wallet | 0.7602 | [0.749, 0.771] |
+| 300 | operazioni | 0.7518 | [0.741, 0.763] |
+| 900 | secondi dall'ultimo scambio | 0.2124 | [0.196, 0.228] |
+| 900 | accelerazione degli acquisti | 0.7824 | [0.757, 0.808] |
+| 900 | venduto/comprato | 0.2783 | [0.259, 0.298] |
+| 900 | acquirenti/venditori | 0.7018 | [0.675, 0.729] |
+| 900 | SOL netti | 0.6983 | [0.671, 0.726] |
+| 900 | operazioni per wallet | 0.6902 | [0.663, 0.718] |
+| 3600 | SOL reali nella curva | 0.7655 | [0.700, 0.831] |
+| 3600 | acquirenti/venditori | 0.757 | [0.693, 0.821] |
+| 3600 | secondi dall'ultimo scambio | 0.2597 | [0.214, 0.305] |
+| 3600 | SOL comprati | 0.736 | [0.671, 0.801] |
+| 3600 | acquisti | 0.7241 | [0.658, 0.790] |
+| 3600 | accelerazione degli acquisti | 0.7072 | [0.640, 0.774] |
+
+
+## 3. Pump organico o artificiale (momento 60 s e 5 min, tutti i giorni)
+| momento_s | gruppo | token | diplomati_% | 2x_prima_di_-50%_% | netto_medio_E1_X4_3s_% |
+|---|---|---|---|---|---|
+| 60 | wallet nello stesso secondo: molti wallet nello stesso secondo | 17047 | 1.132 | 6.148 | -9.767 |
+| 60 | wallet nello stesso secondo: il resto | 82953 | 0.7703 | 6.254 | -5.155 |
+| 60 | quota di wallet nuovi: molti wallet nuovi | 19038 | 1.066 | 6.072 | -7.767 |
+| 60 | quota di wallet nuovi: il resto | 80962 | 0.7769 | 6.275 | -5.512 |
+| 60 | quota del primo acquirente: un acquirente domina | 19044 | 0.5776 | 6.453 | -4.251 |
+| 60 | quota del primo acquirente: il resto | 80956 | 0.8918 | 6.185 | -6.338 |
+| 60 | sniper (primi 2 s): molti sniper | 9817 | 0.5399 | 4.625 | -7.338 |
+| 60 | sniper (primi 2 s): il resto | 90183 | 0.8638 | 6.411 | -5.789 |
+| 60 | wallet bravi (passato): wallet bravi presenti | 8885 | 1.891 | 7.8 | -8.545 |
+| 60 | wallet bravi (passato): il resto | 91115 | 0.7287 | 6.084 | -5.687 |
+| 60 | acquirenti unici: molti acquirenti unici | 19206 | 1.224 | 6.602 | -10.4 |
+| 60 | acquirenti unici: il resto | 80794 | 0.7389 | 6.149 | -4.882 |
+| 300 | wallet nello stesso secondo: molti wallet nello stesso secondo | 18933 | 1.151 | 3.153 | -6.3 |
+| 300 | wallet nello stesso secondo: il resto | 81067 | 0.6661 | 2.408 | -3.606 |
+| 300 | quota di wallet nuovi: molti wallet nuovi | 19665 | 0.6763 | 2.522 | -4.959 |
+| 300 | quota di wallet nuovi: il resto | 80335 | 0.778 | 2.556 | -3.91 |
+| 300 | quota del primo acquirente: un acquirente domina | 19665 | 0.2848 | 1.892 | -3.377 |
+| 300 | quota del primo acquirente: il resto | 80335 | 0.8738 | 2.71 | -4.297 |
+| 300 | sniper (primi 2 s): molti sniper | 10719 | 0.6437 | 1.81 | -5.09 |
+| 300 | sniper (primi 2 s): il resto | 89281 | 0.7717 | 2.638 | -3.999 |
+| 300 | wallet bravi (passato): wallet bravi presenti | 13684 | 2.733 | 5.744 | -3.439 |
+| 300 | wallet bravi (passato): il resto | 86316 | 0.4449 | 2.042 | -4.224 |
+| 300 | acquirenti unici: molti acquirenti unici | 19856 | 1.41 | 3.54 | -7.022 |
+| 300 | acquirenti unici: il resto | 80144 | 0.5964 | 2.303 | -3.396 |
+
+
+## 4. Entrate e uscite a confronto su TUTTI i candidati (nessuna selezione), ritardo 3 s e 30 s
+| momento_s | ritardo_s | entrata | uscita | n | media_% | mediana_% | vincenti_% | durata_media_min |
+|---|---|---|---|---|---|---|---|---|
+| 900 | 30 | E3 ritracciamento -25% | X6 slancio perso | 1677 | 1.72 | -3.533 | 21.82 | 1.774 |
+| 900 | 3 | E2 conferma +15% | X1 5 min | 1192 | 1.685 | -7.006 | 33.81 | 4.945 |
+| 900 | 3 | E2 conferma +15% | X2 30 min | 1192 | 1.319 | -10.77 | 32.47 | 28.42 |
+| 900 | 30 | E2 conferma +15% | X1 5 min | 1178 | 1.161 | -3.85 | 32.34 | 5.407 |
+| 900 | 3 | E2 conferma +15% | X7 fino al diploma | 1192 | 1.062 | -11.94 | 32.3 | 56.54 |
+| 900 | 30 | E3 ritracciamento -25% | X5 metà a +100% + trailing | 1677 | 0.5084 | -5.47 | 21.71 | 40.3 |
+| 900 | 3 | E3 ritracciamento -25% | X1 5 min | 1685 | 0.2775 | -7.692 | 25.64 | 5.004 |
+| 900 | 30 | E3 ritracciamento -25% | X4 trailing 35% | 1677 | 0.1977 | -5.678 | 21.11 | 40.3 |
+| 900 | 30 | E3 ritracciamento -25% | X3 stop -30% / +100% | 1677 | 0.1334 | -5.537 | 21.65 | 40.18 |
+| 900 | 30 | E2 conferma +15% | X6 slancio perso | 1178 | -0.08809 | -3.533 | 28.52 | 1.855 |
+| 900 | 3 | E2 conferma +15% | X6 slancio perso | 1192 | -0.1729 | -4.799 | 29.28 | 1.455 |
+| 900 | 30 | E2 conferma +15% | X2 30 min | 1178 | -0.2912 | -5.833 | 30.81 | 29.15 |
+| 900 | 30 | E3 ritracciamento -25% | X1 5 min | 1677 | -0.3553 | -4.379 | 22.3 | 5.457 |
+| 900 | 30 | E2 conferma +15% | X7 fino al diploma | 1178 | -0.5697 | -6.227 | 30.98 | 57.6 |
+| 300 | 3 | E3 ritracciamento -25% | X5 metà a +100% + trailing | 9854 | -0.5986 | -15.08 | 21.57 | 24.97 |
+| 900 | 3 | E2 conferma +15% | X3 stop -30% / +100% | 1192 | -0.7782 | -13.36 | 32.38 | 31.92 |
+| 300 | 3 | E3 ritracciamento -25% | X3 stop -30% / +100% | 9854 | -0.8 | -19.78 | 20.92 | 24.84 |
+| 300 | 30 | E3 ritracciamento -25% | X3 stop -30% / +100% | 9810 | -0.9576 | -10.46 | 18.22 | 30.94 |
+| 300 | 30 | E3 ritracciamento -25% | X5 metà a +100% + trailing | 9810 | -1.031 | -9.438 | 19.1 | 31.01 |
+| 300 | 3 | E3 ritracciamento -25% | X4 trailing 35% | 9854 | -1.074 | -15.64 | 20.28 | 24.97 |
+| 300 | 30 | E3 ritracciamento -25% | X4 trailing 35% | 9810 | -1.179 | -9.905 | 18.2 | 31.01 |
+| 900 | 30 | E3 ritracciamento -25% | X2 30 min | 1677 | -1.321 | -5.987 | 20.39 | 29.82 |
+| 900 | 30 | E3 ritracciamento -25% | X7 fino al diploma | 1677 | -1.464 | -6.249 | 20.27 | 59.02 |
+| 900 | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 1192 | -1.583 | -10.27 | 32.3 | 30.98 |
+| 300 | 3 | E3 ritracciamento -25% | X7 fino al diploma | 9854 | -1.589 | -26.21 | 16.44 | 57.02 |
+
+Combinazioni su tutti i candidati con media positiva: 9 su 224.
+
+Entrate attivate e non eseguibili (la curva si è chiusa prima che l'ordine arrivasse):
+| ritardo_s | entrata | attivate | non_eseguibili | non_eseguibili_% |
+|---|---|---|---|---|
+| 0 | E1 subito | 574105 | 0 | 0 |
+| 0 | E2 conferma +15% | 113519 | 9 | 0.007928 |
+| 0 | E3 ritracciamento -25% | 160695 | 0 | 0 |
+| 0 | E4 consolidamento | 71775 | 0 | 0 |
+| 3 | E1 subito | 574105 | 41 | 0.007142 |
+| 3 | E2 conferma +15% | 113519 | 162 | 0.1427 |
+| 3 | E3 ritracciamento -25% | 160695 | 21 | 0.01307 |
+| 3 | E4 consolidamento | 71775 | 6 | 0.008359 |
+| 30 | E1 subito | 574105 | 510 | 0.08883 |
+| 30 | E2 conferma +15% | 113519 | 642 | 0.5655 |
+| 30 | E3 ritracciamento -25% | 160695 | 359 | 0.2234 |
+| 30 | E4 consolidamento | 71775 | 34 | 0.04737 |
+
+/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py:451: RuntimeWarning: Mean of empty slice
+  mean = np.nanmean(x, axis=0) if len(x) else np.full(x.shape[1:], np.nan)
+/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2053: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py:451: RuntimeWarning: Mean of empty slice
+  mean = np.nanmean(x, axis=0) if len(x) else np.full(x.shape[1:], np.nan)
+/opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/numpy/lib/_nanfunctions_impl.py:2053: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+## 5. Il motore di scoperta
+Strategie generate e valutate sui giorni di scoperta: **46,284** (551 ipotesi x 3 ritardi x 4 entrate x 7 uscite). Con t >= 3, media positiva e >= 100 operazioni: **162**.
+Selezionate per la validazione: 67; passano la validazione: **0**.
+
+Le 25 migliori sui giorni di scoperta e come vanno in validazione:
+| momento_s | ipotesi | ritardo_s | entrata | uscita | n_scoperta | media_scoperta_% | t_scoperta | n_validazione | media_validazione_% | q_val | passa_validazione |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 10 | modello (10% migliore) | 3 | E1 subito | X4 trailing 35% | 5141 | 12.9 | 10.3 | 1751 | -1.682 | 1 | False |
+| 10 | modello (10% migliore) | 3 | E1 subito | X5 metà a +100% + trailing | 5141 | 11.23 | 10.11 | 1751 | -1.444 | 1 | False |
+| 10 | modello (10% migliore) | 3 | E1 subito | X3 stop -30% / +100% | 5141 | 9.003 | 8.518 | 1751 | -1.193 | 1 | False |
+| 10 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 1937 | 15.47 | 8.182 | 690 | -3.357 | 1 | False |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X5 metà a +100% + trailing | 656 | 26.99 | 8.179 | 283 | -0.7659 | 1 | False |
+| 10 | modello (10% migliore) | 3 | E2 conferma +15% | X4 trailing 35% | 1937 | 17.19 | 8.046 | 690 | -2.816 | 1 | False |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X4 trailing 35% | 656 | 30.81 | 7.891 | 283 | -1.396 | 1 | False |
+| 60 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 656 | 27.36 | 7.539 | 283 | -0.9277 | 1 | False |
+| 30 | modello (10% migliore) | 0 | E2 conferma +15% | X5 metà a +100% + trailing | 689 | 21.87 | 7.43 | 273 | 2.38 | 1 | False |
+| 30 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 688 | 25 | 7.391 | 272 | -1.841 | 1 | False |
+| 30 | modello (10% migliore) | 3 | E2 conferma +15% | X4 trailing 35% | 688 | 29.16 | 7.355 | 272 | -2.231 | 1 | False |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X3 stop -30% / +100% | 656 | 22.65 | 7.322 | 283 | -1.354 | 1 | False |
+| 10 | modello (10% migliore) | 0 | E3 ritracciamento -25% | X5 metà a +100% + trailing | 2267 | 12.35 | 7.308 | 772 | -0.8223 | 1 | False |
+| 60 | modello (10% migliore) | 3 | E2 conferma +15% | X4 trailing 35% | 656 | 30.71 | 7.101 | 283 | -2.124 | 1 | False |
+| 10 | modello (10% migliore) | 3 | E2 conferma +15% | X3 stop -30% / +100% | 1937 | 13.11 | 7.077 | 690 | -2.672 | 1 | False |
+| 180 | modello (10% migliore) | 0 | E2 conferma +15% | X3 stop -30% / +100% | 263 | 26.11 | 7.045 | 115 | 0.3487 | 1 | False |
+| 30 | modello (10% migliore) | 0 | E2 conferma +15% | X3 stop -30% / +100% | 689 | 17.39 | 6.991 | 273 | 0.945 | 1 | False |
+| 60 | modello (10% migliore) | 3 | E2 conferma +15% | X3 stop -30% / +100% | 656 | 23.65 | 6.962 | 283 | -2.051 | 1 | False |
+| 30 | modello (10% migliore) | 0 | E2 conferma +15% | X4 trailing 35% | 689 | 26.71 | 6.9 | 273 | 2.398 | 1 | False |
+| 10 | modello (10% migliore) | 0 | E3 ritracciamento -25% | X4 trailing 35% | 2267 | 16.15 | 6.887 | 772 | -0.6275 | 1 | False |
+| 60 | modello (10% migliore) | 3 | E1 subito | X4 trailing 35% | 4835 | 6.692 | 6.842 | 2105 | -3.632 | 1 | False |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X6 slancio perso | 656 | 27.02 | 6.796 | 283 | 1.045 | 1 | False |
+| 30 | modello (10% migliore) | 3 | E2 conferma +15% | X3 stop -30% / +100% | 688 | 20.78 | 6.615 | 272 | -1.698 | 1 | False |
+| 60 | modello (10% migliore) | 3 | E1 subito | X5 metà a +100% + trailing | 4835 | 5.601 | 6.553 | 2105 | -3.364 | 1 | False |
+| 180 | modello (10% migliore) | 0 | E2 conferma +15% | X5 metà a +100% + trailing | 263 | 25.37 | 6.498 | 115 | 3.97 | 1 | False |
+
+
+## 6. Giorni di test (letti una sola volta): nessuna strategia ha passato la validazione; per trasparenza, le 10 migliori della scoperta
+| momento_s | ipotesi | ritardo_s | entrata | uscita | test_n | test_media_% | test_IC95_basso_% | test_IC95_alto_% | test_p | test_mediana_% | test_vincenti_% | test_vincita_media_% | test_perdita_media_% | test_profit_factor | test_serie_perdite_max | test_durata_media_min | test_profitto_SOL_su_0,1 | test_ROI_su_2_SOL_% | test_maxDD_% | test_Sharpe_giorni | test_Sortino_giorni | test_commissioni_SOL | test_stress_media_% | test_ritardo30_media_% | verdetto |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 10 | modello (10% migliore) | 3 | E1 subito | X4 trailing 35% | 1836 | -3.451 | -7.477 | 1.328 | 0.9205 | -5.427 | 19.17 | 90.75 | -25.79 | 0.8345 | 38 | 24.09 | -6.335 | -316.8 | -294.4 | -8.302 | -25.42 | 5.324 | -8.725 | -6.23 | no |
+| 10 | modello (10% migliore) | 3 | E1 subito | X5 metà a +100% + trailing | 1836 | -2.891 | -6.046 | 0.5514 | 0.952 | -5.234 | 20.97 | 81.88 | -25.38 | 0.8559 | 34 | 24.09 | -5.307 | -265.4 | -234.8 | -9.121 | -21.91 | 5.324 | -8.195 | -5.64 | no |
+| 10 | modello (10% migliore) | 3 | E1 subito | X3 stop -30% / +100% | 1836 | -3.597 | -6.564 | -0.6601 | 0.9905 | -5.654 | 19.83 | 95.01 | -27.98 | 0.8397 | 33 | 23.95 | -6.604 | -330.2 | -255 | -17.13 | -31.39 | 5.324 | -8.863 | -5.486 | no |
+| 10 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 929 | -1.494 | -6.089 | 3.758 | 0.7175 | -22.55 | 29.92 | 83.78 | -37.91 | 0.9438 | 14 | 8.528 | -1.388 | -69.4 | -102.9 | -5.973 | -10.34 | 2.694 | -6.875 | -7.308 | no |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X5 metà a +100% + trailing | 598 | -1.297 | -9.115 | 10.67 | 0.6395 | -26 | 27.09 | 84.79 | -33.28 | 0.9466 | 19 | 10.38 | -0.7755 | -38.78 | -69.54 | -1.272 | -3.895 | 1.734 | -6.688 | -6.665 | no |
+| 10 | modello (10% migliore) | 3 | E2 conferma +15% | X4 trailing 35% | 929 | -1.673 | -7.473 | 4.492 | 0.703 | -23.49 | 28.85 | 88.8 | -38.36 | 0.9387 | 14 | 8.528 | -1.554 | -77.71 | -109 | -5.131 | -5.55 | 2.694 | -7.044 | -8.362 | no |
+| 60 | modello (10% migliore) | 0 | E2 conferma +15% | X4 trailing 35% | 598 | -0.1176 | -12.35 | 19.24 | 0.5745 | -26.04 | 26.09 | 92.99 | -32.98 | 0.9952 | 21 | 10.38 | -0.07034 | -3.517 | -86.08 | -0.06644 | -0.4875 | 1.734 | -5.573 | -4.498 | no |
+| 60 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 598 | -2.193 | -10.11 | 9.626 | 0.6995 | -23.64 | 26.76 | 86.48 | -34.59 | 0.9134 | 15 | 11.53 | -1.312 | -65.58 | -79.9 | -2.285 | -6.132 | 1.734 | -7.536 | -6.665 | no |
+| 30 | modello (10% migliore) | 0 | E2 conferma +15% | X5 metà a +100% + trailing | 501 | -0.4752 | -6.455 | 5.936 | 0.5545 | -27.67 | 26.95 | 90.24 | -33.94 | 0.9808 | 10 | 6.061 | -0.2381 | -11.9 | -52.29 | -1.417 | -2.448 | 1.453 | -5.911 | -3.796 | no |
+| 30 | modello (10% migliore) | 3 | E2 conferma +15% | X5 metà a +100% + trailing | 500 | -4.782 | -11.13 | 1.738 | 0.9225 | -25.97 | 29 | 78.78 | -38.91 | 0.8269 | 18 | 8.434 | -2.391 | -119.6 | -193.9 | -8.435 | -10.54 | 1.45 | -9.984 | -3.796 | no |
+
+
+**Strategie con un vantaggio dimostrato fuori campione: 0.**

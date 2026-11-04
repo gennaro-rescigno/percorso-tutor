@@ -1,0 +1,55 @@
+# Strategy Discovery Engine sui nuovi lanci pump.fun (jocry, operazione per operazione, con i wallet)
+
+Pre-registrazione (testo originale):
+
+```
+(written before looking at any result):
+  * data: jocry/Pumpfun_Memecoin_Corpus trades (2026-06-05 .. 07-14) with the trading wallet; cleaning as the
+    dataset documents: prices must be > 0; the System Program address is removed from every wallet feature (its
+    trades stay in the price path); SOL amounts inconsistent with tokens x price (ratio outside 0.01-100) are not
+    used for volumes; split by the token's launch day: discovery Jun 5-24, validation Jun 25 - Jul 4, test
+    Jul 5-14 (the test days are read once, at the end, only for the strategies that passed validation);
+  * decision moments after the launch: 10 s, 30 s, 1, 3, 5, 15 and 60 minutes; a token is a candidate at a moment if
+    it had >= 5 trades so far, traded in the second half of that window and had not graduated yet;
+  * signals known at the moment (trades up to it only): trades, buys, sells, distinct buyers and sellers, SOL bought,
+    sold/bought ratio, net SOL, average buy, trades per wallet, buyers/sellers, return since the first trade,
+    distance from the high, seconds since the last trade, buy acceleration (second half vs first half of the
+    window), real SOL in the curve, snipers (buyers in the first 2 s), largest number of distinct wallets buying in
+    the same second (bundle), share of the largest buyer and of the top 5, buyers with a good PAST record (>= 8
+    positions closed on EARLIER days, >= 50% winners, >= +1 SOL: point-in-time, never the future) and their share
+    of the buying, share of brand-new wallets, creator's buy, creator's past tokens and rugs (as recorded at the
+    launch), mayhem mode;
+  * hypotheses generated automatically per moment: every signal in its top 20% and in its bottom 20% (thresholds
+    from the discovery days), the AND of every pair of the 8 best single signals (by discovery t-statistic), a
+    gradient-boosted model trained on the discovery days (its top 10% of discovery predictions), and "every
+    candidate" (the reference);
+  * entries, with a data delay d = 0 s (theoretical), 3 s, 30 s (the median delay measured on the live stream):
+    E1 at once; E2 confirmation: price 15% above the decision price within 2 minutes; E3 pullback: price 25% below
+    its high since the decision within 5 minutes; E4 consolidation: a 60-second stretch with >= 3 trades and a
+    high/low range <= 15% within 5 minutes; every trigger is seen d seconds late and filled at the curve price
+    d seconds after it;
+  * exits (also acted on d seconds late): X1 after 5 min; X2 after 30 min; X3 stop -30% / target +100%; X4 trailing
+    stop 35% below the high since the entry; X5 half at +100%, the rest with the X4 trailing stop; X6 momentum lost:
+    from 60 s after the entry, 60 s without a buy or a 60-second window with more SOL sold than bought; X7 held to
+    the graduation; everything closes after 60 minutes at most; a graduation during the hold moves the position to
+    PumpSwap, sold at the price 1 minute after the graduation (jocry postgard outcomes; 30% below the last curve
+    price when missing);
+  * costs on 0.1 SOL: 1.25% curve fee per side, own price impact (0.1 SOL / virtual SOL reserve at the entry,
+    position value / reserve at the exit), 0.0002 SOL network fee per transaction (above the p90 measured on the
+    server); stress: fee 2.5% per side and 3% more slippage;
+  * selection (discovery days only): a strategy = moment x hypothesis x entry x delay x exit; kept if it has >= 100
+    trades, a positive mean and a t-statistic >= 3; the 60 best by t, plus the 20 best with the 30 s delay, go to
+    validation; they pass with a positive mean on >= 50 validation trades and q (Benjamini-Hochberg over those
+    candidates) < 0.10; survivors are read on the test days; verdict "edge" only with a test 95% bootstrap interval
+    above zero, a positive result under the cost stress and a positive result with the 30 s delay;
+  * descriptive outputs on all days (no selection): AUC per moment of every signal for the graduation and for "2x
+    before -50%", upside left at each moment, organic vs artificial signals, exits and entries compared on all
+    candidates, survival of the tokens after each moment, entries not executable.
+```
+Traceback (most recent call last):
+  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 737, in <module>
+    main()
+  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 501, in main
+    con = duckdb.connect(DB)
+          ^^^^^^^^^^^^^^^^^^
+duckdb.duckdb.IOException: IO Error: Cannot open file "/tmp/hist-data/discovery_launch.duckdb": No such file or directory

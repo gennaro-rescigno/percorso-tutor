@@ -347,6 +347,33 @@ risultato dipende dall'ipotesi sul prezzo finale). La commissione dello 0,20% è
 media dei token: si perde un po' meno che comprando, ma si perde. Nei pool PumpSwap chi incassa davvero sono la
 piattaforma e il **creatore del token** (fino allo 0,95% di ogni scambio nei token piccoli), non chi fornisce liquidità.
 
+### 9.11 Motore di scoperta sulle memecoin già quotate (`discovery_listed`, 4 novembre 2026)
+
+Istantanee PumpSwap di jocry (giugno-luglio, 1.002.433 istantanee di 5.067 token): un momento di decisione per
+token e ora, da 30 minuti a 48 ore dopo il diploma, con almeno 20 SOL di liquidità (61.422 momenti). Cinque
+famiglie di pattern (slancio, rottura, ritracciamento con ripresa, accumulazione, revival) più le ipotesi generate
+automaticamente, 4 entrate x 8 uscite x 2 ritardi: **3.456 strategie**. Solo 2 superano la soglia sui giorni di
+scoperta (t = 3,1, al limite), nessuna passa la validazione, e sui giorni di test le stesse perdono il 10,7% per
+operazione (intervallo da −15,5% a −4,7%).
+
+Le famiglie su tutti i giorni (entrata subito, nessuna selezione): 45 combinazioni su 48 negative. Le tre positive
+sono tutte "rottura del massimo con accelerazione" (368 casi): uscita per perdita di slancio +6,6% in media ma
+**mediana −12,6%**, tenuta 24 h +3,8% (mediana −27%), uscita per liquidità persa +1,3% (mediana −40%): sono pochi casi
+estremi a fare la media, e il motore non le conferma nei giorni separati. È un indizio da osservare dal vivo, non una
+strategia.
+
+### 9.12 Quante operazioni falliscono davvero (`pumpdata_exec`, 15 ottobre 2026, dati reali)
+
+Ogni operazione su curva e PumpSwap di una giornata, comprese quelle fallite. Quota di transazioni fallite sulla
+curva: acquisti **85% nei primi 10 s**, 82% tra 10 e 30 s, 66% tra 30 e 60 s, 53% tra 1 e 5 minuti, 40% tra 5 e 60
+minuti, 23% dopo un'ora; vendite dal 16% al 24% nel primo minuto, ma 80% tra 1 e 60 minuti (probabilmente
+tentativi ripetuti dei bot). Su PumpSwap gli acquisti falliscono dall'84% (primi 10 s) al 12% (token del giorno
+prima). Una transazione fallita costa poco (in media da 0,00003 a 0,0003 SOL). Ma il dato aggregato è gonfiato dai
+bot che ripetono: tra i 96.722 wallet che hanno comprato sulla curva nel primo minuto la quota mediana di tentativi
+falliti è **0%**, con una media di 42,5 tentativi falliti per wallet (pochi wallet ne mandano migliaia). Per un
+ordine singolo e non spammato il rischio di fallire è quindi molto più basso dell'85%, ma non nullo nei primi
+secondi.
+
 ---
 
 ## 10. Fuori dalle memecoin: le crypto affermate (Binance 2018 - ottobre 2026)

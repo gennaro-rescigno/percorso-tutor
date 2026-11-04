@@ -498,6 +498,7 @@ def main() -> None:
     r = Report("discovery_launch")
     r("# Strategy Discovery Engine sui nuovi lanci pump.fun (jocry, operazione per operazione, con i wallet)")
     r("\nPre-registrazione (testo originale):\n\n```\n" + __doc__.split("PRE-REGISTERED")[1].strip() + "\n```")
+    DATA.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(DB)
     con.execute("SET memory_limit='3GB'; SET temp_directory='/tmp/duck'; SET preserve_insertion_order=false")
     build(con, r)

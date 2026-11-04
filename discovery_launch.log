@@ -46,10 +46,36 @@ Pre-registrazione (testo originale):
     before -50%", upside left at each moment, organic vs artificial signals, exits and entries compared on all
     candidates, survival of the tokens after each moment, entries not executable.
 ```
+trades/trades-00000.parquet: fatto
+trades/trades-00001.parquet: fatto
+trades/trades-00002.parquet: fatto
+trades/trades-00003.parquet: fatto
+trades/trades-00004.parquet: fatto
+trades/trades-00005.parquet: fatto
+trades/trades-00006.parquet: fatto
+trades/trades-00007.parquet: fatto
+trades/trades-00008.parquet: fatto
+trades/trades-00009.parquet: fatto
+trades/trades-00010.parquet: fatto
+trades/trades-00011.parquet: fatto
+trades/trades-00012.parquet: fatto
+trades/trades-00013.parquet: fatto
+trades/trades-00014.parquet: fatto
+trades/trades-00015.parquet: fatto
+trades/trades-00016.parquet: fatto
+trades/trades-00017.parquet: fatto
+Operazioni nel corpus: 33,581,765; con prezzo valido: 31,221,704; con importo SOL coerente: 30,085,383; con un wallet reale: 24,532,751.
+finestra 10s: 100,000 candidati
+finestra 30s: 100,000 candidati
+finestra 60s: 100,000 candidati
+finestra 180s: 100,000 candidati
 Traceback (most recent call last):
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 737, in <module>
+  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 738, in <module>
     main()
-  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 501, in main
-    con = duckdb.connect(DB)
-          ^^^^^^^^^^^^^^^^^^
-duckdb.duckdb.IOException: IO Error: Cannot open file "/tmp/hist-data/discovery_launch.duckdb": No such file or directory
+  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 507, in main
+    f = features(con, a)
+        ^^^^^^^^^^^^^^^^
+  File "/home/runner/work/percorso-tutor/percorso-tutor/memecoin-intelligence/research/historical/discovery_launch.py", line 162, in features
+    df = con.execute(f"""
+         ^^^^^^^^^^^^^^^^
+duckdb.duckdb.OutOfMemoryException: Out of Memory Error: failed to pin block of size 256.0 KiB (2.7 GiB/2.7 GiB used)

@@ -159,39 +159,46 @@ def build(con: duckdb.DuckDBPyConnection, r: Report) -> None:
 
 
 def features(con: duckdb.DuckDBPyConnection, a: int) -> pd.DataFrame:
+    # step by step into temporary tables (bounded memory on the runner); no window functions
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE g AS
+        SELECT mint, count(*) AS n, sum(is_buy::INT) AS nb, sum((NOT is_buy)::INT) AS ns,
+               count(DISTINCT CASE WHEN is_buy THEN w END) AS buyers,
+               count(DISTINCT CASE WHEN NOT is_buy THEN w END) AS sellers,
+               sum(CASE WHEN is_buy AND sol_ok THEN sol ELSE 0 END) AS bsol,
+               sum(CASE WHEN NOT is_buy AND sol_ok THEN sol ELSE 0 END) AS ssol,
+               arg_max(px, age) AS px_last, arg_min(px, age) AS px_first, max(px) AS px_max, max(age) AS last_age,
+               arg_max(vsol, age) AS vsol_last,
+               sum(CASE WHEN is_buy AND age > {a} / 2.0 THEN 1 ELSE 0 END) AS nb_late,
+               sum(CASE WHEN is_buy AND age <= {a} / 2.0 THEN 1 ELSE 0 END) AS nb_early,
+               count(DISTINCT CASE WHEN is_buy AND age <= 2 THEN w END) AS snipers
+        FROM tr WHERE age <= {a} GROUP BY mint HAVING count(*) >= 5 AND max(age) >= {a} / 2.0""")
+    con.execute(f"""
+        CREATE OR REPLACE TEMP TABLE xb AS
+        SELECT mint, w, age, CASE WHEN sol_ok THEN sol ELSE 0 END AS sol FROM tr
+        WHERE age <= {a} AND is_buy AND w IS NOT NULL AND mint IN (SELECT mint FROM g)""")
+    con.execute("""
+        CREATE OR REPLACE TEMP TABLE sec AS
+        SELECT mint, max(k) AS bundle FROM (SELECT mint, floor(age) AS s, count(DISTINCT w) AS k FROM xb GROUP BY mint, s)
+        GROUP BY mint""")
+    con.execute("""
+        CREATE OR REPLACE TEMP TABLE conc AS
+        WITH wb AS (SELECT mint, w, sum(sol) AS s FROM xb GROUP BY mint, w),
+        wf AS (SELECT wb.mint, wb.s, coalesce(bp.skilled, false) AS skilled, coalesce(bp.fresh, false) AS fresh
+               FROM wb LEFT JOIN bp ON wb.mint = bp.mint AND wb.w = bp.w)
+        SELECT mint, max(s) / nullif(sum(s), 0) AS max_share,
+               list_sum(list_slice(list_sort(list(s), 'DESC'), 1, 5)) / nullif(sum(s), 0) AS top5_share,
+               sum(skilled::INT) AS skilled_n,
+               sum(CASE WHEN skilled THEN s ELSE 0 END) / nullif(sum(s), 0) AS skilled_share,
+               avg(fresh::INT) AS fresh_share
+        FROM wf GROUP BY mint""")
     df = con.execute(f"""
-        WITH x AS (SELECT * FROM tr WHERE age <= {a}),
-        g AS (
-            SELECT mint, count(*) AS n, sum(is_buy::INT) AS nb, sum((NOT is_buy)::INT) AS ns,
-                   count(DISTINCT CASE WHEN is_buy THEN w END) AS buyers,
-                   count(DISTINCT CASE WHEN NOT is_buy THEN w END) AS sellers,
-                   sum(CASE WHEN is_buy AND sol_ok THEN sol ELSE 0 END) AS bsol,
-                   sum(CASE WHEN NOT is_buy AND sol_ok THEN sol ELSE 0 END) AS ssol,
-                   arg_max(px, age) AS px_last, arg_min(px, age) AS px_first, max(px) AS px_max, max(age) AS last_age,
-                   arg_max(vsol, age) AS vsol_last,
-                   sum(CASE WHEN is_buy AND age > {a} / 2.0 THEN 1 ELSE 0 END) AS nb_late,
-                   sum(CASE WHEN is_buy AND age <= {a} / 2.0 THEN 1 ELSE 0 END) AS nb_early,
-                   count(DISTINCT CASE WHEN is_buy AND age <= 2 THEN w END) AS snipers
-            FROM x GROUP BY mint HAVING count(*) >= 5 AND max(age) >= {a} / 2.0),
-        sec AS (SELECT mint, max(k) AS bundle FROM (
-                    SELECT mint, floor(age) AS s, count(DISTINCT w) AS k FROM x WHERE is_buy AND w IS NOT NULL
-                    GROUP BY mint, s) GROUP BY mint),
-        wb AS (SELECT x.mint, x.w, sum(x.sol) AS s FROM x WHERE x.is_buy AND x.w IS NOT NULL AND x.sol_ok GROUP BY x.mint, x.w),
-        wf AS (SELECT wb.*, coalesce(bp.skilled, false) AS skilled, coalesce(bp.fresh, false) AS fresh,
-                      row_number() OVER (PARTITION BY wb.mint ORDER BY wb.s DESC) AS rk,
-                      sum(wb.s) OVER (PARTITION BY wb.mint) AS tot
-               FROM wb LEFT JOIN bp ON wb.mint = bp.mint AND wb.w = bp.w),
-        conc AS (SELECT mint, max(s) / nullif(max(tot), 0) AS max_share,
-                        sum(CASE WHEN rk <= 5 THEN s ELSE 0 END) / nullif(max(tot), 0) AS top5_share,
-                        sum(skilled::INT) AS skilled_n,
-                        sum(CASE WHEN skilled THEN s ELSE 0 END) / nullif(max(tot), 0) AS skilled_share,
-                        avg(fresh::INT) AS fresh_share
-                 FROM wf GROUP BY mint)
         SELECT g.*, coalesce(sec.bundle, 0) AS bundle, conc.max_share, conc.top5_share, coalesce(conc.skilled_n, 0) AS skilled_n,
                conc.skilled_share, conc.fresh_share, k.launch_ts, k.grad_age, k.mayhem, k.dev_pct, k.creator_past,
                k.creator_rugs, k.post_ratio, k.has_post
         FROM g LEFT JOIN sec USING (mint) LEFT JOIN conc USING (mint) JOIN tokx k USING (mint)
         WHERE k.grad_age IS NULL OR k.grad_age > {a}""").df()
+    con.execute("DROP TABLE xb; DROP TABLE sec; DROP TABLE conc; DROP TABLE g")
     df["sell_ratio"] = df.ssol / df.bsol.where(df.bsol > 0)
     df["net_sol"] = df.bsol - df.ssol
     df["avg_buy"] = df.bsol / df.nb.where(df.nb > 0)
@@ -500,7 +507,7 @@ def main() -> None:
     r("\nPre-registrazione (testo originale):\n\n```\n" + __doc__.split("PRE-REGISTERED")[1].strip() + "\n```")
     DATA.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(DB)
-    con.execute("SET memory_limit='3GB'; SET temp_directory='/tmp/duck'; SET preserve_insertion_order=false")
+    con.execute("SET memory_limit='4GB'; SET threads=2; SET temp_directory='/tmp/duck'; SET preserve_insertion_order=false")
     build(con, r)
     cands = []
     for a in WINDOWS:
@@ -519,6 +526,7 @@ def main() -> None:
     ages, px = np.asarray(path["age"], np.float32), np.asarray(path["px"], np.float32)
     buy, sol, vs = np.asarray(path["is_buy"], np.bool_), np.asarray(path["sol"], np.float32), np.asarray(path["vsol"], np.float32)
     del path
+    con.close()  # DuckDB is not needed any more: free its memory before the simulation
     nk = len(mints)
     starts = np.searchsorted(k, np.arange(nk), side="left")
     ends = np.searchsorted(k, np.arange(nk), side="right")

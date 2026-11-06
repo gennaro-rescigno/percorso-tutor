@@ -6,6 +6,8 @@
 #   bash vps.sh update    passa all'ultimo commit di main con la CI verde (lo fa il timer ogni 10 min);
 #                         se la nuova versione non parte, torna da sola alla precedente
 #   bash vps.sh status    stato di servizi, bot, memoria e disco
+#   bash vps.sh decommission  rimuove tutto il bot e lascia la VPS pulita per un altro progetto
+#                         (parte da sola al prossimo aggiornamento se esiste deploy/DECOMMISSION)
 #
 # Le impostazioni personali stanno SOLO in /etc/mci/config.env (permessi 600, mai nel repository):
 #   MCI_TELEGRAM_BOT_TOKEN=   token di @BotFather
@@ -297,6 +299,7 @@ cmd_update() {
   need_root
   exec 9>/run/mci-update.lock
   flock -n 9 || exit 0
+  if [ -f "$APP/deploy/DECOMMISSION" ]; then cmd_decommission; exit 0; fi
   duckdns_update
   cd "$SRC"
   git fetch -q origin main 2>>"$LOG" || { log "update: GitHub non raggiungibile, riprovo più tardi"; exit 0; }
@@ -329,6 +332,92 @@ cmd_update() {
   fi
 }
 
+# --- decommission: remove the bot completely and leave a clean server for another project ---------------------
+# Triggered by the file deploy/DECOMMISSION in the repository (the update timer runs it), or by hand:
+#   sudo bash vps.sh decommission
+# Keeps: Ubuntu, Docker, ufw (22/80/443), fail2ban. Removes: every container, volume, image and network of the bot,
+# its code (/opt/mci), its settings and secrets (/etc/mci), its logs and the update timer. Then installs a temporary
+# timer that adds the new project's PUBLIC SSH keys from deploy/handover_authorized_keys (public file in the
+# repository) and removes itself once a key is installed, or after 14 days.
+install_handover() {
+  cat >/usr/local/sbin/vps-handover-keys.sh <<'EOF'
+#!/bin/bash
+# Adds the new project's public SSH keys, then removes itself (VPS handed over from Memecoin Intelligence).
+set -u
+URL="https://raw.githubusercontent.com/gennaro-rescigno/percorso-tutor/main/memecoin-intelligence/deploy/handover_authorized_keys"
+LOG=/var/log/vps-handover.log
+STAMP=/var/lib/vps-handover.since
+[ -f "$STAMP" ] || date +%s >"$STAMP"
+cleanup() {
+  systemctl disable --now vps-handover.timer >/dev/null 2>&1
+  rm -f /etc/systemd/system/vps-handover.timer /etc/systemd/system/vps-handover.service "$STAMP" /usr/local/sbin/vps-handover-keys.sh
+  systemctl daemon-reload
+}
+if [ $(( $(date +%s) - $(cat "$STAMP") )) -gt $((14 * 86400)) ]; then
+  echo "[$(date -u +%FT%TZ)] nessuna chiave in 14 giorni: il controllo si rimuove" >>"$LOG"; cleanup; exit 0
+fi
+tmp=$(mktemp)
+curl -fsSL -m 30 "$URL" -o "$tmp" 2>/dev/null || { rm -f "$tmp"; exit 0; }
+keys=$(grep -E '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-nistp(256|384|521)|sk-ssh-ed25519@openssh\.com) [A-Za-z0-9+/=]+( [^ ]+)?$' "$tmp" || true)
+rm -f "$tmp"
+[ -n "$keys" ] || exit 0
+install -d -m 700 /root/.ssh
+touch /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
+while IFS= read -r k; do grep -qxF "$k" /root/.ssh/authorized_keys || echo "$k" >>/root/.ssh/authorized_keys; done <<<"$keys"
+echo "[$(date -u +%FT%TZ)] chiavi SSH installate: $(printf '%s\n' "$keys" | wc -l); il controllo si rimuove" >>"$LOG"
+cleanup
+EOF
+  chmod 700 /usr/local/sbin/vps-handover-keys.sh
+  cat >/etc/systemd/system/vps-handover.service <<'EOF'
+[Unit]
+Description=Install the new project's public SSH keys (temporary, removes itself)
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/vps-handover-keys.sh
+EOF
+  cat >/etc/systemd/system/vps-handover.timer <<'EOF'
+[Unit]
+Description=Check every 10 minutes for the new project's public SSH keys (temporary)
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+[Install]
+WantedBy=timers.target
+EOF
+  systemctl daemon-reload
+  systemctl enable --now vps-handover.timer >/dev/null 2>&1 || true
+}
+
+cmd_decommission() {
+  need_root
+  local out=/var/log/vps-handover.log
+  echo "[$(date -u +%FT%TZ)] dismissione di Memecoin Intelligence: libero la VPS per un altro progetto" >>"$out"
+  systemctl disable --now mci-update.timer >/dev/null 2>&1 || true
+  if [ -d "$APP" ]; then
+    (cd "$APP" && docker compose --profile web down -v --rmi all --remove-orphans) >>"$out" 2>&1 || true
+  fi
+  docker ps -aq --filter label=com.docker.compose.project=memecoin-intelligence | xargs -r docker rm -f >>"$out" 2>&1 || true
+  docker volume ls -q --filter label=com.docker.compose.project=memecoin-intelligence | xargs -r docker volume rm >>"$out" 2>&1 || true
+  docker system prune -af --volumes >>"$out" 2>&1 || true
+  rm -f /etc/systemd/system/mci-update.timer /etc/systemd/system/mci-update.service
+  systemctl daemon-reload || true
+  install_handover
+  rm -rf "$BASE" /etc/mci /root/vps.sh
+  rm -f "$LOG" /run/mci-update.lock
+  cat >/root/VPS_LIBERA.txt <<EOF
+VPS liberata il $(date -u +%F) alle $(date -u +%H:%M) UTC: Memecoin Intelligence è stato rimosso completamente.
+Rimossi: container, volumi, immagini e reti Docker del bot; codice (/opt/mci); impostazioni e segreti (/etc/mci);
+registri; timer di aggiornamento automatico.
+Restano: Ubuntu 24.04, Docker, firewall ufw (porte 22, 80, 443 aperte), fail2ban.
+Accesso: le chiavi SSH pubbliche scritte in memecoin-intelligence/deploy/handover_authorized_keys del repository
+gennaro-rescigno/percorso-tutor vengono aggiunte a /root/.ssh/authorized_keys entro 10 minuti (controllo
+temporaneo che si rimuove da solo; registro in /var/log/vps-handover.log).
+EOF
+  echo "[$(date -u +%FT%TZ)] dismissione completata: $(docker ps -aq | wc -l) container, $(docker volume ls -q | wc -l) volumi rimasti" >>"$out"
+}
+
 cmd_status() {
   need_root
   echo "== versione: $(git -C "$SRC" log -1 --format='%h %cd %s' --date=short 2>/dev/null)"
@@ -345,5 +434,6 @@ case "${1:-}" in
   install) cmd_install ;;
   update) shift; cmd_update "$@" ;;
   status) cmd_status ;;
-  *) echo "uso: sudo bash $0 install|update|status"; exit 2 ;;
+  decommission) cmd_decommission ;;
+  *) echo "uso: sudo bash $0 install|update|status|decommission"; exit 2 ;;
 esac

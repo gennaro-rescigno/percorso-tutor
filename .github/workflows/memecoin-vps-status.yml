@@ -1,12 +1,14 @@
 name: memecoin VPS status
 # Sola lettura: legge la dashboard pubblica della VPS (porta 8080, gli stessi dati paper che erano su
 # GitHub Pages) e ne stampa un riepilogo. Non modifica nulla. L'IP viene letto dall'API Hetzner.
+# DISATTIVATO il 6 novembre 2026: il progetto è dismesso e la VPS passa a un altro progetto.
 on:
   workflow_dispatch:
 permissions:
   contents: write  # only to save the printed summary (public paper data, no secrets) in the research-results branch
 jobs:
   status:
+    if: false  # disattivato: la VPS non è più del bot
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     env:

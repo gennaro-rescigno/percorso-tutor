@@ -3,9 +3,8 @@ name: memecoin state backup
 # segnali, risultati di Laboratorio/esperimenti/ricerca; nessun segreto: vengono rimossi prima della pubblicazione)
 # dalla dashboard pubblica della VPS al branch "bot-state". Se la VPS si rompe, il nuovo server riparte da qui
 # (mci state-import). Sola lettura sulla VPS.
+# DISATTIVATO il 6 novembre 2026: il progetto è dismesso e la VPS passa a un altro progetto.
 on:
-  schedule:
-    - cron: "23 3 * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -14,6 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   backup:
+    if: false  # disattivato: la VPS non è più del bot
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:

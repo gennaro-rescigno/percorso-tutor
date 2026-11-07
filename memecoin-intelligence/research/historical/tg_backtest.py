@@ -47,6 +47,9 @@ from loop_curve import boot_mean
 CHANNEL = "BINANCE_CRYPTO_SIGNALS_ML"
 RAW = f"https://raw.githubusercontent.com/gennaro-rescigno/percorso-tutor/research-results/tg_{CHANNEL.lower()}_raw.json"
 FEE, SLIP, HOLD_MIN = 0.0005, 0.0002, 7 * 1440
+MIN_TIME = None  # set by tg_backtest2 (out-of-sample check on later signals)
+REPORT_NAME = "tg_backtest"
+TITLE_EXTRA = ""
 SIG_RE = re.compile(r"\b(LONG|SHORT)\s+([A-Z0-9]+USDT)\b")
 
 
@@ -157,8 +160,8 @@ def summarize(df: pd.DataFrame, col: str) -> dict:
 
 
 def main() -> None:
-    r = Report("tg_backtest")
-    r(f"# Backtest dei segnali del canale Telegram @{CHANNEL} (Binance futures, candele da 1 minuto)")
+    r = Report(REPORT_NAME)
+    r(f"# Backtest dei segnali del canale Telegram @{CHANNEL} (Binance futures, candele da 1 minuto){TITLE_EXTRA}")
     r("\nPre-registrazione (testo originale):\n\n```\n" + __doc__.split("PRE-REGISTERED")[1].strip() + "\n```")
     with urllib.request.urlopen(urllib.request.Request(RAW, headers=UA), timeout=60) as resp:
         posts = json.loads(resp.read())
@@ -180,6 +183,9 @@ def main() -> None:
     r(f"Segnali su coppie che esistono come perpetui USDT-M su Binance: {sig.su_binance.sum():,} su {len(sig):,} "
       f"(non trovate: {', '.join(sorted(set(sig.symbol[~sig.su_binance]))[:30]) or 'nessuna'}).")
     sig = sig[sig.su_binance].copy()
+    if MIN_TIME:
+        sig = sig[sig.time >= pd.Timestamp(MIN_TIME, tz="UTC")].copy()
+        r(f"Solo i segnali dal {MIN_TIME}: {len(sig):,}; tenuta massima {HOLD_MIN // 60} ore.")
     # candles needed: each signal's day -3 .. +8 (random baseline and the 7-day hold)
     need = set()
     for _, x in sig.iterrows():
@@ -259,7 +265,7 @@ def main() -> None:
         m1 = bt["V1M"].mean() * lev
         r(f"- {lev}x: risultato medio per operazione sul margine {100 * m1:+.1f}%; con V3 (senza stop) una mossa contraria del "
           f"{100 / lev:.0f}% azzera la posizione.")
-    bt.to_csv(r.path.with_name("tg_backtest_trades.csv"), index=False)
+    bt.to_csv(r.path.with_name(f"{REPORT_NAME}_trades.csv"), index=False)
     r.save()
 
 

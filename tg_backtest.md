@@ -15,6 +15,8 @@ Pre-registrazione (testo originale):
       V3 no stop before TP1, half at TP1, then the rest with the stop at the entry, otherwise held to 7 days;
       V4 everything at TP1 with the V1 stop (the "TP1 hit = win" reading);
     when one minute touches both a stop and a target, the stop counts first (conservative; the count is reported);
+  * (correction after the first run, rules unchanged: posts without a written stop carried NaN, which the code
+    read as a stop that never triggers; the -3% default now applies as written above);
   * costs: 0.05% taker fee per side and 0.02% slippage on market fills (entry M and stops); funding not counted
     (the average holding time is reported);
   * comparison: the same pairs, sides and exits with the entry at a random minute in the 3 days BEFORE the post
@@ -43,44 +45,44 @@ Segnali con 7 giorni completi di candele: **1,624** (dal 2026-10-09 al 2026-10-3
 ## Risultato per operazione (senza leva, commissioni comprese)
 | regole | entrata | n | media_% | IC95_basso_% | IC95_alto_% | mediana_% | vincenti_% | vincita_media_% | perdita_media_% | profit_factor | somma_% | minuti_medi | minuti_ambigui |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| V1 come scritto (metà TP1, metà TP2, stop scritto o -3%) | a mercato subito | 1624 | -0.2104 | -0.3331 | -0.09597 | 0.2192 | 53.76 | 1.142 | -1.783 | 0.7448 | -341.6 | 331.4 | 4 |
-| V1 come scritto (metà TP1, metà TP2, stop scritto o -3%) | limite al prezzo scritto | 1370 | 0.0859 | -0.06541 | 0.2274 | 1.399 | 62.04 | 1.552 | -2.311 | 1.098 | 117.7 | 425.8 | 9 |
+| V1 come scritto (metà TP1, metà TP2, stop scritto o -3%) | a mercato subito | 1624 | -0.2276 | -0.3074 | -0.1449 | 0.01538 | 50.18 | 1.124 | -1.589 | 0.7125 | -369.7 | 131.4 | 9 |
+| V1 come scritto (metà TP1, metà TP2, stop scritto o -3%) | limite al prezzo scritto | 1370 | 0.04705 | -0.057 | 0.1486 | 1.399 | 57.52 | 1.545 | -1.981 | 1.056 | 64.46 | 153.4 | 12 |
 | V1 come scritto (metà TP1, metà TP2, stop scritto o -3%) | a un minuto CASUALE nei 3 giorni prima (confronto) | 1560 | -0.3595 | -0.4455 | -0.2773 | -0.14 | 47.05 | 1.138 | -1.691 | 0.5984 | -560.9 |  |  |
-| V2 V1 + stop all'entrata dopo TP1 | a mercato subito | 1624 | -0.1719 | -0.2766 | -0.0823 | -0.07381 | 47.97 | 0.9875 | -1.241 | 0.7338 | -279.1 | 139.5 | 282 |
-| V2 V1 + stop all'entrata dopo TP1 | limite al prezzo scritto | 1370 | 0.1254 | -0.02662 | 0.2473 | 0.4218 | 73.58 | 1.086 | -2.548 | 1.186 | 171.8 | 222.6 | 48 |
+| V2 V1 + stop all'entrata dopo TP1 | a mercato subito | 1624 | -0.2358 | -0.3077 | -0.1636 | -0.1184 | 45.81 | 0.966 | -1.252 | 0.6524 | -382.9 | 69.68 | 284 |
+| V2 V1 + stop all'entrata dopo TP1 | limite al prezzo scritto | 1370 | 0.04009 | -0.04958 | 0.1331 | 0.3922 | 70.07 | 1.071 | -2.373 | 1.056 | 54.93 | 95.67 | 46 |
 | V2 V1 + stop all'entrata dopo TP1 | a un minuto CASUALE nei 3 giorni prima (confronto) | 1560 | -0.3435 | -0.4192 | -0.2655 | -0.14 | 43.08 | 0.9855 | -1.349 | 0.5527 | -535.9 |  |  |
 | V3 senza stop prima di TP1, poi stop all'entrata, max 7 giorni | a mercato subito | 1624 | -0.3559 | -0.6204 | -0.09837 | 0.3597 | 61.82 | 1.246 | -2.95 | 0.6839 | -578 | 709.3 | 290 |
 | V3 senza stop prima di TP1, poi stop all'entrata, max 7 giorni | limite al prezzo scritto | 1370 | -0.1352 | -0.485 | 0.1766 | 1.399 | 93.14 | 1.279 | -19.33 | 0.8981 | -185.2 | 1007 | 50 |
 | V3 senza stop prima di TP1, poi stop all'entrata, max 7 giorni | a un minuto CASUALE nei 3 giorni prima (confronto) | 1560 | -0.4715 | -0.8332 | -0.1528 | 0.3808 | 62.24 | 1.311 | -3.411 | 0.6339 | -735.6 |  |  |
-| V4 tutto a TP1 con lo stop di V1 | a mercato subito | 1624 | -0.2613 | -0.3697 | -0.1658 | -0.04376 | 48.34 | 0.9406 | -1.386 | 0.6351 | -424.3 | 127.5 | 2 |
-| V4 tutto a TP1 con lo stop di V1 | limite al prezzo scritto | 1370 | 0.1204 | -0.02007 | 0.2417 | 0.9001 | 73.94 | 1.073 | -2.582 | 1.179 | 165 | 204.9 | 9 |
+| V4 tutto a TP1 con lo stop di V1 | a mercato subito | 1624 | -0.3216 | -0.3962 | -0.2488 | -0.1113 | 46.06 | 0.928 | -1.389 | 0.5707 | -522.2 | 58.02 | 7 |
+| V4 tutto a TP1 con lo stop di V1 | limite al prezzo scritto | 1370 | 0.03962 | -0.04991 | 0.1316 | 0.9 | 70.29 | 1.067 | -2.39 | 1.056 | 54.28 | 78.45 | 12 |
 | V4 tutto a TP1 con lo stop di V1 | a un minuto CASUALE nei 3 giorni prima (confronto) | 1560 | -0.4456 | -0.5272 | -0.3649 | -0.14 | 43.46 | 0.9208 | -1.496 | 0.4732 | -695.1 |  |  |
 
 
 ## Come finiscono le operazioni (entrata a mercato)
 | index | V1 | V2 | V3 | V4 |
 |---|---|---|---|---|
-| TP2 | 70.81 | 42.12 | 51.42 | 0 |
-| stop | 18.17 | 18.17 | 0 | 18.17 |
-| stop dopo TP1 | 9.544 | 39.47 | 44.33 | 0 |
-| tempo scaduto | 1.478 | 0.2463 | 4.249 | 0.2463 |
-| TP1 | 0 | 0 | 0 | 81.59 |
+| TP2 | 67 | 40.39 | 51.42 | 0 |
+| stop | 20.87 | 20.87 | 0 | 20.87 |
+| stop dopo TP1 | 12.13 | 38.73 | 44.33 | 0 |
+| tempo scaduto | 0 | 0 | 4.249 | 0 |
+| TP1 | 0 | 0 | 0 | 79.13 |
 
 
 ## Per periodo, direzione, mese e punteggio (V1 e V3, entrata a mercato)
 | periodo | V1_n | V1_media_% | V1_IC95_basso_% | V1_IC95_alto_% | V1_vincenti_% | V3_media_% | V3_vincenti_% |
 |---|---|---|---|---|---|---|---|
 | con stop scritto | 1320 | -0.211 | -0.3049 | -0.117 | 50.53 | -0.4507 | 63.79 |
-| senza stop scritto | 304 | -0.2076 | -0.7281 | 0.2329 | 67.76 | 0.05568 | 53.29 |
+| senza stop scritto | 304 | -0.2998 | -0.4908 | -0.1085 | 48.68 | 0.05568 | 53.29 |
 
 | side | V1_n | V1_media_% | V1_IC95_basso_% | V1_IC95_alto_% | V1_vincenti_% | V3_media_% | V3_vincenti_% |
 |---|---|---|---|---|---|---|---|
-| LONG | 980 | -0.2667 | -0.4447 | -0.1138 | 52.96 | -0.5611 | 61.43 |
-| SHORT | 644 | -0.1246 | -0.2739 | 0.01315 | 54.97 | -0.04366 | 62.42 |
+| LONG | 980 | -0.2443 | -0.3476 | -0.1382 | 49.9 | -0.5611 | 61.43 |
+| SHORT | 644 | -0.2022 | -0.3292 | -0.07472 | 50.62 | -0.04366 | 62.42 |
 
 | mese | n | media_% | vincenti_% | somma_% |
 |---|---|---|---|---|
-| 2026-10 | 1624 | -0.2104 | 53.76 | -341.6 |
+| 2026-10 | 1624 | -0.2276 | 50.18 | -369.7 |
 
 | punteggio | n | media_% | vincenti_% |
 |---|---|---|---|
@@ -92,5 +94,5 @@ Segnali con 7 giorni completi di candele: **1,624** (dal 2026-10-09 al 2026-10-3
 
 ## Con la leva
 - 5x: risultato medio per operazione sul margine -1.1%; con V3 (senza stop) una mossa contraria del 20% azzera la posizione.
-- 10x: risultato medio per operazione sul margine -2.1%; con V3 (senza stop) una mossa contraria del 10% azzera la posizione.
-- 20x: risultato medio per operazione sul margine -4.2%; con V3 (senza stop) una mossa contraria del 5% azzera la posizione.
+- 10x: risultato medio per operazione sul margine -2.3%; con V3 (senza stop) una mossa contraria del 10% azzera la posizione.
+- 20x: risultato medio per operazione sul margine -4.6%; con V3 (senza stop) una mossa contraria del 5% azzera la posizione.

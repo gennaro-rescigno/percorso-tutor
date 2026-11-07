@@ -17,6 +17,8 @@ PRE-REGISTERED (written before looking at any result):
       V3 no stop before TP1, half at TP1, then the rest with the stop at the entry, otherwise held to 7 days;
       V4 everything at TP1 with the V1 stop (the "TP1 hit = win" reading);
     when one minute touches both a stop and a target, the stop counts first (conservative; the count is reported);
+  * (correction after the first run, rules unchanged: posts without a written stop carried NaN, which the code
+    read as a stop that never triggers; the -3% default now applies as written above);
   * costs: 0.05% taker fee per side and 0.02% slippage on market fills (entry M and stops); funding not counted
     (the average holding time is reported);
   * comparison: the same pairs, sides and exits with the entry at a random minute in the 3 days BEFORE the post
@@ -95,6 +97,8 @@ def simulate(o, h, l, c, i0, side, entry_px, tp1, tp2, stop, variant, mode):
     """Returns (net return, how it ended, minutes held, ambiguous-minute flag) or None if never filled."""
     s = 1.0 if side == "LONG" else -1.0
     n = len(o)
+    if stop is not None and stop != stop:  # NaN = no stop written (the -3% default applies)
+        stop = None
     # ---- entry
     if mode == "M":
         if i0 >= n:

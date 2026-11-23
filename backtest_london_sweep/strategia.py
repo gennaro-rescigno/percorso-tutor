@@ -47,6 +47,11 @@ class Parametri:
     minuti_conferma: int = 30        # modalità conferma: tempo max per rientrare sotto il livello
     buffer_stop_conferma: float = 2.0  # modalità conferma: stop = massimo dello sweep + buffer
 
+    # se True, stop_punti e offset_punti sono "punti al livello del video" (Nasdaq a 29.586) e vengono
+    # scalati col prezzo del giorno: con il Nasdaq a 15.000, 20 punti diventano ~10
+    scala_col_prezzo: bool = False
+    prezzo_video: float = 29586.0
+
     lati: str = "short"              # "short" (come nel video), "long" (sweep del London Low), "entrambi"
     salta_se_gia_preso: bool = True  # se il livello è già stato rotto tra le 05:00 e l'entrata, niente trade
     costo_punti: float = 0.75        # commissioni + slippage per trade, in punti (~1,5 $ a contratto MNQ)
@@ -161,7 +166,9 @@ def _entra(g: Giorno, i0, i1, lato, livello, p: Parametri):
     o, h, l, c = g.o, g.h, g.l, g.c
 
     if p.modalita == "limite":
-        prezzo = livello + segno * p.offset_punti
+        k = livello / p.prezzo_video if p.scala_col_prezzo else 1.0
+        stop_punti = p.stop_punti * k
+        prezzo = livello + segno * p.offset_punti * k
         # l'ordine limite si considera eseguito solo se il prezzo lo SUPERA di un tick
         toccato = h[i0:i1] >= prezzo + TICK if lato == "short" else l[i0:i1] <= prezzo - TICK
         if not toccato.any():
@@ -169,8 +176,8 @@ def _entra(g: Giorno, i0, i1, lato, livello, p: Parametri):
         i = i0 + int(np.argmax(toccato))
         # se la barra apre già oltre il prezzo (gap), il limite viene eseguito all'apertura
         entrata = max(prezzo, o[i]) if lato == "short" else min(prezzo, o[i])
-        stop = entrata + segno * p.stop_punti
-        target = entrata - segno * p.rr * p.stop_punti
+        stop = entrata + segno * stop_punti
+        target = entrata - segno * p.rr * stop_punti
         # stessa barra dell'entrata: se ha toccato anche lo stop, pessimisticamente è stop
         if (h[i] >= stop) if lato == "short" else (l[i] <= stop):
             ora_u, uscita, motivo = g.ore[i], stop, "stop"

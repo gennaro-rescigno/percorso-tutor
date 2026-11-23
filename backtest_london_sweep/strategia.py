@@ -74,57 +74,81 @@ class Trade:
         self.r = self.punti / rischio if rischio else 0.0
 
 
-def prepara(df: pd.DataFrame) -> pd.DataFrame:
-    """Da CSV con colonna 'time' in UTC a indice in ora di New York."""
+@dataclass
+class Giorno:
+    """Le candele di un giorno già pronte come array numpy (molto più veloci di pandas nei cicli)."""
+    data: object
+    ore: pd.DatetimeIndex
+    minuto: np.ndarray  # minuti dalla mezzanotte di New York (es. 9:30 -> 570)
+    o: np.ndarray
+    h: np.ndarray
+    l: np.ndarray
+    c: np.ndarray
+
+
+def _m(t: time) -> int:
+    return t.hour * 60 + t.minute
+
+
+def prepara(df: pd.DataFrame) -> list[Giorno]:
+    """Da DataFrame con colonna 'time' in UTC a lista di giorni in ora di New York."""
     df = df.copy()
     df["time"] = pd.to_datetime(df["time"], utc=True).dt.tz_convert("America/New_York")
     df = df.set_index("time").sort_index()
     df = df[~df.index.duplicated()]
-    return df[["open", "high", "low", "close"]]
+    giorni = []
+    for data, b in df.groupby(df.index.date):
+        if pd.Timestamp(data).weekday() >= 5:
+            continue
+        giorni.append(Giorno(data, b.index, (b.index.hour * 60 + b.index.minute).to_numpy(),
+                             *(b[k].to_numpy(dtype="float64") for k in ["open", "high", "low", "close"])))
+    return giorni
 
 
-def _gestisci_posizione(barre, i_start, lato, entrata, stop, target, p: Parametri):
-    """Scorre le barre da i_start finché non tocca stop, target o l'orario di uscita."""
-    ore = barre.index
-    h, l, c = (barre[k].to_numpy() for k in ["high", "low", "close"])
-    for j in range(i_start, len(barre)):
-        if ore[j].time() >= p.uscita_forzata:
-            return ore[j], barre["open"].iat[j], "fine giornata"
-        if lato == "short":
-            if h[j] >= stop:
-                return ore[j], stop, "stop"
-            if l[j] <= target:
-                return ore[j], target, "target"
-        else:
-            if l[j] <= stop:
-                return ore[j], stop, "stop"
-            if h[j] >= target:
-                return ore[j], target, "target"
-    return ore[-1], c[-1], "fine dati"
+def _gestisci_posizione(g: Giorno, i_start, lato, stop, target, p: Parametri):
+    """Dalla barra i_start cerca il primo tocco di stop o target, altrimenti esce all'orario forzato."""
+    fine = int(np.searchsorted(g.minuto, _m(p.uscita_forzata)))
+    if i_start >= fine:
+        j = min(fine, len(g.c) - 1)
+        return g.ore[j], g.o[j], "fine giornata"
+    h, l = g.h[i_start:fine], g.l[i_start:fine]
+    if lato == "short":
+        colpo_stop, colpo_target = h >= stop, l <= target
+    else:
+        colpo_stop, colpo_target = l <= stop, h >= target
+    i_s = int(np.argmax(colpo_stop)) if colpo_stop.any() else None
+    i_t = int(np.argmax(colpo_target)) if colpo_target.any() else None
+    # a parità di minuto vince lo stop (ipotesi pessimista)
+    if i_s is not None and (i_t is None or i_s <= i_t):
+        return g.ore[i_start + i_s], stop, "stop"
+    if i_t is not None:
+        return g.ore[i_start + i_t], target, "target"
+    if fine < len(g.c):
+        return g.ore[fine], g.o[fine], "fine giornata"
+    return g.ore[-1], g.c[-1], "fine dati"
 
 
-def _trade_del_giorno(giorno, barre: pd.DataFrame, p: Parametri):
-    t = barre.index.time
-    londra = barre[(t >= p.londra_inizio) & (t < p.londra_fine)]
-    if len(londra) < 60:  # sessione di Londra incompleta: salta il giorno
+def _trade_del_giorno(g: Giorno, p: Parametri):
+    m = g.minuto
+    londra = (m >= _m(p.londra_inizio)) & (m < _m(p.londra_fine))
+    if londra.sum() < 60:  # sessione di Londra incompleta: salta il giorno
         return []
-    lh, ll = londra["high"].max(), londra["low"].min()
-
-    pre = barre[(t >= p.londra_fine) & (t < p.entrata_inizio)]
-    sessione = barre[t >= p.entrata_inizio]
-    if len(sessione) < 30:
+    lh, ll = g.h[londra].max(), g.l[londra].min()
+    pre = (m >= _m(p.londra_fine)) & (m < _m(p.entrata_inizio))
+    i0 = int(np.searchsorted(m, _m(p.entrata_inizio)))
+    i1 = int(np.searchsorted(m, _m(p.entrata_fine)))
+    if i1 - i0 < 30:
         return []
 
     lati = ["short", "long"] if p.lati == "entrambi" else [p.lati]
     trades = []
     for lato in lati:
         livello = lh if lato == "short" else ll
-        segno = 1 if lato == "short" else -1  # +1: il livello è sopra, -1: sotto
-        if p.salta_se_gia_preso and len(pre):
-            gia_preso = pre["high"].max() > livello if lato == "short" else pre["low"].min() < livello
+        if p.salta_se_gia_preso and pre.any():
+            gia_preso = g.h[pre].max() > livello if lato == "short" else g.l[pre].min() < livello
             if gia_preso:
                 continue
-        tr = _entra(giorno, sessione, lato, livello, segno, p)
+        tr = _entra(g, i0, i1, lato, livello, p)
         if tr:
             trades.append(tr)
     # se nello stesso giorno scattano entrambi i lati teniamo solo il primo (un trade al giorno)
@@ -132,64 +156,53 @@ def _trade_del_giorno(giorno, barre: pd.DataFrame, p: Parametri):
     return trades[:1]
 
 
-def _entra(giorno, s: pd.DataFrame, lato, livello, segno, p: Parametri):
-    ore = s.index
-    o, h, l, c = (s[k].to_numpy() for k in ["open", "high", "low", "close"])
-    n_finestra = int(np.searchsorted(np.array([x.time() for x in ore]), p.entrata_fine))
-    # (l'array di orari è ordinato dentro la giornata, quindi searchsorted va bene)
+def _entra(g: Giorno, i0, i1, lato, livello, p: Parametri):
+    segno = 1 if lato == "short" else -1  # +1: il livello è sopra il prezzo, -1: sotto
+    o, h, l, c = g.o, g.h, g.l, g.c
 
     if p.modalita == "limite":
         prezzo = livello + segno * p.offset_punti
-        for i in range(n_finestra):
-            # l'ordine limite si considera eseguito solo se il prezzo lo SUPERA di un tick
-            toccato = h[i] >= prezzo + TICK if lato == "short" else l[i] <= prezzo - TICK
-            if not toccato:
-                continue
-            # se la barra apre già oltre il prezzo (gap), il limite viene eseguito all'apertura
-            entrata = max(prezzo, o[i]) if lato == "short" else min(prezzo, o[i])
-            stop = entrata + segno * p.stop_punti
-            target = entrata - segno * p.rr * p.stop_punti
-            # stessa barra dell'entrata: se ha toccato anche lo stop, pessimisticamente è stop
-            colpito_stop = h[i] >= stop if lato == "short" else l[i] <= stop
-            if colpito_stop:
-                ora_u, uscita, motivo = ore[i], stop, "stop"
-            else:
-                ora_u, uscita, motivo = _gestisci_posizione(s, i + 1, lato, entrata, stop, target, p)
-            return Trade(giorno, lato, ore[i], entrata, stop, target, ora_u, uscita, motivo, livello)
-        return None
+        # l'ordine limite si considera eseguito solo se il prezzo lo SUPERA di un tick
+        toccato = h[i0:i1] >= prezzo + TICK if lato == "short" else l[i0:i1] <= prezzo - TICK
+        if not toccato.any():
+            return None
+        i = i0 + int(np.argmax(toccato))
+        # se la barra apre già oltre il prezzo (gap), il limite viene eseguito all'apertura
+        entrata = max(prezzo, o[i]) if lato == "short" else min(prezzo, o[i])
+        stop = entrata + segno * p.stop_punti
+        target = entrata - segno * p.rr * p.stop_punti
+        # stessa barra dell'entrata: se ha toccato anche lo stop, pessimisticamente è stop
+        if (h[i] >= stop) if lato == "short" else (l[i] <= stop):
+            ora_u, uscita, motivo = g.ore[i], stop, "stop"
+        else:
+            ora_u, uscita, motivo = _gestisci_posizione(g, i + 1, lato, stop, target, p)
+        return Trade(g.data, lato, g.ore[i], entrata, stop, target, ora_u, uscita, motivo, livello)
 
     if p.modalita == "conferma":
-        estremo, i_sweep = None, None
-        for i in range(n_finestra):
-            oltre = h[i] > livello if lato == "short" else l[i] < livello
-            if i_sweep is None:
-                if oltre:
-                    i_sweep, estremo = i, (h[i] if lato == "short" else l[i])
-                else:
-                    continue
+        oltre = h[i0:i1] > livello if lato == "short" else l[i0:i1] < livello
+        if not oltre.any():
+            return None
+        i_sweep = i0 + int(np.argmax(oltre))
+        estremo = h[i_sweep] if lato == "short" else l[i_sweep]
+        for i in range(i_sweep, min(i1, i_sweep + p.minuti_conferma + 1)):
             estremo = max(estremo, h[i]) if lato == "short" else min(estremo, l[i])
-            if i - i_sweep > p.minuti_conferma:
-                return None
             rientrato = c[i] < livello if lato == "short" else c[i] > livello
             if rientrato:
                 entrata = c[i]
                 stop = estremo + segno * p.buffer_stop_conferma
-                rischio = abs(stop - entrata)
-                target = entrata - segno * p.rr * rischio
-                ora_u, uscita, motivo = _gestisci_posizione(s, i + 1, lato, entrata, stop, target, p)
-                return Trade(giorno, lato, ore[i], entrata, stop, target, ora_u, uscita, motivo, livello)
+                target = entrata - segno * p.rr * abs(stop - entrata)
+                ora_u, uscita, motivo = _gestisci_posizione(g, i + 1, lato, stop, target, p)
+                return Trade(g.data, lato, g.ore[i], entrata, stop, target, ora_u, uscita, motivo, livello)
         return None
 
     raise ValueError(f"modalità sconosciuta: {p.modalita}")
 
 
-def esegui(df: pd.DataFrame, p: Parametri) -> pd.DataFrame:
-    """Esegue il backtest su tutto il DataFrame (già passato da prepara())."""
+def esegui(giorni: list[Giorno], p: Parametri) -> pd.DataFrame:
+    """Esegue il backtest su tutti i giorni (output di prepara())."""
     trades = []
-    for giorno, barre in df.groupby(df.index.date):
-        if pd.Timestamp(giorno).weekday() >= 5:
-            continue
-        trades += _trade_del_giorno(giorno, barre, p)
+    for g in giorni:
+        trades += _trade_del_giorno(g, p)
     out = pd.DataFrame([asdict(t) | {"punti": t.punti, "r": t.r} for t in trades])
     if len(out):
         rischio = (out["stop"] - out["entrata"]).abs()
@@ -221,5 +234,6 @@ def statistiche(tr: pd.DataFrame, giorni_totali: int | None = None) -> dict:
     if giorni_totali:
         st["trade_%_giorni"] = round(100 * len(tr) / giorni_totali, 1)
     # t-statistic dell'R medio: sotto ~2 il risultato non si distingue dal caso
-    st["t_stat"] = round(r.mean() / (r.std(ddof=1) / np.sqrt(len(r))), 2) if len(r) > 2 else np.nan
+    dev = r.std(ddof=1) if len(r) > 2 else 0
+    st["t_stat"] = round(r.mean() / (dev / np.sqrt(len(r))), 2) if dev > 0 else np.nan
     return st
